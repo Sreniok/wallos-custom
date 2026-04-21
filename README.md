@@ -27,8 +27,72 @@ Runtime/private data is intentionally excluded from this repository:
 
 Keep using Docker volumes for the database and uploaded logos.
 
-## Build
+## Requirements
+
+- Docker
+- Docker Compose v2, available as `docker compose`
+
+## Install
+
+Clone this repository:
+
+```sh
+git clone https://github.com/Sreniok/wallos-custom.git
+cd wallos-custom
+```
+
+Create the persistent data folders:
+
+```sh
+mkdir -p db logos
+```
+
+Review `docker-compose.yml` before starting. By default this custom build:
+
+- builds the image locally as `wallos-custom:latest`
+- exposes Wallos on host port `8282`
+- stores the SQLite database in `./db`
+- stores uploaded logos in `./logos`
+- sets the timezone with `TZ`
+
+Start Wallos:
 
 ```sh
 docker compose up -d --build wallos
+```
+
+Open Wallos in your browser:
+
+```text
+http://localhost:8282
+```
+
+If Wallos is running on another server, replace `localhost` with that server's IP address or domain.
+
+## Updating
+
+Pull the latest repository changes, rebuild, and restart:
+
+```sh
+git pull
+docker compose up -d --build wallos
+```
+
+## Backups
+
+Back up these folders before upgrades or server moves:
+
+```sh
+db/
+logos/
+```
+
+Those folders contain your private Wallos data and are intentionally not committed to GitHub.
+
+## Mobile/PWA Cache
+
+This build includes cache improvements for the mobile/PWA experience. If your mobile app still shows an older version after updating, open Wallos Settings and use:
+
+```text
+Maintenance -> Clear browser cache and reload
 ```
