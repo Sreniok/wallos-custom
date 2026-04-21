@@ -1,6 +1,7 @@
 # Local/private Wallos runtime data
 /db/
 /logos/
+/backups/
 /app/db/
 /app/images/uploads/logos/
 

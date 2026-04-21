@@ -44,7 +44,7 @@ cd wallos-custom
 Create the persistent data folders:
 
 ```sh
-mkdir -p db logos
+mkdir -p db logos backups
 ```
 
 Review `docker-compose.yml` before starting. By default this custom build:
@@ -53,6 +53,7 @@ Review `docker-compose.yml` before starting. By default this custom build:
 - exposes Wallos on host port `8282`
 - stores the SQLite database in `./db`
 - stores uploaded logos in `./logos`
+- stores scheduled backup archives in `./backups`
 - sets the timezone with `TZ`
 
 Start Wallos:
@@ -80,14 +81,29 @@ docker compose up -d --build wallos
 
 ## Backups
 
-Back up these folders before upgrades or server moves:
+Manual backups are available inside Wallos from:
 
-```sh
-db/
-logos/
+```text
+Settings -> Backup and Restore -> Backup
 ```
 
-Those folders contain your private Wallos data and are intentionally not committed to GitHub.
+This build also creates a scheduled backup every day at `03:15` container time. By default, backup archives are written to:
+
+```text
+./backups
+```
+
+You can change the in-container backup path and retention in `docker-compose.yml`:
+
+```yaml
+environment:
+  WALLOS_BACKUP_PATH: '/var/www/html/backups'
+  WALLOS_BACKUP_RETENTION_DAYS: '30'
+volumes:
+  - './backups:/var/www/html/backups'
+```
+
+Backups include the SQLite database and uploaded logos. The `db/`, `logos/`, and `backups/` folders contain private Wallos data and are intentionally not committed to GitHub.
 
 ## Mobile/PWA Cache
 

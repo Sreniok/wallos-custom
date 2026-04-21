@@ -515,6 +515,7 @@ $loginDisabledAllowed = $userCount == 1 && $settings['registrations_open'] == 0;
     </section>
 
     <section class="account-section">
+        <?php $backupPath = getenv('WALLOS_BACKUP_PATH') ?: '/var/www/html/backups'; ?>
         <header>
             <h2><?= translate('backup_and_restore', $i18n) ?></h2>
         </header>
@@ -527,6 +528,12 @@ $loginDisabledAllowed = $userCount == 1 && $settings['registrations_open'] == 0;
                 accept=".zip">
         </div>
         <div class="settings-notes">
+            <p>
+                <i class="fa-solid fa-clock-rotate-left"></i>
+                <?= translate('scheduled_backups', $i18n) ?>
+                <code><?= htmlspecialchars($backupPath, ENT_QUOTES, 'UTF-8') ?></code>.
+                <?= translate('scheduled_backup_retention', $i18n) ?>
+            </p>
             <p>
                 <i class="fa-solid fa-circle-info"></i>
                 <?= translate('restore_info', $i18n) ?>

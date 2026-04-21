@@ -13,8 +13,10 @@ PGID=${PGID:-82}
 groupmod -o -g "$PGID" www-data
 usermod -o -u "$PUID" www-data
 
-mkdir -p /tmp /var/www/html/db /var/www/html/images/uploads/logos/avatars
-chown -R www-data:www-data /tmp /var/www/html/db /var/www/html/images/uploads/logos
+BACKUP_PATH=${WALLOS_BACKUP_PATH:-/var/www/html/backups}
+
+mkdir -p /tmp /var/www/html/.tmp /var/www/html/db /var/www/html/images/uploads/logos/avatars "$BACKUP_PATH"
+chown -R www-data:www-data /tmp /var/www/html/.tmp /var/www/html/db /var/www/html/images/uploads/logos "$BACKUP_PATH"
 chmod -R 770 /tmp
 
 # PIDs we’ll track
