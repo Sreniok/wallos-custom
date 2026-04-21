@@ -56,27 +56,51 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
 }
 $hasOverdueSubscriptions = !empty($overdueSubscriptions);
 
-// Fetch payments explicitly recorded this month.
+// Fetch payments explicitly recorded this month and auto-renewed payments that already passed.
 $monthStart = new DateTimeImmutable('first day of this month');
 $today = new DateTimeImmutable('today');
 
-$stmt = $db->prepare("SELECT id, logo, name, price, currency_id, last_payment_date FROM subscriptions WHERE user_id = :userId AND last_payment_date BETWEEN :monthStart AND :today ORDER BY last_payment_date DESC");
+$stmt = $db->prepare("SELECT id, logo, name, price, currency_id, next_payment, last_payment_date, start_date, cycle, frequency, auto_renew FROM subscriptions WHERE user_id = :userId AND inactive = 0 AND (auto_renew = 1 OR last_payment_date BETWEEN :monthStart AND :today)");
 $stmt->bindValue(':userId', $userId, SQLITE3_INTEGER);
 $stmt->bindValue(':monthStart', $monthStart->format('Y-m-d'), SQLITE3_TEXT);
 $stmt->bindValue(':today', $today->format('Y-m-d'), SQLITE3_TEXT);
 $result = $stmt->execute();
 $paidThisMonthSubscriptions = [];
+$paidThisMonthKeys = [];
 
 while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
-    $paidThisMonthSubscriptions[] = [
-        'id' => $row['id'],
-        'logo' => $row['logo'],
-        'name' => $row['name'],
-        'price' => $row['price'],
-        'currency_id' => $row['currency_id'],
-        'payment_date' => $row['last_payment_date'],
-    ];
+    $paymentDates = [];
+
+    if (!empty($row['last_payment_date'])) {
+        $lastPaymentDate = new DateTimeImmutable($row['last_payment_date']);
+        if ($lastPaymentDate >= $monthStart && $lastPaymentDate <= $today) {
+            $paymentDates[] = $lastPaymentDate->format('Y-m-d');
+        }
+    }
+
+    $paymentDates = array_merge($paymentDates, getPassedAutoRenewalOccurrencesInRange($row, $monthStart, $today));
+
+    foreach (array_unique($paymentDates) as $paymentDate) {
+        $paymentKey = $row['id'] . ':' . $paymentDate;
+        if (isset($paidThisMonthKeys[$paymentKey])) {
+            continue;
+        }
+
+        $paidThisMonthKeys[$paymentKey] = true;
+        $paidThisMonthSubscriptions[] = [
+            'id' => $row['id'],
+            'logo' => $row['logo'],
+            'name' => $row['name'],
+            'price' => $row['price'],
+            'currency_id' => $row['currency_id'],
+            'payment_date' => $paymentDate,
+        ];
+    }
 }
+
+usort($paidThisMonthSubscriptions, function ($left, $right) {
+    return strcmp($right['payment_date'], $left['payment_date']);
+});
 
 require_once 'includes/stats_calculations.php';
 

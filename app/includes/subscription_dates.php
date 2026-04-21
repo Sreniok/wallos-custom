@@ -115,3 +115,48 @@ function getSubscriptionOccurrencesInRange($subscription, $rangeStart, $rangeEnd
 
     return array_values(array_unique($occurrences));
 }
+
+function getPassedAutoRenewalOccurrencesInRange($subscription, $rangeStart, $rangeEnd)
+{
+    $rangeStart = new DateTimeImmutable($rangeStart->format('Y-m-d'));
+    $rangeEnd = new DateTimeImmutable($rangeEnd->format('Y-m-d'));
+
+    if ($rangeEnd < $rangeStart || empty($subscription['auto_renew'])) {
+        return [];
+    }
+
+    $startDate = normalizeSubscriptionDate($subscription['start_date'] ?? null);
+    $nextPaymentDate = normalizeSubscriptionDate($subscription['next_payment'] ?? null);
+
+    if ($nextPaymentDate === null) {
+        return [];
+    }
+
+    $occurrences = [];
+
+    if (
+        $startDate !== null &&
+        $startDate >= $rangeStart &&
+        $startDate <= $rangeEnd &&
+        $startDate < $nextPaymentDate
+    ) {
+        $occurrences[] = $startDate->format('Y-m-d');
+    }
+
+    $interval = getSubscriptionInterval($subscription['cycle'] ?? 3, $subscription['frequency'] ?? 1);
+    $occurrenceDate = $nextPaymentDate;
+
+    while ($occurrenceDate > $rangeEnd) {
+        $occurrenceDate = $occurrenceDate->sub($interval);
+    }
+
+    while ($occurrenceDate >= $rangeStart) {
+        if ($startDate === null || $occurrenceDate >= $startDate) {
+            $occurrences[] = $occurrenceDate->format('Y-m-d');
+        }
+
+        $occurrenceDate = $occurrenceDate->sub($interval);
+    }
+
+    return array_values(array_unique($occurrences));
+}
