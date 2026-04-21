@@ -1,0 +1,32 @@
+# Local/private Wallos runtime data
+/db/
+/logos/
+/app/db/
+/app/images/uploads/logos/
+
+# Local agent/tooling state
+/.codex
+/.codex/
+
+# OS/generated files
+Thumbs.db
+**/Thumbs.db
+.DS_Store
+
+# Environment and secrets
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+secrets.*
+*.secret
+
+# Backups and database dumps
+*.db
+*.sqlite
+*.sqlite3
+*.bak
+*.backup
+*.dump
