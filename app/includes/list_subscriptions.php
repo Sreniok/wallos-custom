@@ -1,7 +1,8 @@
 <?php
 
-require_once 'i18n/getlang.php';
-require_once 'date_formatter.php';
+require_once __DIR__ . '/i18n/getlang.php';
+require_once __DIR__ . '/formatting_helpers.php';
+require_once __DIR__ . '/subscription_dates.php';
 
 function getBillingCycle($cycle, $frequency, $i18n)
 {
@@ -19,22 +20,9 @@ function getBillingCycle($cycle, $frequency, $i18n)
 
 function getSubscriptionProgress($cycle, $frequency, $next_payment)
 {
-    $nextPaymentDate = new DateTime($next_payment);
-    $currentDate = new DateTime('now');
-
-    $paymentCycleDays = 30; // Default to monthly
-    if ($cycle === 1) {
-        $paymentCycleDays = 1 * $frequency;
-    } else if ($cycle === 2) {
-        $paymentCycleDays = 7 * $frequency;
-    } else if ($cycle === 3) {
-        $paymentCycleDays = 30 * $frequency;
-    } else if ($cycle === 4) {
-        $paymentCycleDays = 365 * $frequency;
-    }
-
-    $lastPaymentDate = clone $nextPaymentDate;
-    $lastPaymentDate->modify("-$paymentCycleDays days");
+    $nextPaymentDate = new DateTimeImmutable($next_payment);
+    $currentDate = new DateTimeImmutable('now');
+    $lastPaymentDate = $nextPaymentDate->sub(getSubscriptionInterval($cycle, $frequency));
 
     $totalCycleDays = $lastPaymentDate->diff($nextPaymentDate)->days;
     $daysSinceLastPayment = $lastPaymentDate->diff($currentDate)->days;
@@ -45,67 +33,6 @@ function getSubscriptionProgress($cycle, $frequency, $next_payment)
     }
 
     return floor($subscriptionProgress);
-}
-
-function getPricePerMonth($cycle, $frequency, $price)
-{
-    switch ($cycle) {
-        case 1:
-            $numberOfPaymentsPerMonth = (30 / $frequency);
-            return $price * $numberOfPaymentsPerMonth;
-        case 2:
-            $numberOfPaymentsPerMonth = (4.35 / $frequency);
-            return $price * $numberOfPaymentsPerMonth;
-        case 3:
-            $numberOfPaymentsPerMonth = (1 / $frequency);
-            return $price * $numberOfPaymentsPerMonth;
-        case 4:
-            $numberOfMonths = (12 * $frequency);
-            return $price / $numberOfMonths;
-    }
-}
-
-
-function getPriceConverted($price, $currency, $database)
-{
-    $query = "SELECT rate FROM currencies WHERE id = :currency";
-    $stmt = $database->prepare($query);
-    $stmt->bindParam(':currency', $currency, SQLITE3_INTEGER);
-    $result = $stmt->execute();
-
-    $exchangeRate = $result->fetchArray(SQLITE3_ASSOC);
-    if ($exchangeRate === false) {
-        return $price;
-    } else {
-        $fromRate = $exchangeRate['rate'];
-        return $price / $fromRate;
-    }
-}
-
-function formatPrice($price, $currencyCode, $currencies)
-{
-    $formattedPrice = CurrencyFormatter::format($price, $currencyCode);
-    if (strstr($formattedPrice, $currencyCode)) {
-        $symbol = $currencyCode;
-        
-        foreach ($currencies as $currency) {
-
-            if ($currency['code'] === $currencyCode) {
-                if ($currency['symbol'] != "") {
-                    $symbol = $currency['symbol'];
-                }
-                break;
-            }
-        }
-        $formattedPrice = str_replace($currencyCode, $symbol, $formattedPrice);
-    }
-
-    return $formattedPrice;
-}
-
-function formatDate($date, $lang = 'en')
-{
-    return wallosFormatSubscriptionDate($date, $lang);
 }
 
 function formatNotificationLeadTime($days, $i18n)
@@ -185,35 +112,35 @@ function printSubscriptions($subscriptions, $sort, $categories, $members, $i18n,
             $currentPaymentMethodId = $subscription['payment_method_id'];
         }
         ?>
-        <div class="subscription-container">
+        <div class="subscription-container" tabindex="0" role="group" aria-label="<?= htmlspecialchars($subscription['name'], ENT_QUOTES, 'UTF-8') ?>">
             <?php
             if ($mobileNavigation === 'true') {
                 ?>
                 <div class="mobile-actions" data-id="<?= $subscription['id'] ?>">
                     <button class="mobile-action-clone"></button>
-                    <button class="mobile-action-clone" onClick="cloneSubscription(event, <?= $subscription['id'] ?>)">
+                    <button class="mobile-action-clone" aria-label="<?= translate('clone', $i18n) ?>" onClick="cloneSubscription(event, <?= $subscription['id'] ?>)">
                         <?php include $imagePath . "images/siteicons/svg/mobile-menu/clone.php"; ?>
                         Clone
                     </button>
-                    <button class="mobile-action-delete" onClick="deleteSubscription(event, <?= $subscription['id'] ?>)">
+                    <button class="mobile-action-delete" aria-label="<?= translate('delete', $i18n) ?>" onClick="deleteSubscription(event, <?= $subscription['id'] ?>)">
                         <?php include $imagePath . "images/siteicons/svg/mobile-menu/delete.php"; ?>
                         Delete
                     </button>
                     <?php
                     if ($subscription['auto_renew'] != 1) {
                         ?>
-                        <button class="mobile-action-paid" onClick="markSubscriptionPaid(event, <?= $subscription['id'] ?>)">
+                        <button class="mobile-action-paid" aria-label="<?= translate('mark_paid', $i18n) ?>" onClick="markSubscriptionPaid(event, <?= $subscription['id'] ?>)">
                             <?php include $imagePath . "images/siteicons/svg/check.php"; ?>
                             <?= translate('mark_paid', $i18n) ?>
                         </button>
-                        <button class="mobile-action-renew" onClick="renewSubscription(event, <?= $subscription['id'] ?>)">
+                        <button class="mobile-action-renew" aria-label="<?= translate('skip_missing_payments', $i18n) ?>" onClick="renewSubscription(event, <?= $subscription['id'] ?>)">
                             <?php include $imagePath . "images/siteicons/svg/mobile-menu/renew.php"; ?>
                             <?= translate('skip_missing_payments', $i18n) ?>
                         </button>
                         <?php
                     }
                     ?>
-                    <button class="mobile-action-edit" onClick="openEditSubscription(event, <?= $subscription['id'] ?>)">
+                    <button class="mobile-action-edit" aria-label="<?= translate('edit_subscription', $i18n) ?>" onClick="openEditSubscription(event, <?= $subscription['id'] ?>)">
                         <?php include $imagePath . "images/siteicons/svg/mobile-menu/edit.php"; ?>
                         Edit
                     </button>
@@ -238,7 +165,8 @@ function printSubscriptions($subscriptions, $sort, $categories, $members, $i18n,
 
             <div class="subscription<?= $subscriptionExtraClasses ?>"
                 onClick="toggleOpenSubscription(<?= $subscription['id'] ?>)" data-id="<?= $subscription['id'] ?>"
-                data-name="<?= $subscription['name'] ?>">
+                data-name="<?= $subscription['name'] ?>" role="button" tabindex="0"
+                onKeyDown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); toggleOpenSubscription(<?= $subscription['id'] ?>); }">
                 <div class="subscription-main">
                     <span class="logo <?= !$hasLogo ? 'hideOnMobile' : '' ?>">
                         <?php
@@ -251,7 +179,27 @@ function printSubscriptions($subscriptions, $sort, $categories, $members, $i18n,
                         }
                         ?>
                     </span>
-                    <span class="name <?= $hasLogo ? 'hideOnMobile' : '' ?>"><?= $subscription['name'] ?></span>
+                    <?php
+                    $hasNameBadge = !empty($subscription['notify'])
+                        || !empty($subscription['adjust_to_working_day'])
+                        || !empty($subscription['inactive']);
+                    ?>
+                    <span class="name <?= $hasLogo ? 'hideOnMobile' : '' ?>">
+                        <span class="name-text"><?= $subscription['name'] ?></span>
+                        <?php if ($hasNameBadge): ?>
+                            <span class="name-badges">
+                                <?php if (!empty($subscription['notify'])): ?>
+                                    <span class="meta-badge meta-notify" title="<?= translate('notify_me', $i18n) ?>"><i class="fa-solid fa-bell"></i></span>
+                                <?php endif; ?>
+                                <?php if (!empty($subscription['adjust_to_working_day'])): ?>
+                                    <span class="meta-badge meta-workday" title="<?= translate('adjust_to_working_day', $i18n) ?: 'Adjusts to working day' ?>"><i class="fa-solid fa-calendar-day"></i></span>
+                                <?php endif; ?>
+                                <?php if (!empty($subscription['inactive'])): ?>
+                                    <span class="meta-badge meta-inactive" title="<?= translate('disabled', $i18n) ?: 'Disabled' ?>"><i class="fa-solid fa-circle-minus"></i></span>
+                                <?php endif; ?>
+                            </span>
+                        <?php endif; ?>
+                    </span>
                     <span class="cycle"
                         title="<?= $subscription['auto_renew'] ? translate("automatically_renews", $i18n) : translate("manual_renewal", $i18n) ?>">
                         <?php
@@ -264,6 +212,23 @@ function printSubscriptions($subscriptions, $sort, $categories, $members, $i18n,
                         <?= $subscription['billing_cycle'] ?>
                     </span>
                     <span class="next"><?= formatDate($subscription['next_payment'], $lang) ?></span>
+                    <?php
+                    // Mobile meta line — mockup style: "in 3 days · auto · Visa"
+                    $rawDate = $subscription['raw_next_payment'] ?? $subscription['next_payment'];
+                    $relLabel = wallosRelativeDayLabel($rawDate);
+                    $renewLabel = ((int) $subscription['auto_renew'] === 1) ? 'auto' : 'manual';
+                    $relIsLate = strpos($relLabel, 'late') !== false;
+                    ?>
+                    <span class="subscription-mobile-meta">
+                        <span class="date-label"><?= htmlspecialchars(formatDate($subscription['next_payment'], $lang)) ?></span>
+                        <?php if (!empty($relLabel)): ?>
+                            <span class="rel-time<?= $relIsLate ? ' overdue' : '' ?>"><?= htmlspecialchars($relLabel) ?></span>
+                        <?php endif; ?>
+                        <span class="renew-label"><?= $renewLabel ?></span>
+                        <?php if (!empty($subscription['payment_method_name'])): ?>
+                            <span class="pm-label"><?= htmlspecialchars($subscription['payment_method_name']) ?></span>
+                        <?php endif; ?>
+                    </span>
                     <span class="price">
                         <span class="value">
                             <?= formatPrice($subscription['price'], $subscription['currency_code'], $currencies) ?>
@@ -276,7 +241,7 @@ function printSubscriptions($subscriptions, $sort, $categories, $members, $i18n,
                             }
                             ?>
                         </span>
-
+                        <span class="cycle-suffix"><?= wallosCycleSuffix($subscription['cycle'] ?? 0) ?></span>
                     </span>
                     <span class="payment_method">
                         <img src="<?= $subscription['payment_method_icon'] ?>"
@@ -290,6 +255,7 @@ function printSubscriptions($subscriptions, $sort, $categories, $members, $i18n,
                     }
                     ?>
                     <button type="button" class="actions-expand <?= $desktopMenuButtonClass ?>"
+                        aria-label="<?= translate('more_options', $i18n) ?>"
                         onClick="expandActions(event, <?= $subscription['id'] ?>)">
                         <i class="fas fa-ellipsis-v"></i>
                     </button>
@@ -330,15 +296,36 @@ function printSubscriptions($subscriptions, $sort, $categories, $members, $i18n,
                 <div class="subscription-secondary">
                     <span
                         class="name"><?php include $imagePath . "images/siteicons/svg/subscription.php"; ?><?= $subscription['name'] ?></span>
-                    <span class="payer_user"
-                        title="<?= translate('paid_by', $i18n) ?>"><?php include $imagePath . "images/siteicons/svg/payment.php"; ?><?= $members[$subscription['payer_user_id']]['name'] ?></span>
                     <span class="category"
                         title="<?= translate('category', $i18n) ?>"><?php include $imagePath . "images/siteicons/svg/category.php"; ?><?= $categories[$subscription['category_id']]['name'] ?></span>
+                    <span class="payer_user"
+                        title="<?= translate('paid_by', $i18n) ?>"><?php include $imagePath . "images/siteicons/svg/payment.php"; ?><?= $members[$subscription['payer_user_id']]['name'] ?></span>
+                    <span class="payment-method-name"
+                        title="<?= translate('payment_method', $i18n) ?>"><img src="<?= $subscription['payment_method_icon'] ?>" alt=""><?= htmlspecialchars($subscription['payment_method_name'] ?? '') ?></span>
                     <?php
                     if (!empty($subscription['notification_rule_label'])) {
                         ?>
-                        <span class="notification-rule"
-                            title="<?= translate('notify_me', $i18n) ?>"><?= htmlspecialchars($subscription['notification_rule_label']) ?></span>
+                        <span class="notification-rule" title="<?= htmlspecialchars($subscription['notification_rule_label']) ?>">
+                            <i class="fa-solid fa-bell"></i><span class="rule-text"><?= htmlspecialchars($subscription['notification_rule_label']) ?></span>
+                        </span>
+                        <?php
+                    }
+                    ?>
+                    <?php
+                    if (!empty($subscription['adjust_to_working_day'])) {
+                        ?>
+                        <span class="working-day-badge" title="<?= translate('adjust_to_working_day', $i18n) ?: 'Adjusts to working day' ?>">
+                            <i class="fa-solid fa-calendar-day"></i><span class="badge-text">working day</span>
+                        </span>
+                        <?php
+                    }
+                    ?>
+                    <?php
+                    if (!empty($subscription['inactive'])) {
+                        ?>
+                        <span class="inactive-badge" title="<?= translate('disabled', $i18n) ?: 'Disabled' ?>">
+                            <i class="fa-solid fa-circle-minus"></i><span class="badge-text">inactive</span>
+                        </span>
                         <?php
                     }
                     ?>

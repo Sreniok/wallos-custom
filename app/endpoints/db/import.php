@@ -1,5 +1,6 @@
 <?php
 require_once '../../includes/connect_endpoint.php';
+require_once '../../includes/safe_zip.php';
 
 $result = $db->query("SELECT COUNT(*) as count FROM user");
 $row = $result->fetchArray(SQLITE3_NUM);
@@ -32,14 +33,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $fileDestination = '../../.tmp/restore.zip';
             move_uploaded_file($fileTmpName, $fileDestination);
 
-            $zip = new ZipArchive();
-            if ($zip->open($fileDestination) === true) {
-                $zip->extractTo('../../.tmp/restore/');
-                $zip->close();
-            } else {
+            $extractResult = wallosSafeZipExtract($fileDestination, '../../.tmp/restore/');
+            if (!$extractResult['ok']) {
+                @emptyRestoreFolder();
                 die(json_encode([
                     "success" => false,
-                    "message" => "Failed to extract the uploaded file"
+                    "message" => "Failed to extract the uploaded file: " . ($extractResult['error'] ?? 'unknown error')
                 ]));
             }
 

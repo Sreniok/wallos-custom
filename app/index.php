@@ -4,32 +4,6 @@ require_once 'includes/header.php';
 require_once 'includes/getdbkeys.php';
 require_once 'includes/subscription_dates.php';
 
-function formatPrice($price, $currencyCode, $currencies)
-{
-    $formattedPrice = CurrencyFormatter::format($price, $currencyCode);
-    if (strstr($formattedPrice, $currencyCode)) {
-        $symbol = $currencyCode;
-
-        foreach ($currencies as $currency) {
-
-            if ($currency['code'] === $currencyCode) {
-                if ($currency['symbol'] != "") {
-                    $symbol = $currency['symbol'];
-                }
-                break;
-            }
-        }
-        $formattedPrice = str_replace($currencyCode, $symbol, $formattedPrice);
-    }
-
-    return $formattedPrice;
-}
-
-function formatDate($date, $lang = 'en')
-{
-    return wallosFormatSubscriptionDate($date, $lang);
-}
-
 // Get the first name of the user
 $stmt = $db->prepare("SELECT username, firstname FROM user WHERE id = :userId");
 $stmt->bindValue(':userId', $userId, SQLITE3_INTEGER);
@@ -38,7 +12,7 @@ $user = $result->fetchArray(SQLITE3_ASSOC);
 $first_name = $user['firstname'] ?? $user['username'] ?? '';
 
 // Fetch the next 3 enabled subscriptions that are due after today.
-$stmt = $db->prepare("SELECT id, logo, name, price, currency_id, next_payment, inactive FROM subscriptions WHERE user_id = :userId AND next_payment > date('now') AND inactive = 0 ORDER BY next_payment ASC LIMIT 3");
+$stmt = $db->prepare("SELECT id, logo, name, price, currency_id, next_payment, inactive, auto_renew, cycle, frequency FROM subscriptions WHERE user_id = :userId AND next_payment > date('now') AND inactive = 0 ORDER BY next_payment ASC LIMIT 3");
 $stmt->bindValue(':userId', $userId, SQLITE3_INTEGER);
 $result = $stmt->execute();
 $upcomingSubscriptions = [];
@@ -47,7 +21,7 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
 }
 
 // Fetch enabled subscriptions with manual renewal that are overdue
-$stmt = $db->prepare("SELECT id, logo, name, price, currency_id, next_payment, inactive, auto_renew FROM subscriptions WHERE user_id = :userId AND next_payment < date('now') AND auto_renew = 0 AND inactive = 0 ORDER BY next_payment ASC");
+$stmt = $db->prepare("SELECT id, logo, name, price, currency_id, next_payment, inactive, auto_renew, cycle, frequency FROM subscriptions WHERE user_id = :userId AND next_payment < date('now') AND auto_renew = 0 AND inactive = 0 ORDER BY next_payment ASC");
 $stmt->bindValue(':userId', $userId, SQLITE3_INTEGER);
 $result = $stmt->execute();
 $overdueSubscriptions = [];
@@ -94,6 +68,8 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
             'price' => $row['price'],
             'currency_id' => $row['currency_id'],
             'payment_date' => $paymentDate,
+            'cycle' => $row['cycle'],
+            'frequency' => $row['frequency'],
         ];
     }
 }
@@ -144,6 +120,8 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
     ?>
     <h1><?= translate('hello', $i18n) ?> <?= htmlspecialchars($first_name) ?></h1>
 
+    <?php require 'includes/next_payment_hero.php'; ?>
+
     <?php
     // If there are overdue subscriptions, display them
     if ($hasOverdueSubscriptions) {
@@ -162,9 +140,10 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
                         $subscriptionNextPayment = $subscription['next_payment'];
                         $subscriptionDisplayNextPayment = date('F j', strtotime($subscriptionNextPayment));
                         $subscriptionDisplayPrice = formatPrice($subscriptionPrice, $currencies[$subscriptionCurrency]['code'], $currencies);
+                        $subscriptionCycleSuffix = wallosCycleSuffix($subscription['cycle'] ?? 0, $subscription['frequency'] ?? 1);
 
                         ?>
-                        <div class="subscription-item subscription-item-clickable" onClick="openSubscriptionModal(<?= (int) $subscription['id'] ?>)">
+                        <div class="subscription-item subscription-item-clickable" role="button" tabindex="0" onClick="openSubscriptionModal(<?= (int) $subscription['id'] ?>)" onKeyDown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openSubscriptionModal(<?= (int) $subscription['id'] ?>); }">
                             <?php
                             if (empty($subscription['logo'])) {
                                 ?>
@@ -177,10 +156,18 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
                                 <?php
                             }
                             ?>
+                            <p class="subscription-item-name"><?= $subscriptionName ?></p>
+                            <p class="subscription-item-meta">
+                                <span class="rel-time overdue"><?= htmlspecialchars(wallosRelativeDayLabel($subscriptionNextPayment)) ?></span>
+                                <span class="meta-sep">·</span>
+                                <span class="rel-date"><?= htmlspecialchars(formatDate($subscriptionDisplayNextPayment, $lang)) ?></span>
+                                <span class="meta-sep">·</span>
+                                <span class="renew-label"><?= ((int) $subscription['auto_renew'] === 1) ? 'auto-renew' : 'manual' ?></span>
+                            </p>
                             <div class="subscription-item-info">
                                 <p class="subscription-item-date"> <?= formatDate($subscriptionDisplayNextPayment, $lang) ?>
                                 </p>
-                                <p class="subscription-item-price"> <?= $subscriptionDisplayPrice ?></p>
+                                <p class="subscription-item-price"><span class="price-amount"><?= $subscriptionDisplayPrice ?></span><span class="price-cycle"><?= htmlspecialchars($subscriptionCycleSuffix) ?></span></p>
                             </div>
                         </div>
                         <?php
@@ -211,9 +198,10 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
                         $subscriptionNextPayment = $subscription['next_payment'];
                         $subscriptionDisplayNextPayment = date('F j', strtotime($subscriptionNextPayment));
                         $subscriptionDisplayPrice = formatPrice($subscriptionPrice, $currencies[$subscriptionCurrency]['code'], $currencies);
+                        $subscriptionCycleSuffix = wallosCycleSuffix($subscription['cycle'] ?? 0, $subscription['frequency'] ?? 1);
 
                         ?>
-                        <div class="subscription-item subscription-item-clickable" onClick="openSubscriptionModal(<?= (int) $subscription['id'] ?>)">
+                        <div class="subscription-item subscription-item-clickable" role="button" tabindex="0" onClick="openSubscriptionModal(<?= (int) $subscription['id'] ?>)" onKeyDown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openSubscriptionModal(<?= (int) $subscription['id'] ?>); }">
                             <?php
                             if (empty($subscription['logo'])) {
                                 ?>
@@ -226,9 +214,17 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
                                 <?php
                             }
                             ?>
+                            <p class="subscription-item-name"><?= $subscriptionName ?></p>
+                            <p class="subscription-item-meta">
+                                <span class="rel-time"><?= htmlspecialchars(wallosRelativeDayLabel($subscriptionNextPayment)) ?></span>
+                                <span class="meta-sep">·</span>
+                                <span class="rel-date"><?= htmlspecialchars(formatDate($subscriptionDisplayNextPayment, $lang)) ?></span>
+                                <span class="meta-sep">·</span>
+                                <span class="renew-label"><?= ((int) $subscription['auto_renew'] === 1) ? 'auto-renew' : 'manual' ?></span>
+                            </p>
                             <div class="subscription-item-info">
                                 <p class="subscription-item-date"> <?= formatDate($subscriptionDisplayNextPayment, $lang) ?></p>
-                                <p class="subscription-item-price"> <?= $subscriptionDisplayPrice ?></p>
+                                <p class="subscription-item-price"><span class="price-amount"><?= $subscriptionDisplayPrice ?></span><span class="price-cycle"><?= htmlspecialchars($subscriptionCycleSuffix) ?></span></p>
                             </div>
                         </div>
                         <?php
@@ -256,9 +252,10 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
                             $subscriptionPaymentDate = $subscription['payment_date'];
                             $subscriptionDisplayPaymentDate = date('F j', strtotime($subscriptionPaymentDate));
                             $subscriptionDisplayPrice = formatPrice($subscriptionPrice, $currencies[$subscriptionCurrency]['code'], $currencies);
+                            $subscriptionCycleSuffix = wallosCycleSuffix($subscription['cycle'] ?? 0, $subscription['frequency'] ?? 1);
 
                             ?>
-                            <div class="subscription-item subscription-item-clickable" onClick="openSubscriptionModal(<?= (int) $subscription['id'] ?>)">
+                            <div class="subscription-item subscription-item-clickable" role="button" tabindex="0" onClick="openSubscriptionModal(<?= (int) $subscription['id'] ?>)" onKeyDown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openSubscriptionModal(<?= (int) $subscription['id'] ?>); }">
                                 <?php
                                 if (empty($subscription['logo'])) {
                                     ?>
@@ -271,9 +268,15 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
                                     <?php
                                 }
                                 ?>
+                                <p class="subscription-item-name"><?= $subscriptionName ?></p>
+                                <p class="subscription-item-meta">
+                                    <span class="rel-time"><?= htmlspecialchars(formatDate(date('F j', strtotime($subscriptionPaymentDate)), $lang)) ?></span>
+                                    <span class="meta-sep">·</span>
+                                    <span class="paid-badge">&#10003; paid</span>
+                                </p>
                                 <div class="subscription-item-info">
                                     <p class="subscription-item-date"><?= formatDate($subscriptionDisplayPaymentDate, $lang) ?></p>
-                                    <p class="subscription-item-price"><?= $subscriptionDisplayPrice ?></p>
+                                    <p class="subscription-item-price"><span class="price-amount"><?= $subscriptionDisplayPrice ?></span><span class="price-cycle"><?= htmlspecialchars($subscriptionCycleSuffix) ?></span></p>
                                 </div>
                             </div>
                             <?php
@@ -460,8 +463,38 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
     </div>
 </div>
 
+<div id="editEmbedOverlay" class="edit-embed-overlay">
+    <div class="edit-embed-container">
+        <button class="edit-embed-close" onclick="closeDashboardEditModal()" title="Close">&times;</button>
+        <iframe id="editEmbedFrame" src=""></iframe>
+    </div>
+</div>
+
 <script src="scripts/calendar.js?<?= $version ?>"></script>
 <script src="scripts/dashboard.js?<?= $version ?>"></script>
+<script>
+function openDashboardEditModal(id) {
+    closeSubscriptionModal();
+    const overlay = document.getElementById('editEmbedOverlay');
+    const frame = document.getElementById('editEmbedFrame');
+    frame.src = 'subscriptions.php?edit=' + id + '&embed=1';
+    overlay.classList.add('is-open');
+}
+
+function closeDashboardEditModal() {
+    const overlay = document.getElementById('editEmbedOverlay');
+    const frame = document.getElementById('editEmbedFrame');
+    overlay.classList.remove('is-open');
+    frame.src = '';
+    window.location.reload();
+}
+
+window.addEventListener('message', function(e) {
+    if (e.data && e.data.type === 'subscription-saved') {
+        closeDashboardEditModal();
+    }
+});
+</script>
 
 <?php
 require_once 'includes/footer.php';

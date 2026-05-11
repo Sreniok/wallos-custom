@@ -7,6 +7,7 @@ require_once 'includes/i18n/getlang.php';
 require_once 'includes/i18n/' . $lang . '.php';
 
 require_once 'includes/version.php';
+require_once 'includes/cookie_helpers.php';
 
 if ($userCount == 0) {
     header("Location: registration.php");
@@ -118,11 +119,7 @@ if (isset($_POST['one-time-code'])) {
             $addLoginTokensStmt->execute();
             $cookieExpire = time() + (30 * 24 * 60 * 60);
             $cookieValue = $user['username'] . "|" . $token . "|" . $user['main_currency'];
-            setcookie('wallos_login', $cookieValue, [
-                'expires'  => $cookieExpire,
-                'samesite' => 'Lax',
-                'httponly' => true,
-            ]);
+            setcookie('wallos_login', $cookieValue, wallosAuthCookieParams($cookieExpire));
             unset($_SESSION['pending_remember_me']);
         }
 

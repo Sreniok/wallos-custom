@@ -35,6 +35,8 @@ function resetForm() {
   submitButton.disabled = false;
   const autoRenew = document.querySelector("#auto_renew");
   autoRenew.checked = true;
+  const adjustToWorkingDay = document.querySelector("#adjust_to_working_day");
+  if (adjustToWorkingDay) { adjustToWorkingDay.checked = true; }
   const regularPrice = document.querySelector("#regular_price");
   regularPrice.value = "";
   const startDate = document.querySelector("#start_date");
@@ -109,6 +111,11 @@ function fillEditFormFields(subscription) {
     autoRenew.checked = subscription.auto_renew;
   }
 
+  const adjustToWorkingDay = document.querySelector("#adjust_to_working_day");
+  if (adjustToWorkingDay) {
+    adjustToWorkingDay.checked = !!subscription.adjust_to_working_day;
+  }
+
   const notifications = document.querySelector("#notifications");
   if (notifications) {
     notifications.checked = subscription.notify;
@@ -144,7 +151,7 @@ function openEditSubscription(event, id) {
   const body = document.querySelector('body');
   body.classList.add('no-scroll');
   const url = `endpoints/subscription/get.php?id=${id}`;
-  fetch(url)
+  safeFetch(url)
     .then((response) => {
       if (response.ok) {
         return response.json();
@@ -216,7 +223,7 @@ function deleteSubscription(event, id) {
     return;
   }
 
-  fetch("endpoints/subscription/delete.php", {
+  safeFetch("endpoints/subscription/delete.php", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -245,7 +252,7 @@ function cloneSubscription(event, id) {
   event.stopPropagation();
   event.preventDefault();
 
-  fetch("endpoints/subscription/clone.php", {
+  safeFetch("endpoints/subscription/clone.php", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -278,7 +285,7 @@ function renewSubscription(event, id) {
   event.stopPropagation();
   event.preventDefault();
 
-  fetch("endpoints/subscription/renew.php", {
+  safeFetch("endpoints/subscription/renew.php", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -310,7 +317,7 @@ function markSubscriptionPaid(event, id) {
   event.stopPropagation();
   event.preventDefault();
 
-  fetch("endpoints/subscription/markpaid.php", {
+  safeFetch("endpoints/subscription/markpaid.php", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -358,7 +365,7 @@ function searchLogo() {
     const logoSearchPopup = document.querySelector("#logo-search-results");
     logoSearchPopup.classList.add("is-open");
     const imageSearchUrl = `endpoints/logos/search.php?search=${searchTerm}`;
-    fetch(imageSearchUrl)
+    safeFetch(imageSearchUrl)
       .then(response => response.json())
       .then(data => {
         if (data.results) {
@@ -428,7 +435,7 @@ function fetchSubscriptions(id, event, initiator) {
     getSubscriptions += getSubscriptions.includes("?") ? `&renewalType=${activeFilters['renewalType']}` : `?renewalType=${activeFilters['renewalType']}`;
   }
 
-  fetch(getSubscriptions)
+  withSpinner(safeFetch(getSubscriptions), subscriptionsContainer)
     .then(response => response.text())
     .then(data => {
       if (data) {
@@ -514,19 +521,22 @@ function dataURLtoFile(dataurl, filename) {
 }
 
 function submitFormData(formData, submitButton, endpoint) {
-  fetch(endpoint, {
+  withSpinner(safeFetch(endpoint, {
     method: "POST",
     headers: {
       "X-CSRF-Token": window.csrfToken,
     },
     body: formData,
-  })
+  }), document.querySelector("#subscription-form"))
     .then((response) => response.json())
     .then((data) => {
       if (data.status === "Success") {
         showSuccessMessage(data.message);
         fetchSubscriptions(null, null, "add");
         closeAddSubscription();
+        if (window.parent !== window) {
+          window.parent.postMessage({ type: 'subscription-saved' }, '*');
+        }
       } else {
         showErrorMessage(data.message || translate("unknown_error"));
       }
@@ -544,6 +554,15 @@ document.addEventListener('DOMContentLoaded', function () {
   const subscriptionForm = document.querySelector("#subs-form");
   const submitButton = document.querySelector("#save-button");
   const endpoint = "endpoints/subscription/add.php";
+
+  document.querySelectorAll('[role="button"][tabindex="0"]').forEach(function (el) {
+    el.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        el.click();
+      }
+    });
+  });
 
   subscriptionForm.addEventListener("submit", function (e) {
     e.preventDefault();

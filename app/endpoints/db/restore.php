@@ -1,6 +1,7 @@
 <?php
 require_once '../../includes/connect_endpoint.php';
 require_once '../../includes/validate_endpoint_admin.php';
+require_once '../../includes/safe_zip.php';
 
 function emptyRestoreFolder()
 {
@@ -24,14 +25,12 @@ if (isset($_FILES['file'])) {
         $fileDestination = '../../.tmp/restore.zip';
         move_uploaded_file($fileTmpName, $fileDestination);
 
-        $zip = new ZipArchive();
-        if ($zip->open($fileDestination) === true) {
-            $zip->extractTo('../../.tmp/restore/');
-            $zip->close();
-        } else {
+        $extractResult = wallosSafeZipExtract($fileDestination, '../../.tmp/restore/');
+        if (!$extractResult['ok']) {
+            @emptyRestoreFolder();
             die(json_encode([
                 "success" => false,
-                "message" => "Failed to extract the uploaded file"
+                "message" => "Failed to extract the uploaded file: " . ($extractResult['error'] ?? 'unknown error')
             ]));
         }
 

@@ -1,0 +1,1400 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wallos · Modern theme mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --page-bg: #EEF1F5;
+    --page-bg-2: #F7F9FC;
+    --frame-bg: #FAFAFB;
+    --card-bg: #FFFFFF;
+    --card-bg-2: #F4F6FA;
+    --text: #0E1116;
+    --text-muted: #6B7280;
+    --text-soft: #9AA3B2;
+    --border: #ECEDEF;
+    --border-soft: #F2F4F7;
+    --accent: #4F6EF7;
+    --accent-2: #8FBFFA;
+    --accent-strong: #2848D0;
+    --hero-grad-1: #4F6EF7;
+    --hero-grad-2: #7B8DFC;
+    --hero-grad-3: #B0BEFE;
+    --success: #1AA053;
+    --warning: #E08A00;
+    --danger: #E54B3B;
+    --shadow-sm: 0 1px 2px rgba(15,23,42,.04), 0 1px 3px rgba(15,23,42,.06);
+    --shadow-md: 0 6px 16px rgba(15,23,42,.06), 0 2px 4px rgba(15,23,42,.04);
+    --shadow-lg: 0 18px 36px rgba(15,23,42,.10);
+    --radius-sm: 10px;
+    --radius-md: 14px;
+    --radius-lg: 20px;
+    --radius-xl: 24px;
+  }
+  body.dark {
+    --page-bg: #0A0C10;
+    --page-bg-2: #14181E;
+    --frame-bg: #0F1218;
+    --card-bg: #181C24;
+    --card-bg-2: #1F2430;
+    --text: #ECEFF4;
+    --text-muted: #98A1AE;
+    --text-soft: #6B7280;
+    --border: #232833;
+    --border-soft: #1B202A;
+    --accent: #7C92FF;
+    --accent-2: #A6B8FF;
+    --accent-strong: #5B73E8;
+    --hero-grad-1: #5B73E8;
+    --hero-grad-2: #7C92FF;
+    --hero-grad-3: #A6B8FF;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,.5);
+    --shadow-md: 0 8px 24px rgba(0,0,0,.45);
+    --shadow-lg: 0 24px 48px rgba(0,0,0,.55);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    background: linear-gradient(180deg, var(--page-bg) 0%, var(--page-bg-2) 100%);
+    color: var(--text);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Page header */
+  .page-header {
+    max-width: 1700px;
+    margin: 0 auto;
+    padding: 32px 32px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .page-title { display: flex; flex-direction: column; gap: 2px; }
+  .page-title h1 { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+  .page-title p { margin: 0; font-size: 14px; color: var(--text-muted); }
+  .toolbar {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    padding: 6px;
+    border-radius: 999px;
+    box-shadow: var(--shadow-sm);
+  }
+  .toolbar button {
+    border: 0;
+    background: transparent;
+    color: var(--text-muted);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 8px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background .15s, color .15s;
+  }
+  .toolbar button.active { background: var(--accent); color: #fff; }
+  .toolbar button:hover:not(.active) { background: var(--card-bg-2); color: var(--text); }
+
+  /* Phone grid */
+  .phones {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 32px;
+    max-width: 1700px;
+    margin: 0 auto;
+    padding: 24px 32px 64px;
+    justify-items: center;
+  }
+
+  /* Phone frame */
+  .phone {
+    width: 380px;
+    height: 800px;
+    background: var(--frame-bg);
+    border-radius: 44px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+  .phone-label {
+    position: absolute;
+    top: -28px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .status-bar {
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    flex-shrink: 0;
+  }
+  .status-bar .dots { display: flex; gap: 4px; align-items: center; }
+  .status-bar .dot { width: 4px; height: 4px; border-radius: 50%; background: var(--text); }
+  .status-bar .battery {
+    width: 22px; height: 11px;
+    border: 1px solid var(--text);
+    border-radius: 3px;
+    position: relative;
+    display: inline-block;
+  }
+  .status-bar .battery::after {
+    content: '';
+    position: absolute;
+    right: -3px; top: 3px;
+    width: 2px; height: 5px;
+    background: var(--text);
+    border-radius: 0 1px 1px 0;
+  }
+  .status-bar .battery::before {
+    content: '';
+    position: absolute;
+    left: 1px; top: 1px;
+    bottom: 1px; width: 80%;
+    background: var(--text);
+    border-radius: 1px;
+  }
+
+  .screen {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 16px 92px;
+    scrollbar-width: thin;
+  }
+  .screen::-webkit-scrollbar { width: 4px; }
+  .screen::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  /* App header */
+  .app-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 4px 16px;
+  }
+  .greeting { font-size: 18px; font-weight: 700; letter-spacing: -0.01em; }
+  .greeting span { color: var(--text-muted); font-weight: 500; margin-right: 4px; }
+  .app-actions { display: flex; gap: 6px; }
+  .icon-btn {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text);
+    cursor: pointer;
+    font-size: 14px;
+  }
+  .icon-btn:hover { background: var(--card-bg-2); }
+
+  /* Hero card — Next Payment focus */
+  .hero {
+    background: linear-gradient(135deg, var(--hero-grad-1) 0%, var(--hero-grad-2) 60%, var(--hero-grad-3) 100%);
+    border-radius: var(--radius-xl);
+    padding: 20px 20px 18px;
+    color: #fff;
+    box-shadow: 0 18px 32px -10px rgba(79, 110, 247, 0.45), var(--shadow-md);
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 100% 0%, rgba(255,255,255,.18) 0%, transparent 50%);
+    pointer-events: none;
+  }
+  .hero-top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .hero-label {
+    font-size: 12px;
+    opacity: .9;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .hero-when {
+    font-size: 12px;
+    background: rgba(255,255,255,.18);
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-weight: 600;
+    backdrop-filter: blur(10px);
+  }
+  .hero-date {
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    margin: 6px 0 16px;
+    line-height: 1;
+  }
+  .next-pay-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .next-pay-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(255,255,255,.13);
+    backdrop-filter: blur(10px);
+    padding: 10px 12px;
+    border-radius: 14px;
+  }
+  .next-pay-item .sub-logo { width: 36px; height: 36px; font-size: 14px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,.18); }
+  .np-body { flex: 1; min-width: 0; }
+  .np-name { font-size: 14px; font-weight: 600; letter-spacing: -0.005em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .np-meta { font-size: 11px; opacity: .82; margin-top: 1px; }
+  .np-price { font-size: 15px; font-weight: 700; letter-spacing: -.01em; white-space: nowrap; }
+  .np-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255,255,255,.22);
+    font-size: 13px;
+    opacity: .95;
+  }
+  .np-total .total-amt { font-weight: 700; font-size: 16px; letter-spacing: -.01em; opacity: 1; }
+
+  /* For dashboard variant — single payment */
+  .hero.single .next-pay-item { background: transparent; backdrop-filter: none; padding: 0; }
+  .hero.single .next-pay-item .sub-logo { width: 48px; height: 48px; font-size: 18px; border-radius: 14px; }
+  .hero.single .np-name { font-size: 18px; font-weight: 700; }
+  .hero.single .np-meta { font-size: 12px; }
+  .hero.single .np-price { font-size: 22px; font-weight: 800; letter-spacing: -.02em; }
+
+  /* Section title */
+  .section-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 22px 4px 10px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .section-title small {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+  }
+  .section-title a {
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  /* Filter chips */
+  .chips {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    margin: 0 -16px 12px;
+    padding: 4px 16px;
+  }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip {
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+    white-space: nowrap;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .chip.active {
+    background: var(--text);
+    color: var(--frame-bg);
+    border-color: var(--text);
+    font-weight: 600;
+  }
+  body.dark .chip.active { background: #fff; color: #000; border-color: #fff; }
+
+  /* Subscription card + swipe-to-reveal actions */
+  .sub-row {
+    position: relative;
+    margin-bottom: 10px;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  .sub-actions {
+    position: absolute;
+    top: 0; bottom: 0; right: 0;
+    display: flex;
+    z-index: 1;
+  }
+  .sub-action {
+    width: 76px;
+    border: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: filter .15s;
+  }
+  .sub-action:hover { filter: brightness(1.06); }
+  .sub-action .ico { font-size: 18px; line-height: 1; }
+  .sub-action.edit   { background: #FFD93D; color: #2A2200; }
+  .sub-action.delete { background: #F45A40; color: #ffffff; }
+  .sub-action.clone  { background: #5BC0EB; color: #043247; }
+
+  .sub {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: var(--shadow-sm);
+    cursor: grab;
+    transition: box-shadow .15s, transform .28s cubic-bezier(.2,.8,.2,1);
+    position: relative;
+    z-index: 2;
+    touch-action: pan-y;
+    user-select: none;
+  }
+  .sub:hover { box-shadow: var(--shadow-md); }
+  .sub.dragging { transition: none; cursor: grabbing; }
+  .sub-row .sub { transform: translateX(0); }
+  .sub-row.revealed .sub { transform: translateX(-228px); box-shadow: var(--shadow-md); }
+  .standalone-sub { margin-bottom: 10px; }
+
+  .sub-logo {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: #fff;
+    font-size: 16px;
+    letter-spacing: -0.02em;
+  }
+  .sub-body { flex: 1; min-width: 0; }
+  .sub-name {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .sub-meta {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .sub-meta .dot { width: 3px; height: 3px; border-radius: 50%; background: var(--text-soft); }
+  .sub-meta .due-soon { color: var(--warning); font-weight: 600; }
+  .sub-meta .overdue { color: var(--danger); font-weight: 600; }
+  .sub-price {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    text-align: right;
+    white-space: nowrap;
+  }
+  .sub-price small { font-size: 11px; color: var(--text-muted); font-weight: 500; display: block; margin-top: 1px; }
+
+  /* Bottom nav */
+  .bottom-nav {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 76px;
+    background: var(--card-bg);
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-around;
+    padding-top: 10px;
+    backdrop-filter: blur(20px);
+  }
+  .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    color: var(--text-soft);
+    font-size: 10px;
+    font-weight: 500;
+    cursor: pointer;
+    flex: 1;
+    padding: 4px 0;
+  }
+  .nav-item.active { color: var(--accent); font-weight: 600; }
+  .nav-icon {
+    width: 22px; height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+  .fab {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--hero-grad-1), var(--hero-grad-2));
+    color: #fff;
+    border: 0;
+    margin-top: -22px;
+    box-shadow: 0 8px 16px -4px rgba(79,110,247,.5);
+    cursor: pointer;
+    font-size: 26px;
+    font-weight: 300;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .fab:hover { transform: scale(1.05); transition: transform .15s; }
+
+  /* Logo color helpers */
+  .logo-netflix { background: linear-gradient(135deg, #E50914, #B20710); }
+  .logo-spotify { background: linear-gradient(135deg, #1DB954, #168D40); }
+  .logo-github  { background: linear-gradient(135deg, #24292F, #57606A); }
+  .logo-icloud  { background: linear-gradient(135deg, #5AC8FA, #007AFF); }
+  .logo-notion  { background: linear-gradient(135deg, #2C2C2C, #555); }
+  .logo-adobe   { background: linear-gradient(135deg, #FF0000, #C40000); }
+  .logo-hbo     { background: linear-gradient(135deg, #5822B4, #311077); }
+  .logo-nyt     { background: linear-gradient(135deg, #1f1f1f, #555); font-family: Georgia, serif; }
+  .logo-domain  { background: linear-gradient(135deg, #FF8C42, #E07028); }
+  .logo-plus    { background: linear-gradient(135deg, var(--accent), var(--accent-2)); }
+
+  /* Dashboard horizontal scroll cards */
+  .h-scroll {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    margin: 0 -16px;
+    padding: 4px 16px 8px;
+  }
+  .h-scroll::-webkit-scrollbar { display: none; }
+  .mini-card {
+    min-width: 150px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 14px;
+    flex-shrink: 0;
+    box-shadow: var(--shadow-sm);
+  }
+  .mini-card.overdue { border-color: rgba(229,75,59,.3); }
+  .mini-card .sub-logo { width: 36px; height: 36px; font-size: 14px; }
+  .mini-card .label {
+    font-size: 13px;
+    font-weight: 600;
+    margin: 10px 0 2px;
+  }
+  .mini-card .amount {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .mini-card .when {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+  .mini-card .when.late { color: var(--danger); font-weight: 600; }
+
+  /* Calendar */
+  .cal-head {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.06em;
+    margin-bottom: 6px;
+  }
+  .cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+  }
+  .cal-cell {
+    aspect-ratio: 1;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+    position: relative;
+    cursor: pointer;
+    color: var(--text);
+  }
+  .cal-cell.empty { background: transparent; border: 0; color: var(--text-soft); font-weight: 400; }
+  .cal-cell.has::after {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    margin-top: 3px;
+  }
+  .cal-cell.has-2::after {
+    box-shadow: 9px 0 0 var(--accent-2);
+  }
+  .cal-cell.today {
+    background: var(--text);
+    color: var(--frame-bg);
+    border-color: var(--text);
+  }
+  body.dark .cal-cell.today { background: #fff; color: #000; border-color: #fff; }
+  .cal-cell.selected {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+  .cal-cell.selected::after { background: rgba(255,255,255,.85); box-shadow: 9px 0 0 rgba(255,255,255,.85); }
+
+  .cal-stats {
+    margin-top: 16px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 14px;
+    box-shadow: var(--shadow-sm);
+  }
+  .cal-stat-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    font-size: 13px;
+  }
+  .cal-stat-row + .cal-stat-row { border-top: 1px solid var(--border-soft); }
+  .cal-stat-row .label { color: var(--text-muted); }
+  .cal-stat-row .value { font-weight: 600; letter-spacing: -0.01em; }
+
+  /* Form */
+  .form-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 4px 18px;
+  }
+  .form-header h2 { margin: 0; font-size: 17px; font-weight: 700; letter-spacing: -0.01em; }
+  .form-field { margin-bottom: 14px; }
+  .form-field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    letter-spacing: 0.02em;
+  }
+  .form-input, .form-select {
+    width: 100%;
+    height: 48px;
+    padding: 0 14px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    color: var(--text);
+    font-size: 15px;
+    font-family: inherit;
+    font-weight: 500;
+    box-shadow: var(--shadow-sm);
+  }
+  .form-input:focus, .form-select:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: var(--accent); }
+  .form-row { display: grid; gap: 8px; }
+  .form-row.split-2 { grid-template-columns: 2fr 1fr; }
+  .form-row.split-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .logo-picker {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .logo-picker .sub-logo { width: 56px; height: 56px; font-size: 18px; border-radius: 14px; }
+  .logo-actions { display: flex; gap: 8px; flex: 1; flex-wrap: wrap; }
+  .ghost-btn {
+    height: 40px;
+    padding: 0 14px;
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+    border-radius: var(--radius-md);
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+  }
+  .seg {
+    display: flex;
+    background: var(--card-bg-2);
+    padding: 4px;
+    border-radius: 12px;
+    gap: 4px;
+  }
+  .seg button {
+    flex: 1;
+    height: 36px;
+    border: 0;
+    background: transparent;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .seg button.active {
+    background: var(--card-bg);
+    color: var(--text);
+    box-shadow: var(--shadow-sm);
+    font-weight: 600;
+  }
+  .more-toggle {
+    text-align: center;
+    color: var(--accent);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 14px;
+    cursor: pointer;
+  }
+  .form-actions {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    padding: 14px 16px calc(14px + env(safe-area-inset-bottom, 0px));
+    background: linear-gradient(180deg, transparent 0%, var(--frame-bg) 30%);
+    display: flex;
+    gap: 10px;
+  }
+  .btn {
+    flex: 1;
+    height: 50px;
+    border: 0;
+    border-radius: var(--radius-md);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .btn.primary {
+    background: linear-gradient(135deg, var(--hero-grad-1), var(--hero-grad-2));
+    color: #fff;
+    box-shadow: 0 8px 16px -4px rgba(79,110,247,.4);
+  }
+  .btn.secondary {
+    background: var(--card-bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+
+  /* Pill / badge */
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--card-bg-2);
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 8px;
+    border-radius: 999px;
+  }
+  .pill.warning { background: rgba(224,138,0,.12); color: var(--warning); }
+  .pill.success { background: rgba(26,160,83,.12); color: var(--success); }
+  .pill.danger { background: rgba(229,75,59,.12); color: var(--danger); }
+  .pill.accent { background: rgba(79,110,247,.12); color: var(--accent); }
+
+  .legend {
+    margin-top: 8px;
+    padding: 12px 14px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .legend strong { color: var(--text); font-weight: 600; }
+
+  .hint-bar {
+    margin: -2px 4px 12px;
+    padding: 10px 12px;
+    background: rgba(79,110,247,.08);
+    border: 1px solid rgba(79,110,247,.2);
+    border-radius: var(--radius-md);
+    font-size: 12px;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  body.dark .hint-bar { background: rgba(124,146,255,.10); border-color: rgba(124,146,255,.25); color: var(--accent-2); }
+
+  /* Footer note */
+  .footer-note {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 12px;
+    margin: 20px auto 32px;
+    max-width: 760px;
+    padding: 0 32px;
+  }
+  .footer-note code {
+    font-family: ui-monospace, Menlo, monospace;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    padding: 2px 6px;
+    border-radius: 6px;
+  }
+</style>
+</head>
+<body>
+
+<header class="page-header">
+  <div class="page-title">
+    <h1>Wallos · Modern theme mockup</h1>
+    <p>Mobile-first redesign · hero shows next payment day · swipe a card left for Edit / Delete / Clone</p>
+  </div>
+  <div class="toolbar" role="group" aria-label="Theme">
+    <button id="t-light" class="active" onclick="setTheme('light')">☀ Light</button>
+    <button id="t-dark" onclick="setTheme('dark')">☾ Dark</button>
+  </div>
+</header>
+
+<main class="phones">
+
+  <!-- ========== SUBSCRIPTIONS LIST — multi-payment hero ========== -->
+  <section class="phone">
+    <div class="phone-label">Subscriptions · multi-pay hero</div>
+    <div class="status-bar">
+      <span>9:41</span>
+      <span class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span>
+      <span class="battery"></span>
+    </div>
+    <div class="screen">
+      <div class="app-header">
+        <div class="greeting"><span>Hi,</span>Sreniok</div>
+        <div class="app-actions">
+          <button class="icon-btn" title="Notifications">🔔</button>
+          <button class="icon-btn" title="Theme">◐</button>
+        </div>
+      </div>
+
+      <div class="hero">
+        <div class="hero-top">
+          <span class="hero-label">Next payment</span>
+          <span class="hero-when">in 3 days</span>
+        </div>
+        <div class="hero-date">Thu, May 4</div>
+        <div class="next-pay-list">
+          <div class="next-pay-item">
+            <div class="sub-logo logo-netflix">N</div>
+            <div class="np-body">
+              <div class="np-name">Netflix</div>
+              <div class="np-meta">auto-renew · Visa ••81</div>
+            </div>
+            <div class="np-price">€15.49</div>
+          </div>
+          <div class="next-pay-item">
+            <div class="sub-logo logo-spotify">S</div>
+            <div class="np-body">
+              <div class="np-name">Spotify Family</div>
+              <div class="np-meta">auto-renew · Mastercard</div>
+            </div>
+            <div class="np-price">€9.99</div>
+          </div>
+        </div>
+        <div class="np-total">
+          <span>Total due Thu</span>
+          <span class="total-amt">€25.48</span>
+        </div>
+      </div>
+
+      <div class="hint-bar">
+        <span>👉</span>
+        <span>Swipe a card left to <strong>Edit</strong>, <strong>Delete</strong>, or <strong>Clone</strong> — try the Spotify card below.</span>
+      </div>
+
+      <div class="chips">
+        <div class="chip active">All · 12</div>
+        <div class="chip">Streaming · 4</div>
+        <div class="chip">Tools · 5</div>
+        <div class="chip">News · 2</div>
+        <div class="chip">Inactive · 2</div>
+      </div>
+
+      <div class="sub-row">
+        <div class="sub-actions">
+          <button class="sub-action edit"><span class="ico">✎</span>Edit</button>
+          <button class="sub-action delete"><span class="ico">🗑</span>Delete</button>
+          <button class="sub-action clone"><span class="ico">⎘</span>Clone</button>
+        </div>
+        <div class="sub">
+          <div class="sub-logo logo-netflix">N</div>
+          <div class="sub-body">
+            <div class="sub-name">Netflix</div>
+            <div class="sub-meta"><span class="due-soon">in 3 days</span><span class="dot"></span><span>auto · Visa ••81</span></div>
+          </div>
+          <div class="sub-price">€15.49<small>/month</small></div>
+        </div>
+      </div>
+
+      <!-- Pre-revealed to demo the swipe -->
+      <div class="sub-row revealed">
+        <div class="sub-actions">
+          <button class="sub-action edit"><span class="ico">✎</span>Edit</button>
+          <button class="sub-action delete"><span class="ico">🗑</span>Delete</button>
+          <button class="sub-action clone"><span class="ico">⎘</span>Clone</button>
+        </div>
+        <div class="sub">
+          <div class="sub-logo logo-spotify">S</div>
+          <div class="sub-body">
+            <div class="sub-name">Spotify Family</div>
+            <div class="sub-meta"><span>in 3 days</span><span class="dot"></span><span>auto · Family</span></div>
+          </div>
+          <div class="sub-price">€9.99<small>/month</small></div>
+        </div>
+      </div>
+
+      <div class="sub-row">
+        <div class="sub-actions">
+          <button class="sub-action edit"><span class="ico">✎</span>Edit</button>
+          <button class="sub-action delete"><span class="ico">🗑</span>Delete</button>
+          <button class="sub-action clone"><span class="ico">⎘</span>Clone</button>
+        </div>
+        <div class="sub">
+          <div class="sub-logo logo-icloud">i</div>
+          <div class="sub-body">
+            <div class="sub-name">iCloud+ 200GB</div>
+            <div class="sub-meta"><span>in 7 days</span><span class="dot"></span><span>auto · Apple Pay</span></div>
+          </div>
+          <div class="sub-price">€9.51<small>/month</small></div>
+        </div>
+      </div>
+
+      <div class="sub-row">
+        <div class="sub-actions">
+          <button class="sub-action edit"><span class="ico">✎</span>Edit</button>
+          <button class="sub-action delete"><span class="ico">🗑</span>Delete</button>
+          <button class="sub-action clone"><span class="ico">⎘</span>Clone</button>
+        </div>
+        <div class="sub">
+          <div class="sub-logo logo-github">G</div>
+          <div class="sub-body">
+            <div class="sub-name">GitHub Pro</div>
+            <div class="sub-meta"><span>in 12 days</span><span class="dot"></span><span class="pill">manual</span></div>
+          </div>
+          <div class="sub-price">€4.00<small>/month</small></div>
+        </div>
+      </div>
+
+      <div class="sub-row">
+        <div class="sub-actions">
+          <button class="sub-action edit"><span class="ico">✎</span>Edit</button>
+          <button class="sub-action delete"><span class="ico">🗑</span>Delete</button>
+          <button class="sub-action clone"><span class="ico">⎘</span>Clone</button>
+        </div>
+        <div class="sub">
+          <div class="sub-logo logo-notion">N</div>
+          <div class="sub-body">
+            <div class="sub-name">Notion Plus</div>
+            <div class="sub-meta"><span>in 18 days</span><span class="dot"></span><span>auto · Mastercard</span></div>
+          </div>
+          <div class="sub-price">€8.00<small>/month</small></div>
+        </div>
+      </div>
+
+      <div class="sub-row">
+        <div class="sub-actions">
+          <button class="sub-action edit"><span class="ico">✎</span>Edit</button>
+          <button class="sub-action delete"><span class="ico">🗑</span>Delete</button>
+          <button class="sub-action clone"><span class="ico">⎘</span>Clone</button>
+        </div>
+        <div class="sub">
+          <div class="sub-logo logo-adobe">A</div>
+          <div class="sub-body">
+            <div class="sub-name">Adobe Creative Cloud</div>
+            <div class="sub-meta"><span>in 26 days</span><span class="dot"></span><span>auto · Visa ••81</span></div>
+          </div>
+          <div class="sub-price">€40.41<small>/month</small></div>
+        </div>
+      </div>
+    </div>
+    <nav class="bottom-nav">
+      <div class="nav-item active"><div class="nav-icon">📋</div>Subs</div>
+      <div class="nav-item"><div class="nav-icon">📅</div>Calendar</div>
+      <button class="fab">+</button>
+      <div class="nav-item"><div class="nav-icon">📊</div>Stats</div>
+      <div class="nav-item"><div class="nav-icon">⚙</div>Settings</div>
+    </nav>
+  </section>
+
+  <!-- ========== DASHBOARD — single-payment hero ========== -->
+  <section class="phone">
+    <div class="phone-label">Dashboard · single-pay hero</div>
+    <div class="status-bar">
+      <span>9:41</span>
+      <span class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span>
+      <span class="battery"></span>
+    </div>
+    <div class="screen">
+      <div class="app-header">
+        <div class="greeting"><span>Hi,</span>Sreniok</div>
+        <div class="app-actions">
+          <button class="icon-btn" title="Notifications">🔔</button>
+          <button class="icon-btn" title="Theme">◐</button>
+        </div>
+      </div>
+
+      <div class="hero single">
+        <div class="hero-top">
+          <span class="hero-label">Next payment</span>
+          <span class="hero-when">tomorrow</span>
+        </div>
+        <div class="hero-date">Wed, May 3</div>
+        <div class="next-pay-list">
+          <div class="next-pay-item">
+            <div class="sub-logo logo-icloud">i</div>
+            <div class="np-body">
+              <div class="np-name">iCloud+ 200GB</div>
+              <div class="np-meta">Storage · auto-renew · Apple Pay</div>
+            </div>
+            <div class="np-price">€9.51</div>
+          </div>
+        </div>
+        <div class="np-total">
+          <span>12 active · €127.40 / month</span>
+          <span class="total-amt">85% of budget</span>
+        </div>
+      </div>
+
+      <div class="section-title">
+        <span>⚠ Overdue · 2</span>
+        <a href="#">View all</a>
+      </div>
+      <div class="h-scroll">
+        <div class="mini-card overdue">
+          <div class="sub-logo logo-hbo">H</div>
+          <div class="label">HBO Max</div>
+          <div class="amount">€4.99</div>
+          <div class="when late">3 days late</div>
+        </div>
+        <div class="mini-card overdue">
+          <div class="sub-logo logo-nyt">N</div>
+          <div class="label">NY Times</div>
+          <div class="amount">€4.00</div>
+          <div class="when late">7 days late</div>
+        </div>
+      </div>
+
+      <div class="section-title">
+        <span>Upcoming</span>
+        <a href="#">See all</a>
+      </div>
+      <div class="sub-row">
+        <div class="sub-actions">
+          <button class="sub-action edit"><span class="ico">✎</span>Edit</button>
+          <button class="sub-action delete"><span class="ico">🗑</span>Delete</button>
+          <button class="sub-action clone"><span class="ico">⎘</span>Clone</button>
+        </div>
+        <div class="sub">
+          <div class="sub-logo logo-netflix">N</div>
+          <div class="sub-body">
+            <div class="sub-name">Netflix</div>
+            <div class="sub-meta"><span class="due-soon">in 3 days</span><span class="dot"></span><span>auto-renew</span></div>
+          </div>
+          <div class="sub-price">€15.49</div>
+        </div>
+      </div>
+      <div class="sub-row">
+        <div class="sub-actions">
+          <button class="sub-action edit"><span class="ico">✎</span>Edit</button>
+          <button class="sub-action delete"><span class="ico">🗑</span>Delete</button>
+          <button class="sub-action clone"><span class="ico">⎘</span>Clone</button>
+        </div>
+        <div class="sub">
+          <div class="sub-logo logo-spotify">S</div>
+          <div class="sub-body">
+            <div class="sub-name">Spotify Family</div>
+            <div class="sub-meta"><span>in 3 days</span><span class="dot"></span><span>auto-renew</span></div>
+          </div>
+          <div class="sub-price">€9.99</div>
+        </div>
+      </div>
+
+      <div class="section-title">
+        <span>Paid this month</span>
+        <small>€12.00</small>
+      </div>
+      <div class="sub-row">
+        <div class="sub-actions">
+          <button class="sub-action edit"><span class="ico">✎</span>Edit</button>
+          <button class="sub-action delete"><span class="ico">🗑</span>Delete</button>
+          <button class="sub-action clone"><span class="ico">⎘</span>Clone</button>
+        </div>
+        <div class="sub">
+          <div class="sub-logo logo-github">G</div>
+          <div class="sub-body">
+            <div class="sub-name">GitHub Pro</div>
+            <div class="sub-meta"><span>Apr 28</span><span class="dot"></span><span class="pill success">✓ paid</span></div>
+          </div>
+          <div class="sub-price">€4.00</div>
+        </div>
+      </div>
+      <div class="sub-row">
+        <div class="sub-actions">
+          <button class="sub-action edit"><span class="ico">✎</span>Edit</button>
+          <button class="sub-action delete"><span class="ico">🗑</span>Delete</button>
+          <button class="sub-action clone"><span class="ico">⎘</span>Clone</button>
+        </div>
+        <div class="sub">
+          <div class="sub-logo logo-notion">N</div>
+          <div class="sub-body">
+            <div class="sub-name">Notion Plus</div>
+            <div class="sub-meta"><span>Apr 21</span><span class="dot"></span><span class="pill success">✓ paid</span></div>
+          </div>
+          <div class="sub-price">€8.00</div>
+        </div>
+      </div>
+    </div>
+    <nav class="bottom-nav">
+      <div class="nav-item"><div class="nav-icon">📋</div>Subs</div>
+      <div class="nav-item"><div class="nav-icon">📅</div>Calendar</div>
+      <button class="fab">+</button>
+      <div class="nav-item"><div class="nav-icon">📊</div>Stats</div>
+      <div class="nav-item"><div class="nav-icon">⚙</div>Settings</div>
+    </nav>
+  </section>
+
+  <!-- ========== CALENDAR ========== -->
+  <section class="phone">
+    <div class="phone-label">Calendar</div>
+    <div class="status-bar">
+      <span>9:41</span>
+      <span class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span>
+      <span class="battery"></span>
+    </div>
+    <div class="screen">
+      <div class="app-header">
+        <div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <button class="icon-btn" title="Previous">‹</button>
+            <div class="greeting" style="font-size:17px;">May 2026</div>
+            <button class="icon-btn" title="Next">›</button>
+          </div>
+          <div style="font-size:12px; color: var(--text-muted); margin-top: 4px; padding-left: 4px;">€127.40 due this month</div>
+        </div>
+        <button class="icon-btn" title="Today">↻</button>
+      </div>
+
+      <div class="cal-head">
+        <span>MO</span><span>TU</span><span>WE</span><span>TH</span><span>FR</span><span>SA</span><span>SU</span>
+      </div>
+      <div class="cal-grid">
+        <div class="cal-cell empty">28</div>
+        <div class="cal-cell empty">29</div>
+        <div class="cal-cell empty">30</div>
+        <div class="cal-cell">1</div>
+        <div class="cal-cell today has">2</div>
+        <div class="cal-cell">3</div>
+        <div class="cal-cell has has-2">4</div>
+        <div class="cal-cell">5</div>
+        <div class="cal-cell selected has">6</div>
+        <div class="cal-cell">7</div>
+        <div class="cal-cell">8</div>
+        <div class="cal-cell">9</div>
+        <div class="cal-cell">10</div>
+        <div class="cal-cell has">11</div>
+        <div class="cal-cell">12</div>
+        <div class="cal-cell">13</div>
+        <div class="cal-cell has">14</div>
+        <div class="cal-cell">15</div>
+        <div class="cal-cell">16</div>
+        <div class="cal-cell has">17</div>
+        <div class="cal-cell">18</div>
+        <div class="cal-cell">19</div>
+        <div class="cal-cell">20</div>
+        <div class="cal-cell has">21</div>
+        <div class="cal-cell">22</div>
+        <div class="cal-cell">23</div>
+        <div class="cal-cell">24</div>
+        <div class="cal-cell">25</div>
+        <div class="cal-cell">26</div>
+        <div class="cal-cell">27</div>
+        <div class="cal-cell has">28</div>
+        <div class="cal-cell">29</div>
+        <div class="cal-cell">30</div>
+        <div class="cal-cell">31</div>
+        <div class="cal-cell empty">1</div>
+      </div>
+
+      <div class="section-title">
+        <span>Sat, May 6 · €9.51</span>
+        <span class="pill accent">selected</span>
+      </div>
+      <div class="sub-row">
+        <div class="sub-actions">
+          <button class="sub-action edit"><span class="ico">✎</span>Edit</button>
+          <button class="sub-action delete"><span class="ico">🗑</span>Delete</button>
+          <button class="sub-action clone"><span class="ico">⎘</span>Clone</button>
+        </div>
+        <div class="sub">
+          <div class="sub-logo logo-icloud">i</div>
+          <div class="sub-body">
+            <div class="sub-name">iCloud+ 200GB</div>
+            <div class="sub-meta"><span>Storage</span><span class="dot"></span><span>auto · Apple Pay</span></div>
+          </div>
+          <div class="sub-price">€9.51</div>
+        </div>
+      </div>
+
+      <div class="cal-stats">
+        <div class="cal-stat-row"><span class="label">Active subscriptions</span><span class="value">12</span></div>
+        <div class="cal-stat-row"><span class="label">Total this month</span><span class="value">€127.40</span></div>
+        <div class="cal-stat-row"><span class="label">Budget remaining</span><span class="value" style="color:var(--success)">€22.60</span></div>
+      </div>
+    </div>
+    <nav class="bottom-nav">
+      <div class="nav-item"><div class="nav-icon">📋</div>Subs</div>
+      <div class="nav-item active"><div class="nav-icon">📅</div>Calendar</div>
+      <button class="fab">+</button>
+      <div class="nav-item"><div class="nav-icon">📊</div>Stats</div>
+      <div class="nav-item"><div class="nav-icon">⚙</div>Settings</div>
+    </nav>
+  </section>
+
+  <!-- ========== ADD / EDIT FORM ========== -->
+  <section class="phone">
+    <div class="phone-label">Add subscription</div>
+    <div class="status-bar">
+      <span>9:41</span>
+      <span class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span>
+      <span class="battery"></span>
+    </div>
+    <div class="screen" style="padding-bottom:120px;">
+      <div class="form-header">
+        <button class="icon-btn">‹</button>
+        <h2>Add subscription</h2>
+        <button class="icon-btn">✕</button>
+      </div>
+
+      <div class="form-field">
+        <label>LOGO</label>
+        <div class="logo-picker">
+          <div class="sub-logo logo-plus">+</div>
+          <div class="logo-actions">
+            <button class="ghost-btn">🔍 Search logo</button>
+            <button class="ghost-btn">📤 Upload</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-field">
+        <label>NAME</label>
+        <input class="form-input" placeholder="e.g. Netflix" value="Netflix">
+      </div>
+
+      <div class="form-field">
+        <label>PRICE</label>
+        <div class="form-row split-2">
+          <input class="form-input" value="15.49">
+          <select class="form-select"><option>EUR</option></select>
+        </div>
+      </div>
+
+      <div class="form-field">
+        <label>BILLING CYCLE</label>
+        <div class="form-row split-2" style="margin-bottom:8px;">
+          <input class="form-input" value="1">
+          <select class="form-select"><option>Months</option></select>
+        </div>
+        <div class="seg">
+          <button class="active">Auto-renew</button>
+          <button>Manual</button>
+        </div>
+      </div>
+
+      <div class="form-field">
+        <label>NEXT PAYMENT</label>
+        <input class="form-input" type="date" value="2026-05-15">
+      </div>
+
+      <div class="more-toggle">More options ▾</div>
+
+      <div class="legend">
+        <strong>What's collapsed:</strong> notes, URL, payer, category, payment method, notifications, replacement subscription, cancellation date — all reachable via "More options" so the first screen fits the essentials on a 667px-tall phone.
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn secondary">Cancel</button>
+      <button class="btn primary">Save subscription</button>
+    </div>
+  </section>
+
+</main>
+
+<p class="footer-note">
+  Static mockup of the proposed <code>modern</code> design theme — saved at <code>/tmp/wallos-modern-mockup.html</code>. No app changes have been made. Toggle light/dark above. <strong>Hero card now shows the next payment day's subscription(s)</strong>; <strong>swipe a subscription card left</strong> (or click and drag) to reveal Edit / Delete / Clone, just like the current Wallos UI.
+</p>
+
+<script>
+  function setTheme(name) {
+    document.body.classList.toggle('dark', name === 'dark');
+    document.getElementById('t-light').classList.toggle('active', name === 'light');
+    document.getElementById('t-dark').classList.toggle('active', name === 'dark');
+  }
+
+  // Swipe-to-reveal actions on subscription rows
+  (function () {
+    const REVEAL_PX = 228;
+    const TRIGGER_PX = 60;
+
+    function closeAllExcept(exceptRow) {
+      document.querySelectorAll('.sub-row.revealed').forEach(r => {
+        if (r !== exceptRow) {
+          r.classList.remove('revealed');
+          const c = r.querySelector('.sub');
+          if (c) c.style.transform = '';
+        }
+      });
+    }
+
+    document.querySelectorAll('.sub-row').forEach(row => {
+      const card = row.querySelector('.sub');
+      if (!card) return;
+
+      let startX = 0, startY = 0;
+      let baseX = 0;
+      let dragging = false;
+      let axisLocked = null; // 'x' | 'y' | null
+
+      const onDown = (e) => {
+        startX = e.clientX;
+        startY = e.clientY;
+        baseX = row.classList.contains('revealed') ? -REVEAL_PX : 0;
+        dragging = true;
+        axisLocked = null;
+        card.classList.add('dragging');
+        try { card.setPointerCapture(e.pointerId); } catch (_) {}
+      };
+
+      const onMove = (e) => {
+        if (!dragging) return;
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        if (!axisLocked) {
+          if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+          axisLocked = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+          if (axisLocked === 'y') { dragging = false; card.classList.remove('dragging'); return; }
+          closeAllExcept(row);
+        }
+        let next = baseX + dx;
+        if (next > 0) next = 0;
+        if (next < -REVEAL_PX) next = -REVEAL_PX - (Math.abs(next + REVEAL_PX) * 0.2);
+        card.style.transform = `translateX(${next}px)`;
+      };
+
+      const onUp = (e) => {
+        if (!dragging) {
+          // ignore — pointer ended without drag (treat as tap)
+          card.classList.remove('dragging');
+          return;
+        }
+        dragging = false;
+        card.classList.remove('dragging');
+        try { card.releasePointerCapture(e.pointerId); } catch (_) {}
+        const dx = e.clientX - startX;
+        const finalX = baseX + dx;
+        const shouldOpen = (baseX === 0 && dx < -TRIGGER_PX) || (baseX === -REVEAL_PX && finalX < -REVEAL_PX + TRIGGER_PX);
+        if (shouldOpen) {
+          row.classList.add('revealed');
+          card.style.transform = '';
+        } else {
+          row.classList.remove('revealed');
+          card.style.transform = '';
+        }
+      };
+
+      card.addEventListener('pointerdown', onDown);
+      card.addEventListener('pointermove', onMove);
+      card.addEventListener('pointerup', onUp);
+      card.addEventListener('pointercancel', onUp);
+
+      // tap outside the card area while revealed → close
+      row.addEventListener('click', (e) => {
+        if (!row.classList.contains('revealed')) return;
+        // clicks on action buttons should not close
+        if (e.target.closest('.sub-action')) return;
+        // clicks on the card's revealed area also don't close — only outside via document handler
+      });
+    });
+
+    // Click anywhere outside an open row → close it
+    document.addEventListener('click', (e) => {
+      if (e.target.closest('.sub-row')) return;
+      document.querySelectorAll('.sub-row.revealed').forEach(r => {
+        r.classList.remove('revealed');
+        const c = r.querySelector('.sub');
+        if (c) c.style.transform = '';
+      });
+    });
+
+    // Wire action buttons (demo only)
+    document.querySelectorAll('.sub-action').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const which = btn.classList.contains('edit') ? 'Edit' : btn.classList.contains('delete') ? 'Delete' : 'Clone';
+        const row = btn.closest('.sub-row');
+        const name = row.querySelector('.sub-name')?.textContent || 'subscription';
+        alert(`${which} → ${name}\n(mockup only — no real action)`);
+        row.classList.remove('revealed');
+        const c = row.querySelector('.sub');
+        if (c) c.style.transform = '';
+      });
+    });
+  })();
+</script>
+
+</body>
+</html>

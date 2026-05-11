@@ -1,5 +1,6 @@
 <?php
 require_once 'includes/connect.php';
+require_once 'includes/cookie_helpers.php';
 $secondsInMonth = 30 * 24 * 60 * 60;
 if (session_status() === PHP_SESSION_NONE) {
     session_set_cookie_params([
@@ -34,7 +35,7 @@ if (isset($_SESSION['token'])) {
 $_SESSION = array();
 session_destroy();
 $cookieExpire = time() - 3600;
-setcookie('wallos_login', '', $cookieExpire);
+setcookie('wallos_login', '', wallosAuthCookieParams($cookieExpire));
 $db->close();
 
 if ($logoutOIDC && !empty($logoutUrl)) {

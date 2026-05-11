@@ -1,0 +1,212 @@
+/* ── GLASSMORPHISM – Dark Navy + Blue/Teal ── */
+
+/* ── DARK MODE (default) ── */
+:root {
+  --background-color: #060d1f;
+  --background-color-rgb: 6, 13, 31;
+  --box-background-color: rgba(255,255,255,0.06);
+  --box-border-color: rgba(255,255,255,0.12);
+  --header-background-color: rgba(6,13,31,0.8);
+  --text-color: #e0f0ff;
+  --text-color-rgb: 224, 240, 255;
+  --text-color-inverted: #060d1f;
+  --input-background-color: rgba(255,255,255,0.08);
+  --input-border-color: rgba(255,255,255,0.18);
+  --input-disabled-background-color: rgba(255,255,255,0.04);
+  --input-disabled-border-color: rgba(255,255,255,0.08);
+  --box-shadow: 0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+  --negative-box-shadow: 0 -8px 32px rgba(0,0,0,0.5);
+  --main-color: #38bdf8;
+  --main-color-rgb: 56, 189, 248;
+  --accent-color: #22d3ee;
+  --accent-color-rgb: 34, 211, 238;
+  --hover-color: #0ea5e9;
+  --hover-color-rgb: 14, 165, 233;
+}
+
+body {
+  background: linear-gradient(135deg, #060d1f 0%, #0b1932 40%, #061426 100%) !important;
+  min-height: 100vh;
+}
+body::before, body::after {
+  content: '';
+  position: fixed;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+body::before {
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(56,189,248,0.08) 0%, transparent 70%);
+  top: -200px; left: -200px;
+}
+body::after {
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(34,211,238,0.06) 0%, transparent 70%);
+  bottom: -150px; right: -100px;
+}
+
+nav, body > header, .contain > .logo {
+  background: rgba(6,13,31,0.8) !important;
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(56,189,248,0.15) !important;
+}
+.dropbtn, .dropdown-content a { color: #c0e0ff !important; }
+body > header { position: relative; z-index: 1000; }
+.dropdown-content {
+  background: rgba(10,20,40,0.96) !important;
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(56,189,248,0.2) !important;
+  border-radius: 14px !important;
+  z-index: 1001 !important;
+}
+.dropdown-content a:hover { background: rgba(56,189,248,0.1) !important; }
+
+.subscription, .subscription-container, .subscription-item,
+.account-section, .subscription-form, .subscription-modal,
+.budget-subscriptions .subscription-item {
+  background: rgba(255,255,255,0.06) !important;
+  backdrop-filter: blur(20px) !important; -webkit-backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
+  border-radius: 20px !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08) !important;
+  transition: border-color 0.3s, box-shadow 0.3s, transform 0.2s !important;
+}
+.subscription { position: relative; z-index: 1; }
+.subscription:has(.actions.is-open) { z-index: 100 !important; }
+.subscription:hover, .subscription-item:hover {
+  border-color: rgba(56,189,248,0.4) !important;
+  box-shadow: 0 12px 40px rgba(56,189,248,0.15), inset 0 1px 0 rgba(255,255,255,0.12) !important;
+  transform: translateY(-2px) !important;
+}
+.subscription.inactive {
+  background: rgba(255,255,255,0.03) !important;
+  border-color: rgba(255,255,255,0.06) !important;
+}
+.account-section header { border-bottom: 1px solid rgba(56,189,248,0.2) !important; }
+.account-section header h2 { color: #38bdf8 !important; }
+
+input[type="text"], input[type="email"], input[type="password"],
+input[type="date"], input[type="number"], input[type="url"],
+textarea, select {
+  background: rgba(255,255,255,0.08) !important;
+  border: 1px solid rgba(255,255,255,0.15) !important;
+  border-radius: 12px !important; color: #e0f0ff !important;
+  backdrop-filter: blur(10px);
+  transition: border-color 0.2s, box-shadow 0.2s !important;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: rgba(56,189,248,0.6) !important;
+  box-shadow: 0 0 0 3px rgba(56,189,248,0.12) !important; outline: none !important;
+}
+input::placeholder, textarea::placeholder { color: rgba(160,210,255,0.5) !important; }
+.button, button.button { border-radius: 12px !important; transition: transform 0.2s, box-shadow 0.2s !important; }
+.button:hover { transform: translateY(-2px) !important; }
+input[type="checkbox"]+label::before {
+  background: rgba(255,255,255,0.08) !important;
+  border: 1px solid rgba(255,255,255,0.2) !important;
+}
+input[type="checkbox"]:checked+label::before {
+  background: var(--main-color) !important;
+  border-color: var(--main-color) !important;
+  box-shadow: 0 0 12px rgba(56,189,248,0.4) !important;
+}
+.dashboard h2, .upcoming-subscriptions h2, .overdue-subscriptions h2, .budget-subscriptions h2 { color: #38bdf8 !important; }
+.mobile-nav {
+  background: rgba(6,13,31,0.9) !important;
+  backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(56,189,248,0.15) !important;
+}
+.mobile-nav > a { color: rgba(160,200,255,0.6) !important; }
+.mobile-nav > a.active { color: #38bdf8 !important; }
+.subscription-form h3, .subscription-modal h3 {
+  border-bottom: 1px solid rgba(56,189,248,0.3) !important; color: #e0f0ff !important;
+}
+.subscription-progress-bar-fill {
+  background: linear-gradient(90deg, #38bdf8, #22d3ee) !important;
+  box-shadow: 0 0 8px rgba(56,189,248,0.4) !important;
+}
+.calendar .calendar-body .calendar-cell { border-color: rgba(255,255,255,0.06) !important; }
+.calendar .calendar-body .calendar-cell .calendar-cell-header { background: rgba(255,255,255,0.04) !important; }
+.toast {
+  background: rgba(10,20,40,0.95) !important;
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(56,189,248,0.2) !important;
+  border-radius: 16px !important;
+}
+
+/* ── LIGHT MODE ── */
+body.light {
+  --background-color: #dbeafe;
+  --box-background-color: rgba(255,255,255,0.65);
+  --box-border-color: rgba(14,165,233,0.2);
+  --text-color: #0c4a6e;
+  --input-background-color: rgba(14,165,233,0.07);
+  --input-border-color: rgba(14,165,233,0.25);
+  --main-color: #0284c7;
+  --main-color-rgb: 2, 132, 199;
+  --accent-color: #0ea5e9;
+  --hover-color: #0369a1;
+}
+body.light {
+  background: linear-gradient(135deg, #dbeafe 0%, #e0f2fe 60%, #ccfbf1 100%) !important;
+}
+body.light::before {
+  background: radial-gradient(circle, rgba(14,165,233,0.12) 0%, transparent 70%) !important;
+}
+body.light::after {
+  background: radial-gradient(circle, rgba(20,184,166,0.1) 0%, transparent 70%) !important;
+}
+body.light nav, body.light body > header, body.light .contain > .logo {
+  background: rgba(219,234,254,0.8) !important;
+  border-bottom-color: rgba(14,165,233,0.2) !important;
+}
+body.light .dropbtn, body.light .dropdown-content a { color: #1e40af !important; }
+body.light .dropdown-content {
+  background: rgba(255,255,255,0.92) !important;
+  border-color: rgba(14,165,233,0.3) !important;
+}
+body.light .dropdown-content a:hover { background: rgba(14,165,233,0.08) !important; }
+body.light .subscription, body.light .subscription-container,
+body.light .subscription-item, body.light .account-section,
+body.light .subscription-form, body.light .subscription-modal {
+  background: rgba(255,255,255,0.7) !important;
+  border-color: rgba(14,165,233,0.2) !important;
+  box-shadow: 0 8px 32px rgba(14,165,233,0.08), inset 0 1px 0 rgba(255,255,255,0.9) !important;
+}
+body.light .subscription:hover, body.light .subscription-item:hover {
+  border-color: rgba(2,132,199,0.5) !important;
+  box-shadow: 0 12px 40px rgba(2,132,199,0.15), inset 0 1px 0 rgba(255,255,255,0.95) !important;
+}
+body.light .account-section header { border-bottom-color: rgba(14,165,233,0.2) !important; }
+body.light .account-section header h2 { color: #0284c7 !important; }
+body.light input[type="text"], body.light input[type="email"], body.light input[type="password"],
+body.light input[type="date"], body.light input[type="number"], body.light input[type="url"],
+body.light textarea, body.light select {
+  background: rgba(255,255,255,0.6) !important;
+  border-color: rgba(14,165,233,0.3) !important;
+  color: #0c4a6e !important;
+}
+body.light input::placeholder, body.light textarea::placeholder { color: rgba(12,74,110,0.4) !important; }
+body.light .dashboard h2, body.light .upcoming-subscriptions h2,
+body.light .overdue-subscriptions h2, body.light .budget-subscriptions h2 { color: #0284c7 !important; }
+body.light .mobile-nav {
+  background: rgba(219,234,254,0.95) !important;
+  border-top-color: rgba(14,165,233,0.2) !important;
+}
+body.light .mobile-nav > a { color: rgba(2,132,199,0.5) !important; }
+body.light .mobile-nav > a.active { color: #0284c7 !important; }
+body.light .subscription-form h3, body.light .subscription-modal h3 {
+  border-bottom-color: rgba(14,165,233,0.3) !important;
+  color: #0c4a6e !important;
+}
+body.light .toast {
+  background: rgba(255,255,255,0.92) !important;
+  border-color: rgba(14,165,233,0.3) !important;
+}
+body.light input[type="checkbox"]+label::before {
+  background: rgba(255,255,255,0.5) !important;
+  border-color: rgba(14,165,233,0.3) !important;
+}
+body.light .calendar .calendar-body .calendar-cell { border-color: rgba(14,165,233,0.15) !important; }
+body.light .calendar .calendar-body .calendar-cell .calendar-cell-header { background: rgba(255,255,255,0.4) !important; }

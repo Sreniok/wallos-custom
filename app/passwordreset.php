@@ -109,20 +109,25 @@ if (isset($_POST['password']) && $_POST['password'] != "" && isset($_POST['confi
         $stmt->bindValue(':email', $reset['email'], SQLITE3_TEXT);
         $result = $stmt->execute();
         $user = $result->fetchArray(SQLITE3_ASSOC);
-        
+
         if ($password == $confirmPassword) {
+            // Burn the reset token BEFORE updating the password so even if
+            // the update query later fails (or the request is replayed), the
+            // token can no longer be reused — single-use guarantee.
+            $deleteStmt = $db->prepare("DELETE FROM password_resets WHERE token = :token");
+            $deleteStmt->bindValue(':token', $token, SQLITE3_TEXT);
+            $deleteStmt->execute();
+
             $passwordHash = password_hash($password, PASSWORD_DEFAULT);
             $stmt = $db->prepare("UPDATE user SET password = :password WHERE id = :id");
             $stmt->bindValue(':password', $passwordHash, SQLITE3_TEXT);
             $stmt->bindValue(':id', $user['id'], SQLITE3_INTEGER);
             $stmt->execute();
 
-            $stmt = $db->prepare("DELETE FROM password_resets WHERE token = :token");
-            $stmt->bindValue(':token', $token, SQLITE3_TEXT);
-            $stmt->execute();
             $hasSuccessMessage = true;
             $hideForm = true;
         } else {
+            // Passwords don't match — keep the token so the user can retry.
             $hasErrorMessage = true;
             $passwordsMismatch = true;
         }

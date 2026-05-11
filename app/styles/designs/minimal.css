@@ -1,0 +1,169 @@
+/* ── CLEAN MINIMAL – Dark + Blue/Teal ── */
+
+/* ── DARK MODE (default) ── */
+:root {
+  --background-color: #0a0e1a;
+  --box-background-color: #111827;
+  --box-border-color: #1f2937;
+  --header-background-color: #0a0e1a;
+  --text-color: #f1f5f9;
+  --text-color-rgb: 241, 245, 249;
+  --text-color-inverted: #0a0e1a;
+  --input-background-color: #1f2937;
+  --input-border-color: #374151;
+  --input-disabled-background-color: #161e2a;
+  --input-disabled-border-color: #1f2937;
+  --box-shadow: none;
+  --negative-box-shadow: none;
+  --main-color: #0ea5e9;
+  --main-color-rgb: 14, 165, 233;
+  --accent-color: #14b8a6;
+  --accent-color-rgb: 20, 184, 166;
+  --hover-color: #0284c7;
+  --hover-color-rgb: 2, 132, 199;
+}
+
+body { background: #0a0e1a !important; letter-spacing: 0.01em; }
+nav, body > header, .contain > .logo {
+  background: #0a0e1a !important;
+  border-bottom: 1px solid #1f2937 !important;
+  box-shadow: none !important;
+}
+.dropbtn, .dropdown-content a { color: #94a3b8 !important; font-weight: 500; }
+.dropdown-content {
+  background: #111827 !important;
+  border: 1px solid #1f2937 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important;
+}
+.dropdown-content a:hover { background: #1f2937 !important; color: #f1f5f9 !important; }
+.subscription, .subscription-container {
+  background: #111827 !important; border: none !important;
+  border-left: 3px solid var(--main-color) !important;
+  border-radius: 8px !important; box-shadow: none !important;
+  transition: background 0.2s, border-left-color 0.2s !important;
+}
+.subscription:hover { background: #1a2332 !important; border-left-color: #38bdf8 !important; }
+.subscription.inactive { border-left-color: #374151 !important; background: #0f1623 !important; }
+.subscription-item {
+  background: #111827 !important;
+  border: 1px solid #1f2937 !important;
+  border-radius: 10px !important; box-shadow: none !important;
+  transition: background 0.2s, border-color 0.2s !important;
+}
+.subscription-item:hover { background: #1a2332 !important; border-color: #0ea5e9 !important; }
+.account-section {
+  background: #111827 !important;
+  border: 1px solid #1f2937 !important;
+  border-radius: 10px !important; box-shadow: none !important;
+}
+.account-section header { border-bottom: 1px solid #1f2937 !important; }
+.account-section header h2 {
+  color: #0ea5e9 !important; font-size: 13px !important;
+  text-transform: uppercase !important; letter-spacing: 0.08em !important; font-weight: 600 !important;
+}
+input[type="text"], input[type="email"], input[type="password"],
+input[type="date"], input[type="number"], input[type="url"],
+textarea, select {
+  background: #1f2937 !important; border: 1px solid #374151 !important;
+  border-radius: 6px !important; color: #f1f5f9 !important;
+  transition: border-color 0.15s !important; box-shadow: none !important;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: #0ea5e9 !important; outline: none !important; box-shadow: none !important;
+}
+input::placeholder, textarea::placeholder { color: #4b5563 !important; }
+.button, button.button {
+  border-radius: 6px !important; font-weight: 600 !important;
+  letter-spacing: 0.02em !important;
+}
+.subscription-form, .subscription-modal {
+  background: #111827 !important; border: 1px solid #1f2937 !important;
+  border-radius: 12px !important; box-shadow: 0 20px 60px rgba(0,0,0,0.6) !important;
+}
+.subscription-form h3, .subscription-modal h3 {
+  border-bottom: 2px solid #0ea5e9 !important; color: #f1f5f9 !important;
+  font-weight: 600 !important; letter-spacing: 0.03em !important;
+}
+input[type="checkbox"]+label::before {
+  background: #1f2937 !important; border: 1px solid #374151 !important; border-radius: 4px !important;
+}
+input[type="checkbox"]:checked+label::before {
+  background: #0ea5e9 !important; border-color: #0ea5e9 !important;
+}
+.dashboard h2, .upcoming-subscriptions h2, .overdue-subscriptions h2, .budget-subscriptions h2 {
+  color: #f1f5f9 !important; font-weight: 600 !important; letter-spacing: 0.02em !important;
+  border-left: 3px solid #0ea5e9; padding-left: 10px;
+}
+.mobile-nav { background: #0a0e1a !important; border-top: 1px solid #1f2937 !important; }
+.mobile-nav > a { color: #4b5563 !important; }
+.mobile-nav > a.active { color: #0ea5e9 !important; }
+.subscription-progress-bar-fill { background: linear-gradient(90deg, #0ea5e9, #14b8a6) !important; }
+.calendar .calendar-body .calendar-cell { border-color: #1f2937 !important; }
+.calendar .calendar-body .calendar-cell .calendar-cell-header { background: #0f1623 !important; }
+.toast {
+  background: #111827 !important; border: 1px solid #1f2937 !important;
+  border-radius: 8px !important; box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important;
+}
+
+/* ── LIGHT MODE ── */
+body.light {
+  --background-color: #f8fafc;
+  --box-background-color: #ffffff;
+  --box-border-color: #e2e8f0;
+  --header-background-color: #ffffff;
+  --text-color: #1e293b;
+  --text-color-rgb: 30, 41, 59;
+  --input-background-color: #f1f5f9;
+  --input-border-color: #cbd5e1;
+  --input-disabled-background-color: #f8fafc;
+  --main-color: #0ea5e9;
+  --hover-color: #0284c7;
+}
+body.light { background: #f8fafc !important; }
+body.light nav, body.light body > header, body.light .contain > .logo {
+  background: #ffffff !important; border-bottom-color: #e2e8f0 !important;
+}
+body.light .dropbtn, body.light .dropdown-content a { color: #475569 !important; }
+body.light .dropdown-content {
+  background: #ffffff !important; border-color: #e2e8f0 !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1) !important;
+}
+body.light .dropdown-content a:hover { background: #f1f5f9 !important; color: #1e293b !important; }
+body.light .subscription, body.light .subscription-container {
+  background: #ffffff !important; border-left-color: #0ea5e9 !important;
+}
+body.light .subscription:hover { background: #f8fafc !important; border-left-color: #0284c7 !important; }
+body.light .subscription.inactive { background: #f8fafc !important; border-left-color: #cbd5e1 !important; }
+body.light .subscription-item {
+  background: #ffffff !important; border-color: #e2e8f0 !important;
+}
+body.light .subscription-item:hover { background: #f0f9ff !important; border-color: #0ea5e9 !important; }
+body.light .account-section { background: #ffffff !important; border-color: #e2e8f0 !important; }
+body.light .account-section header { border-bottom-color: #e2e8f0 !important; }
+body.light .account-section header h2 { color: #0284c7 !important; }
+body.light input[type="text"], body.light input[type="email"], body.light input[type="password"],
+body.light input[type="date"], body.light input[type="number"], body.light input[type="url"],
+body.light textarea, body.light select {
+  background: #f1f5f9 !important; border-color: #cbd5e1 !important; color: #1e293b !important;
+}
+body.light input::placeholder, body.light textarea::placeholder { color: #94a3b8 !important; }
+body.light .subscription-form, body.light .subscription-modal {
+  background: #ffffff !important; border-color: #e2e8f0 !important;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.15) !important;
+}
+body.light .subscription-form h3, body.light .subscription-modal h3 { color: #1e293b !important; }
+body.light input[type="checkbox"]+label::before {
+  background: #f1f5f9 !important; border-color: #cbd5e1 !important;
+}
+body.light .dashboard h2, body.light .upcoming-subscriptions h2,
+body.light .overdue-subscriptions h2, body.light .budget-subscriptions h2 { color: #1e293b !important; }
+body.light .mobile-nav { background: #ffffff !important; border-top-color: #e2e8f0 !important; }
+body.light .mobile-nav > a { color: #94a3b8 !important; }
+body.light .mobile-nav > a.active { color: #0ea5e9 !important; }
+body.light .toast {
+  background: #ffffff !important; border-color: #e2e8f0 !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1) !important;
+}
+body.light .calendar .calendar-body .calendar-cell { border-color: #e2e8f0 !important; }
+body.light .calendar .calendar-body .calendar-cell .calendar-cell-header { background: #f8fafc !important; }

@@ -18,7 +18,7 @@ function translate($text, $translations)
         if (array_key_exists($text, $i18n)) {
             return $i18n[$text];
         } else {
-            return "[i18n String Missing]";
+            return $text;
         }
     }
 }

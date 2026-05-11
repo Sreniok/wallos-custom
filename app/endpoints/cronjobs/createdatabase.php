@@ -14,6 +14,8 @@ if (!file_exists($databaseFile)) {
         password TEXT NOT NULL,
         main_currency INTEGER NOT NULL,
         avatar TEXT,
+        ical_token TEXT,
+        ical_enabled INTEGER DEFAULT 0,
         FOREIGN KEY(main_currency) REFERENCES currencies(id)
     )');
 

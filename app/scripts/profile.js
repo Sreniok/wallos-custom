@@ -8,13 +8,13 @@ document.addEventListener('DOMContentLoaded', function () {
         const formData = new FormData(event.target);
         formData.append("action", "save");
 
-        fetch("endpoints/user/save_user.php", {
+        withSpinner(safeFetch("endpoints/user/save_user.php", {
             method: "POST",
             headers: {
                 "X-CSRF-Token": window.csrfToken,
             },
             body: formData,
-        })
+        }), document.querySelector(".account-section"))
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
@@ -77,6 +77,7 @@ function successfulUpload(field, msg) {
 
     if (!['image/jpeg', 'image/png', 'image/gif', 'image/jtif', 'image/webp'].includes(field.files[0]['type'])) {
         showErrorMessage(msg);
+        field.value = "";
         return;
     }
 
@@ -89,7 +90,7 @@ function successfulUpload(field, msg) {
 }
 
 function deleteAvatar(path) {
-    fetch('endpoints/user/delete_avatar.php', {
+    safeFetch('endpoints/user/delete_avatar.php', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -122,7 +123,7 @@ function enableTotp() {
   totpSecretCode.textContent = "";
   qrCode.innerHTML = "";
 
-  fetch("endpoints/user/enable_totp.php", {
+  safeFetch("endpoints/user/enable_totp.php", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -171,7 +172,7 @@ function submitTotp() {
     const totpCode = document.getElementById('totp').value;
     const totpSecret = document.getElementById('totp-secret').value;
 
-    fetch('endpoints/user/enable_totp.php', {
+    safeFetch('endpoints/user/enable_totp.php', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -248,7 +249,7 @@ function disableTotp() {
 function submitDisableTotp() {
     const totpCode = document.getElementById('totp-disable').value;
 
-    fetch('endpoints/user/disable_totp.php', {
+    safeFetch('endpoints/user/disable_totp.php', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -276,12 +277,12 @@ function regenerateApiKey() {
   const regenerateButton = document.getElementById("regenerateApiKey");
   regenerateButton.disabled = true;
 
-  fetch("endpoints/user/regenerateapikey.php", {
+  withSpinner(safeFetch("endpoints/user/regenerateapikey.php", {
     method: "POST",
     headers: {
       "X-CSRF-Token": window.csrfToken,
     },
-  })
+  }), document.querySelector(".account-api-key"))
     .then(response => response.json())
     .then(data => {
       regenerateButton.disabled = false;
@@ -302,7 +303,7 @@ function regenerateApiKey() {
 
 
 function exportAsJson() {
-    fetch("endpoints/subscriptions/export.php")
+    safeFetch("endpoints/subscriptions/export.php")
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -325,7 +326,7 @@ function exportAsJson() {
 }
 
 function exportAsCsv() {
-    fetch("endpoints/subscriptions/export.php")
+    safeFetch("endpoints/subscriptions/export.php")
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -358,7 +359,7 @@ function deleteAccount(userId) {
         return;
     }
 
-    fetch('endpoints/settings/deleteaccount.php', {
+    safeFetch('endpoints/settings/deleteaccount.php', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

@@ -28,7 +28,7 @@ function closeSubscriptionModal() {
 }
 
 function runSubscriptionModalAction(endpoint, subscriptionId, successMessage) {
-    fetch(endpoint, {
+    safeFetch(endpoint, {
         method: 'POST',
         body: JSON.stringify({id: subscriptionId}),
         headers: {
@@ -62,24 +62,26 @@ function openSubscriptionModal(subscriptionId) {
 
     modalContent.innerHTML = '';
 
-    fetch('endpoints/subscription/getcalendar.php', {
+    withSpinner(safeFetch('endpoints/subscription/getcalendar.php', {
         method: 'POST',
         body: JSON.stringify({id: subscriptionId}),
         headers: {
           'Content-Type': 'application/json'
         }
-      })
+      }), modalContent)
       .then(response => response.json())
       .then(data => {
         if (data.success && data.data) {
           const subscription = data.data;
           const paymentMissingText = translateWithFallback('payment_missing', 'Payment Missing');
           const alreadyPaidText = translateWithFallback('already_paid', 'Already Paid');
+          const editText = translateWithFallback('edit', 'Edit');
           const paymentRecordedText = translateWithFallback('payment_recorded', 'Payment recorded and next payment updated.');
           const actionButtons = `
             <div class="modal-footer">
                 <button class="button danger-button tiny" onclick="runSubscriptionModalAction('endpoints/subscription/renew.php', ${subscription.id}, '${translate('success')}')">${paymentMissingText}</button>
                 <button class="button success-button tiny" onclick="runSubscriptionModalAction('endpoints/subscription/markpaid.php', ${subscription.id}, '${paymentRecordedText}')">${alreadyPaidText}</button>
+                <button class="button secondary-button tiny" onclick="openDashboardEditModal(${subscription.id})">${editText}</button>
             </div>`;
           const html = `
             <div class="modal-header">

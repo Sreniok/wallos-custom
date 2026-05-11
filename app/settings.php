@@ -1,5 +1,6 @@
 <?php
 require_once 'includes/header.php';
+require_once 'includes/ical_helpers.php';
 
 $currencies = array();
 $query = "SELECT * FROM currencies WHERE user_id = :userId";
@@ -11,6 +12,9 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
     $currencies[$currencyId] = $row;
 }
 $userData['currency_symbol'] = $currencies[$main_currency]['symbol'];
+$icalToken = wallosEnsureIcalToken($db, (int) $userId);
+$icalUrls = wallosGetIcalUrls($icalToken);
+$icalEnabled = !empty($userData['ical_enabled']);
 
 ?>
 
@@ -23,7 +27,25 @@ $userData['currency_symbol'] = $currencies[$main_currency]['symbol'];
 </style>
 <section class="contain settings">
 
-    <section class="account-section">
+    <nav class="settings-tabs" role="tablist" aria-label="Settings categories">
+        <button type="button" class="settings-tab" data-tab="general" role="tab">
+            <i class="fa-solid fa-sliders"></i>General
+        </button>
+        <button type="button" class="settings-tab" data-tab="notifications" role="tab">
+            <i class="fa-solid fa-bell"></i><?= translate('notifications', $i18n) ?>
+        </button>
+        <button type="button" class="settings-tab" data-tab="catalog" role="tab">
+            <i class="fa-solid fa-list-ul"></i>Catalog
+        </button>
+        <button type="button" class="settings-tab" data-tab="appearance" role="tab">
+            <i class="fa-solid fa-palette"></i>Appearance
+        </button>
+        <button type="button" class="settings-tab" data-tab="advanced" role="tab">
+            <i class="fa-solid fa-toolbox"></i>Advanced
+        </button>
+    </nav>
+
+    <section class="account-section" data-settings-tab="general">
         <header>
             <h2><?= translate('monthly_budget', $i18n) ?></h2>
         </header>
@@ -56,7 +78,7 @@ $userData['currency_symbol'] = $currencies[$main_currency]['symbol'];
     }
     ?>
 
-    <section class="account-section">
+    <section class="account-section" data-settings-tab="general">
         <header>
             <h2><?= translate('household', $i18n) ?></h2>
         </header>
@@ -368,7 +390,7 @@ $userData['currency_symbol'] = $currencies[$main_currency]['symbol'];
 
     ?>
 
-    <section class="account-section">
+    <section class="account-section" data-settings-tab="notifications">
         <header>
             <h2><?= translate('notifications', $i18n) ?></h2>
         </header>
@@ -824,7 +846,7 @@ $userData['currency_symbol'] = $currencies[$main_currency]['symbol'];
     }
     ?>
 
-    <section class="account-section">
+    <section class="account-section" data-settings-tab="catalog">
         <header>
             <h2><?= translate('categories', $i18n) ?></h2>
         </header>
@@ -910,7 +932,7 @@ $userData['currency_symbol'] = $currencies[$main_currency]['symbol'];
 
     ?>
 
-    <section class="account-section">
+    <section class="account-section" data-settings-tab="catalog">
         <header>
             <h2><?= translate('currencies', $i18n) ?></h2>
         </header>
@@ -1017,7 +1039,7 @@ $userData['currency_symbol'] = $currencies[$main_currency]['symbol'];
     }
     ?>
 
-    <section class="account-section">
+    <section class="account-section" data-settings-tab="advanced">
         <header>
             <h2>Fixer API Key</h2>
         </header>
@@ -1062,6 +1084,42 @@ $userData['currency_symbol'] = $currencies[$main_currency]['symbol'];
         </div>
     </section>
 
+    <section class="account-section" data-settings-tab="advanced">
+        <header>
+            <h2><?= translate('calendar_feed', $i18n) ?></h2>
+        </header>
+        <div class="account-calendar-feed">
+            <div class="form-group-inline">
+                <input type="checkbox" id="icalenabled" name="icalenabled" onChange="saveIcalSettings()"
+                    <?= $icalEnabled ? "checked" : "" ?>>
+                <label for="icalenabled" class="capitalize"><?= translate('enable_calendar_feed', $i18n) ?></label>
+            </div>
+            <div class="form-group-inline">
+                <input type="text" id="icalFeedUrl" name="icalFeedUrl" autocomplete="off"
+                    value="<?= htmlspecialchars($icalUrls['webcal'], ENT_QUOTES, 'UTF-8') ?>" readonly>
+                <button type="button" class="button secondary-button thin mobile-grow" onClick="copyIcalFeedUrl()">
+                    <?= translate('copy_to_clipboard', $i18n) ?>
+                </button>
+            </div>
+            <div class="buttons wrap">
+                <a class="button thin mobile-grow" id="icalWebcalLink"
+                    href="<?= htmlspecialchars($icalUrls['webcal'], ENT_QUOTES, 'UTF-8') ?>">
+                    <?= translate('subscribe_in_calendar', $i18n) ?>
+                </a>
+                <button type="button" class="button secondary-button thin mobile-grow" id="regenerateIcalToken"
+                    onClick="regenerateIcalToken()">
+                    <?= translate('regenerate', $i18n) ?>
+                </button>
+            </div>
+            <div class="settings-notes">
+                <p>
+                    <i class="fa-solid fa-circle-info"></i>
+                    <?= translate('ical_feed_info', $i18n) ?>
+                </p>
+            </div>
+        </div>
+    </section>
+
     <?php
     $sql = "SELECT * FROM ai_settings WHERE user_id = :userId LIMIT 1";
     $stmt = $db->prepare($sql);
@@ -1074,7 +1132,7 @@ $userData['currency_symbol'] = $currencies[$main_currency]['symbol'];
     }
     ?>
 
-    <section class="account-section">
+    <section class="account-section" data-settings-tab="advanced">
         <header>
             <h2><?= translate('ai_recommendations', $i18n) ?></h2>
         </header>
@@ -1174,7 +1232,7 @@ $userData['currency_symbol'] = $currencies[$main_currency]['symbol'];
     }
     ?>
 
-    <section class="account-section">
+    <section class="account-section" data-settings-tab="catalog">
         <header>
             <h2><?= translate('payment_methods', $i18n) ?></h2>
         </header>
@@ -1262,7 +1320,7 @@ $userData['currency_symbol'] = $currencies[$main_currency]['symbol'];
         </div>
     </section>
 
-    <section class="account-section">
+    <section class="account-section" data-settings-tab="appearance">
         <header>
             <h2><?= translate('theme_settings', $i18n) ?></h2>
         </header>
@@ -1285,6 +1343,38 @@ $userData['currency_symbol'] = $currencies[$main_currency]['symbol'];
                         onClick="setDarkTheme('2')" id="theme-automatic">
                         <i class="fa-solid fa-circle-half-stroke"></i> <?= translate('automatic', $i18n) ?>
                     </button>
+                </div>
+            </div>
+            <div>
+                <h3>Design</h3>
+                <div class="design-theme-selector">
+                    <?php
+                    $currentDesign = $settings['designTheme'] ?? '';
+                    $designs = [
+                        '' => ['label' => 'Default', 'colors' => ['#007BFF','#8FBFFA','#0056B3'], 'dark' => ['#303030','#222','#333']],
+                        'modern' => ['label' => 'Modern', 'colors' => ['#7C92FF','#A6B8FF','#5B73E8'], 'dark' => ['#181C24','#0A0C10','#232833']],
+                        'glass' => ['label' => 'Glass', 'colors' => ['#38bdf8','#22d3ee','#0ea5e9'], 'dark' => ['rgba(255,255,255,0.06)','#060d1f','rgba(56,189,248,0.4)']],
+                        'minimal' => ['label' => 'Minimal', 'colors' => ['#0ea5e9','#14b8a6','#1f2937'], 'dark' => ['#111827','#0a0e1a','#1f2937']],
+                        'neo' => ['label' => 'Neo', 'colors' => ['#38bdf8','#22d3ee','#1a2035'], 'dark' => ['#1a2035','#243050','#111827']],
+                        'vibrant' => ['label' => 'Vibrant', 'colors' => ['#00d4ff','#14f0c8','#0c1628'], 'dark' => ['#0c1628','#050b18','rgba(0,212,255,0.3)']],
+                    ];
+                    foreach ($designs as $key => $design): ?>
+                    <button type="button"
+                        class="design-theme-card <?= $currentDesign === $key ? 'is-selected' : '' ?>"
+                        data-design="<?= htmlspecialchars($key) ?>"
+                        onclick="setDesignTheme('<?= htmlspecialchars($key) ?>')">
+                        <div class="design-card-preview">
+                            <div class="design-card-bg" style="background:<?= $design['dark'][1] ?>">
+                                <div class="design-card-bar" style="background:<?= $design['dark'][0] ?>;border:1px solid <?= $design['dark'][2] ?>"></div>
+                                <div class="design-card-dots">
+                                    <div class="design-card-dot" style="background:<?= $design['colors'][0] ?>"></div>
+                                    <div class="design-card-dot" style="background:<?= $design['colors'][1] ?>"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <span><?= $design['label'] ?></span>
+                    </button>
+                    <?php endforeach; ?>
                 </div>
             </div>
             <div>
@@ -1394,7 +1484,7 @@ $userData['currency_symbol'] = $currencies[$main_currency]['symbol'];
             ?>
     </section>
 
-    <section class="account-section">
+    <section class="account-section" data-settings-tab="appearance">
         <header>
             <h2><?= translate('display_settings', $i18n) ?></h2>
         </header>
@@ -1443,6 +1533,14 @@ $userData['currency_symbol'] = $currencies[$main_currency]['symbol'];
                     <label for="showsubscriptionprogress"><?= translate('show_subscription_progress', $i18n) ?></label>
                 </div>
             </div>
+            <h3>Payment Dates</h3>
+            <div>
+                <div class="form-group-inline">
+                    <input type="checkbox" id="adjusttoworkingday" name="adjusttoworkingday"
+                        onChange="setAdjustToWorkingDay()" <?= $settings['adjust_to_working_day'] ? 'checked' : '' ?>>
+                    <label for="adjusttoworkingday">Move payments to the next working day when they fall on a weekend</label>
+                </div>
+            </div>
             <h3><?= translate('disabled_subscriptions', $i18n) ?></h3>
             <div>
                 <div class="form-group-inline">
@@ -1462,7 +1560,7 @@ $userData['currency_symbol'] = $currencies[$main_currency]['symbol'];
         </div>
     </section>
 
-    <section class="account-section">
+    <section class="account-section" data-settings-tab="advanced">
         <header>
             <h2><?= translate('maintenance', $i18n) ?></h2>
         </header>
@@ -1484,7 +1582,7 @@ $userData['currency_symbol'] = $currencies[$main_currency]['symbol'];
         </div>
     </section>
 
-    <section class="account-section">
+    <section class="account-section" data-settings-tab="advanced">
         <header>
             <h2><?= translate('experimental_settings', $i18n) ?></h2>
         </header>

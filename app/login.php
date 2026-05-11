@@ -7,6 +7,8 @@ require_once 'includes/i18n/getlang.php';
 require_once 'includes/i18n/' . $lang . '.php';
 
 require_once 'includes/version.php';
+require_once 'includes/cookie_helpers.php';
+require_once 'includes/login_throttle.php';
 
 if ($userCount == 0) {
     header("Location: registration.php");
@@ -83,12 +85,27 @@ if ($adminRow['login_disabled'] == 1) {
             'samesite' => 'Lax',
         ]);
 
-        $cookieValue = $username . "|" . "abc123ABC" . "|" . $main_currency;
-        setcookie('wallos_login', $cookieValue, [
-            'expires' => $cookieExpire,
-            'samesite' => 'Lax',
-            'httponly' => true,
-        ]);
+        // No-login flow: ensure a real random token exists in login_tokens for
+        // this user. Older builds used a static token here, which made the
+        // remember-me cookie forgeable. Reuse an existing token if any to
+        // avoid table bloat on every page load that triggers this branch.
+        $existingTokenStmt = $db->prepare("SELECT token FROM login_tokens WHERE user_id = :userId LIMIT 1");
+        $existingTokenStmt->bindValue(':userId', $userId, SQLITE3_INTEGER);
+        $existingTokenResult = $existingTokenStmt->execute();
+        $existingTokenRow = $existingTokenResult ? $existingTokenResult->fetchArray(SQLITE3_ASSOC) : false;
+
+        if ($existingTokenRow && !empty($existingTokenRow['token'])) {
+            $token = $existingTokenRow['token'];
+        } else {
+            $token = bin2hex(random_bytes(32));
+            $insertTokenStmt = $db->prepare("INSERT INTO login_tokens (user_id, token) VALUES (:userId, :token)");
+            $insertTokenStmt->bindValue(':userId', $userId, SQLITE3_INTEGER);
+            $insertTokenStmt->bindValue(':token', $token, SQLITE3_TEXT);
+            $insertTokenStmt->execute();
+        }
+
+        $cookieValue = $username . "|" . $token . "|" . $main_currency;
+        setcookie('wallos_login', $cookieValue, wallosAuthCookieParams($cookieExpire));
 
         $db->close();
         header("Location: .");
@@ -164,12 +181,24 @@ if ($oidcRow) {
 }
 
 $loginFailed = false;
+$loginThrottled = false;
+$loginThrottledRetryAfter = 0;
 $hasSuccessMessage = (isset($_GET['validated']) && $_GET['validated'] == "true") || (isset($_GET['registered']) && $_GET['registered'] == true) ? true : false;
 $userEmailWaitingVerification = false;
 if (isset($_POST['username']) && isset($_POST['password'])) {
     $username = $_POST['username'];
     $password = $_POST['password'];
     $rememberMe = isset($_POST['remember']) ? true : false;
+
+    // Throttle check — block further login attempts after 5 failures in 15 min
+    $clientIp = wallosClientIp();
+    if (wallosLoginThrottleBlocked($db, $clientIp)) {
+        $loginThrottled = true;
+        $loginThrottledRetryAfter = wallosLoginThrottleRetryAfterSeconds($db, $clientIp);
+        $loginFailed = true;
+    }
+
+    if (!$loginThrottled) {
 
     $query = "SELECT id, password, main_currency, language FROM user WHERE username = :username";
     $stmt = $db->prepare($query);
@@ -183,6 +212,9 @@ if (isset($_POST['username']) && isset($_POST['password'])) {
         $main_currency = $row['main_currency'];
         $language = $row['language'];
         if (password_verify($password, $hashedPasswordFromDb)) {
+            // Password is valid → clear throttle so a legitimate user fumbling
+            // through TOTP doesn't get locked out by their own retries.
+            wallosLoginThrottleClear($db, $clientIp);
 
             // Check if the user is in the email_verification table
             $query = "SELECT 1 FROM email_verification WHERE user_id = :userId";
@@ -222,11 +254,7 @@ if (isset($_POST['username']) && isset($_POST['password'])) {
                     $addLoginTokensStmt->execute();
                     $_SESSION['token'] = $token;
                     $cookieValue = $username . "|" . $token . "|" . $main_currency;
-                    setcookie('wallos_login', $cookieValue, [
-                        'expires' => $cookieExpire,
-                        'samesite' => 'Lax',
-                        'httponly' => true,
-                    ]);
+                    setcookie('wallos_login', $cookieValue, wallosAuthCookieParams($cookieExpire));
                 }
 
                 $_SESSION['username'] = $username;
@@ -255,6 +283,7 @@ if (isset($_POST['username']) && isset($_POST['password'])) {
                     'samesite' => 'Lax'
                 ]);
 
+                wallosLoginThrottleClear($db, $clientIp);
                 $db->close();
                 header("Location: .");
                 exit();
@@ -262,10 +291,13 @@ if (isset($_POST['username']) && isset($_POST['password'])) {
 
         } else {
             $loginFailed = true;
+            wallosLoginThrottleRecordFailure($db, $clientIp, $username);
         }
     } else {
         $loginFailed = true;
+        wallosLoginThrottleRecordFailure($db, $clientIp, $username);
     }
+    } // end !$loginThrottled
 }
 
 //Check if registration is open
@@ -296,7 +328,7 @@ if (!$password_login_disabled) {
 }
 
 
-if (isset($_GET['error']) && $_GET['error'] == "oidc_user_not_found") {
+if (isset($_GET['error']) && in_array($_GET['error'], ["oidc_user_not_found", "oidc_invalid_state"], true)) {
     $loginFailed = true;
 }
 
@@ -387,7 +419,14 @@ if (isset($_GET['error']) && $_GET['error'] == "oidc_user_not_found") {
                     ?>
                     <ul class="error-box">
                         <?php
-                        if ($userEmailWaitingVerification) {
+                        if ($loginThrottled) {
+                            $minutes = (int) ceil($loginThrottledRetryAfter / 60);
+                            ?>
+                            <li><i class="fa-solid fa-triangle-exclamation"></i>
+                                Too many failed attempts. Try again in <?= max(1, $minutes) ?> minute<?= $minutes === 1 ? '' : 's' ?>.
+                            </li>
+                            <?php
+                        } elseif ($userEmailWaitingVerification) {
                             ?>
                             <li><i
                                     class="fa-solid fa-triangle-exclamation"></i><?= translate('user_email_waiting_verification', $i18n) ?>

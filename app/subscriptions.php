@@ -126,10 +126,11 @@ if ($result) {
 }
 
 if ($sortOrder == "next_payment") {
-  usort($subscriptions, function ($a, $b) {
+  $globalAdjust = !empty($settings['adjust_to_working_day']);
+  usort($subscriptions, function ($a, $b) use ($globalAdjust) {
     return strcmp(
-      getUpcomingSubscriptionPaymentDate($a) ?? '',
-      getUpcomingSubscriptionPaymentDate($b) ?? ''
+      getAdjustedPaymentDate($a, null, $globalAdjust) ?? '',
+      getAdjustedPaymentDate($b, null, $globalAdjust) ?? ''
     );
   });
 }
@@ -163,7 +164,14 @@ $headerClass = count($subscriptions) > 0 ? "main-actions" : "main-actions hidden
   }
 </style>
 
+<?php if (isset($_GET['embed'])): ?>
+<style>
+nav, .logo, .dropdown, .mobile-nav, section.contain { display: none !important; }
+</style>
+<?php endif; ?>
+
 <section class="contain">
+  <?php require 'includes/next_payment_hero.php'; ?>
   <header class="<?= $headerClass ?>" id="main-actions">
     <button class="button" onClick="addSubscription()">
       <i class="fa-solid fa-circle-plus"></i>
@@ -216,7 +224,11 @@ $headerClass = count($subscriptions) > 0 ? "main-actions" : "main-actions hidden
       $print[$id]['currency_code'] = $currencies[$subscription['currency_id']]['code'];
       $currencyId = $subscription['currency_id'];
       $print[$id]['auto_renew'] = $subscription['auto_renew'];
-      $displayNextPayment = getUpcomingSubscriptionPaymentDate($subscription) ?? $subscription['next_payment'];
+      $print[$id]['adjust_to_working_day'] = $subscription['adjust_to_working_day'] ?? 0;
+      $print[$id]['cycle'] = $cycle;
+      $print[$id]['frequency'] = $frequency;
+      $displayNextPayment = getAdjustedPaymentDate($subscription, null, !empty($settings['adjust_to_working_day'])) ?? $subscription['next_payment'];
+      $print[$id]['raw_next_payment'] = $displayNextPayment;
       $formatted_date = wallosFormatDateValue($displayNextPayment, 'en', null, null, 'MMM d, yyyy');
       $print[$id]['next_payment'] = $formatted_date;
       $paymentIconFolder = (strpos($payment_methods[$paymentMethodId]['icon'], 'images/uploads/icons/') !== false) ? "" : "images/uploads/logos/";
@@ -287,6 +299,7 @@ $headerClass = count($subscriptions) > 0 ? "main-actions" : "main-actions hidden
     <span class="fa-solid fa-xmark close-form" onClick="closeAddSubscription()"></span>
   </header>
   <form action="endpoints/subscription/add.php" method="post" id="subs-form">
+    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(generate_csrf_token(), ENT_QUOTES, 'UTF-8') ?>">
 
     <div class="form-group-inline">
       <input type="text" id="name" name="name" autocomplete="off"
@@ -299,7 +312,8 @@ $headerClass = count($subscriptions) > 0 ? "main-actions" : "main-actions hidden
       <input type="file" id="logo" name="logo" accept="image/jpeg, image/png, image/gif, image/webp, image/svg+xml"
         onchange="handleFileSelect(event)" class="hidden-input">
       <input type="hidden" id="logo-url" name="logo-url">
-      <div id="logo-search-button" class="image-button medium disabled" title="<?= translate('search_logo', $i18n) ?>"
+      <div id="logo-search-button" class="image-button medium disabled" role="button" tabindex="0"
+        aria-label="<?= translate('search_logo', $i18n) ?>" title="<?= translate('search_logo', $i18n) ?>"
         onClick="searchLogo()">
         <?php include "images/siteicons/svg/websearch.php"; ?>
       </div>
@@ -372,6 +386,11 @@ $headerClass = count($subscriptions) > 0 ? "main-actions" : "main-actions hidden
       </div>
     </div>
 
+    <div class="form-group-inline grow">
+      <input type="checkbox" id="adjust_to_working_day" name="adjust_to_working_day">
+      <label for="adjust_to_working_day" class="grow">Include in working day adjustment</label>
+    </div>
+
     <div class="form-group">
       <div class="inline">
         <div class="split50">
@@ -382,13 +401,15 @@ $headerClass = count($subscriptions) > 0 ? "main-actions" : "main-actions hidden
         </div>
         <button type="button" id="autofill-next-payment-button"
           class="button secondary-button autofill-next-payment hideOnMobile"
+          aria-label="<?= translate('calculate_next_payment_date', $i18n) ?>"
           title="<?= translate('calculate_next_payment_date', $i18n) ?>" onClick="autoFillNextPaymentDate(event)">
           <i class="fa-solid fa-wand-magic-sparkles"></i>
         </button>
         <div class="split50">
           <label for="next_payment" class="split-label">
             <?= translate('next_payment', $i18n) ?>
-            <div id="autofill-next-payment-button" class="autofill-next-payment hideOnDesktop"
+            <div id="autofill-next-payment-button" class="autofill-next-payment hideOnDesktop" role="button" tabindex="0"
+              aria-label="<?= translate('calculate_next_payment_date', $i18n) ?>"
               title="<?= translate('calculate_next_payment_date', $i18n) ?>" onClick="autoFillNextPaymentDate(event)">
               <i class="fa-solid fa-wand-magic-sparkles"></i>
             </div>
@@ -539,6 +560,17 @@ if (isset($_GET['add'])) {
   ?>
   <script>
     addSubscription();
+  </script>
+  <?php
+}
+
+if (isset($_GET['edit']) && is_numeric($_GET['edit'])) {
+  $editId = (int) $_GET['edit'];
+  ?>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      openEditSubscription({ stopPropagation: function(){} }, <?= $editId ?>);
+    });
   </script>
   <?php
 }

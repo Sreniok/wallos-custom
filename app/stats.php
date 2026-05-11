@@ -15,6 +15,9 @@ $code = $row['code'];
 
 require_once 'includes/stats_calculations.php';
 
+$hasStatsFilters = isset($_GET['member']) || isset($_GET['category']) || isset($_GET['payment']);
+$hasStatsRows = isset($subscriptions) && count($subscriptions) > 0;
+
 ?>
 <section class="contain">
   <?php
@@ -34,17 +37,17 @@ require_once 'includes/stats_calculations.php';
       <?= translate('general_statistics', $i18n) ?> <span class="header-subtitle"><?= $statsSubtitle ?></span>
     </h2>
     <div class="filtermenu">
-      <button class="button secondary-button" id="filtermenu-button">
+      <button class="button secondary-button" id="filtermenu-button" aria-expanded="false" aria-controls="stats-filtermenu">
         <i class="fa-solid fa-filter"></i>
         <?= translate("filter", $i18n) ?>
       </button>
-      <div class="filtermenu-content">
+      <div class="filtermenu-content" id="stats-filtermenu">
         <?php
         if (count($members) > 1) {
           ?>
           <div class="filtermenu-submenu">
-            <div class="filter-title" onClick="toggleSubMenu('member')"><?= translate("member", $i18n) ?></div>
-            <div class="filtermenu-submenu-content" id="filter-member">
+            <button type="button" class="filter-title" onClick="toggleSubMenu('member')" aria-expanded="false" aria-controls="filter-member"><?= translate("member", $i18n) ?></button>
+            <div class="filtermenu-submenu-content" id="filter-member" role="group" aria-label="<?= translate("member", $i18n) ?>">
               <?php
               foreach ($members as $member) {
                 if ($member['count'] == 0) {
@@ -55,8 +58,7 @@ require_once 'includes/stats_calculations.php';
                   $selectedClass = 'selected';
                 }
                 ?>
-                <div class="filter-item <?= $selectedClass ?>" data-memberid="<?= $member['id'] ?>"><?= $member['name'] ?>
-                </div>
+                <button type="button" class="filter-item <?= $selectedClass ?>" data-memberid="<?= $member['id'] ?>"><?= $member['name'] ?></button>
                 <?php
               }
               ?>
@@ -73,8 +75,8 @@ require_once 'includes/stats_calculations.php';
           });
           ?>
           <div class="filtermenu-submenu">
-            <div class="filter-title" onClick="toggleSubMenu('category')"><?= translate("category", $i18n) ?></div>
-            <div class="filtermenu-submenu-content" id="filter-category">
+            <button type="button" class="filter-title" onClick="toggleSubMenu('category')" aria-expanded="false" aria-controls="filter-category"><?= translate("category", $i18n) ?></button>
+            <div class="filtermenu-submenu-content" id="filter-category" role="group" aria-label="<?= translate("category", $i18n) ?>">
               <?php
               foreach ($categories as $category) {
                 if ($category['count'] > 0) {
@@ -86,9 +88,7 @@ require_once 'includes/stats_calculations.php';
                     $selectedClass = 'selected';
                   }
                   ?>
-                  <div class="filter-item <?= $selectedClass ?>" data-categoryid="<?= $category['id'] ?>">
-                    <?= $category['name'] ?>
-                  </div>
+                  <button type="button" class="filter-item <?= $selectedClass ?>" data-categoryid="<?= $category['id'] ?>"><?= $category['name'] ?></button>
                   <?php
                 }
               }
@@ -106,8 +106,8 @@ require_once 'includes/stats_calculations.php';
           });
           ?>
           <div class="filtermenu-submenu">
-            <div class="filter-title" onClick="toggleSubMenu('payment')"><?= translate("payment_method", $i18n) ?></div>
-            <div class="filtermenu-submenu-content" id="filter-payment">
+            <button type="button" class="filter-title" onClick="toggleSubMenu('payment')" aria-expanded="false" aria-controls="filter-payment"><?= translate("payment_method", $i18n) ?></button>
+            <div class="filtermenu-submenu-content" id="filter-payment" role="group" aria-label="<?= translate("payment_method", $i18n) ?>">
               <?php
               foreach ($paymentMethods as $payment) {
                 if ($payment['count'] == 0) {
@@ -118,9 +118,7 @@ require_once 'includes/stats_calculations.php';
                   $selectedClass = 'selected';
                 }
                 ?>
-                <div class="filter-item <?= $selectedClass ?>" data-paymentid="<?= $payment['id'] ?>">
-                  <?= $payment['name'] ?>
-                </div>
+                <button type="button" class="filter-item <?= $selectedClass ?>" data-paymentid="<?= $payment['id'] ?>"><?= $payment['name'] ?></button>
                 <?php
               }
               ?>
@@ -133,9 +131,9 @@ require_once 'includes/stats_calculations.php';
         if (isset($_GET['member']) || isset($_GET['category']) || isset($_GET['payment'])) {
           ?>
           <div class="filtermenu-submenu">
-            <div class="filter-title filter-clear" onClick="clearFilters()">
+            <button type="button" class="filter-title filter-clear" onClick="clearFilters()">
               <i class="fa-solid fa-times-circle"></i> <?= translate("clear", $i18n) ?>
-            </div>
+            </button>
           </div>
           <?php
         }
@@ -143,8 +141,12 @@ require_once 'includes/stats_calculations.php';
       </div>
     </div>
   </div>
-  </div>
-  </div>
+  <?php if ($hasStatsFilters && !$hasStatsRows) { ?>
+    <div class="mf-empty-state">
+      <i class="fa-solid fa-filter-circle-xmark"></i>
+      <p><?= translate('no_stats_for_filters', $i18n) ?></p>
+    </div>
+  <?php } ?>
   <div class="statistics">
     <div class="statistic">
       <span><?= $activeSubscriptions ?></span>

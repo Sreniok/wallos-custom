@@ -155,6 +155,46 @@ function setTheme(themeColor) {
 
 }
 
+function setDesignTheme(design) {
+  var designs = ['glass', 'minimal', 'neo', 'vibrant', 'modern'];
+  designs.forEach(function(d) {
+    var el = document.getElementById('design-' + d);
+    if (el) el.disabled = (d !== design);
+  });
+  // Sync body class so CSS that depends on body.design-X reacts immediately
+  document.body.classList.remove('design-glass','design-minimal','design-neo','design-vibrant','design-modern');
+  if (design && designs.indexOf(design) !== -1) {
+    document.body.classList.add('design-' + design);
+  }
+  window.designTheme = design;
+  // Update active card UI
+  document.querySelectorAll('.design-theme-card').forEach(function(card) {
+    card.classList.toggle('is-selected', card.dataset.design === design);
+  });
+  // Re-init mobile-first runtime (FAB, swipe, etc.) when theme is toggled live.
+  // Mobile-first improvements apply to ALL themes — no cleanup needed when
+  // switching between themes.
+  if (typeof window.__modernThemeInit === 'function') {
+    window.__modernThemeInit();
+  }
+  // Persist to localStorage and server
+  localStorage.setItem('wallosDesign', design);
+  fetch('endpoints/settings/design_theme.php', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': window.csrfToken },
+    body: JSON.stringify({ design: design })
+  })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        showSuccessMessage(data.message);
+      } else {
+        showErrorMessage(data.message);
+      }
+    })
+    .catch(() => showErrorMessage('Error saving design'));
+}
+
 function resetCustomColors() {
   const button = document.getElementById("reset-colors");
   button.disabled = true;

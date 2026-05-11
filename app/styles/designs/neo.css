@@ -1,0 +1,195 @@
+/* ── NEOMORPHISM – Dark Slate + Blue/Teal ── */
+
+/* ── DARK MODE (default) ── */
+:root {
+  --neo-bg: #1a2035;
+  --background-color: #1a2035;
+  --box-background-color: #1a2035;
+  --box-border-color: transparent;
+  --header-background-color: #1a2035;
+  --text-color: #c8d8f0;
+  --text-color-rgb: 200, 216, 240;
+  --text-color-inverted: #0a0e1a;
+  --input-background-color: #1a2035;
+  --input-border-color: transparent;
+  --input-disabled-background-color: #161c2d;
+  --input-disabled-border-color: transparent;
+  --box-shadow: 8px 8px 18px #111827, -8px -8px 18px #243050;
+  --negative-box-shadow: -8px -8px 18px #111827, 8px 8px 18px #243050;
+  --main-color: #38bdf8;
+  --main-color-rgb: 56, 189, 248;
+  --accent-color: #22d3ee;
+  --accent-color-rgb: 34, 211, 238;
+  --hover-color: #0ea5e9;
+  --hover-color-rgb: 14, 165, 233;
+}
+
+body { background: #1a2035 !important; }
+nav, body > header, .contain > .logo {
+  background: #1a2035 !important;
+  border-bottom: none !important;
+  box-shadow: 0 4px 12px #111827 !important;
+}
+.dropbtn, .dropdown-content a { color: #a8c0e0 !important; }
+.dropdown-content {
+  background: #1a2035 !important; border: none !important;
+  border-radius: 16px !important;
+  box-shadow: 12px 12px 24px #111827, -4px -4px 12px #243050 !important;
+}
+.dropdown-content a:hover { background: rgba(56,189,248,0.08) !important; }
+.subscription, .subscription-container, .subscription-item, .account-section {
+  background: #1a2035 !important; border: none !important;
+  border-radius: 20px !important;
+  box-shadow: 8px 8px 18px #111827, -8px -8px 18px #243050 !important;
+  transition: box-shadow 0.25s !important;
+}
+.subscription:hover, .subscription-item:hover {
+  box-shadow: 10px 10px 22px #0e1525, -10px -10px 22px #263555 !important;
+}
+.subscription.inactive {
+  background: #161c2d !important;
+  box-shadow: 4px 4px 10px #0e1525, -4px -4px 10px #1e2840 !important;
+}
+.account-section header { border-bottom: 1px solid rgba(56,189,248,0.1) !important; }
+.account-section header h2 { color: #38bdf8 !important; }
+input[type="text"], input[type="email"], input[type="password"],
+input[type="date"], input[type="number"], input[type="url"],
+textarea, select {
+  background: #1a2035 !important; border: none !important;
+  border-radius: 12px !important; color: #c8d8f0 !important;
+  box-shadow: inset 4px 4px 10px #111827, inset -4px -4px 10px #243050 !important;
+  padding: 10px 14px !important; transition: box-shadow 0.2s !important;
+}
+input:focus, select:focus, textarea:focus {
+  box-shadow: inset 4px 4px 10px #111827, inset -4px -4px 10px #243050, 0 0 0 2px rgba(56,189,248,0.25) !important;
+  outline: none !important;
+}
+input::placeholder, textarea::placeholder { color: rgba(168,192,224,0.4) !important; }
+.button, button.button {
+  background: #1a2035 !important; border: none !important;
+  border-radius: 14px !important;
+  box-shadow: 5px 5px 12px #111827, -5px -5px 12px #243050 !important;
+  color: #38bdf8 !important; transition: box-shadow 0.2s !important;
+}
+.button:hover, button.button:hover {
+  box-shadow: 7px 7px 15px #0e1525, -7px -7px 15px #263555 !important;
+}
+.button:active, button.button:active {
+  box-shadow: inset 4px 4px 10px #111827, inset -4px -4px 10px #243050 !important;
+}
+.subscription-modal .modal-footer .button.danger-button,
+.subscription-modal .modal-footer .button.success-button,
+.subscription-modal .modal-footer .button.secondary-button {
+  box-shadow: 5px 5px 12px #111827, -3px -3px 8px rgba(255,255,255,0.04) !important;
+}
+input[type="checkbox"]+label::before {
+  background: #1a2035 !important; border: none !important;
+  box-shadow: inset 3px 3px 6px #111827, inset -3px -3px 6px #243050 !important;
+  border-radius: 4px !important;
+}
+input[type="checkbox"]:checked+label::before {
+  background: #38bdf8 !important; box-shadow: 0 0 10px rgba(56,189,248,0.4) !important;
+}
+.subscription-form, .subscription-modal {
+  background: #1a2035 !important; border: none !important;
+  border-radius: 24px !important;
+  box-shadow: 16px 16px 40px #111827, -16px -16px 40px #243050 !important;
+}
+.subscription-form h3, .subscription-modal h3 {
+  border-bottom: 1px solid rgba(56,189,248,0.15) !important; color: #c8d8f0 !important;
+}
+.dashboard h2, .upcoming-subscriptions h2, .overdue-subscriptions h2, .budget-subscriptions h2 { color: #38bdf8 !important; }
+.mobile-nav {
+  background: #1a2035 !important;
+  box-shadow: 0 -4px 12px #111827 !important; border-top: none !important;
+}
+.mobile-nav > a { color: rgba(168,192,224,0.5) !important; }
+.mobile-nav > a.active { color: #38bdf8 !important; }
+.subscription-progress-bar-fill {
+  background: linear-gradient(90deg, #38bdf8, #22d3ee) !important;
+  box-shadow: 0 0 8px rgba(56,189,248,0.3) !important;
+}
+.calendar .calendar-body .calendar-cell { border-color: rgba(56,189,248,0.05) !important; }
+.calendar .calendar-body .calendar-cell .calendar-cell-header { background: rgba(255,255,255,0.02) !important; }
+.toast {
+  background: #1a2035 !important; border: none !important;
+  border-radius: 16px !important;
+  box-shadow: 8px 8px 20px #111827, -4px -4px 12px #243050 !important;
+}
+
+/* ── LIGHT MODE ── */
+body.light {
+  --background-color: #e0e8f4;
+  --box-background-color: #e0e8f4;
+  --box-border-color: transparent;
+  --text-color: #2d3e50;
+  --text-color-rgb: 45, 62, 80;
+  --input-background-color: #e0e8f4;
+  --main-color: #0ea5e9;
+  --main-color-rgb: 14, 165, 233;
+  --hover-color: #0284c7;
+}
+body.light { background: #e0e8f4 !important; }
+body.light nav, body.light body > header, body.light .contain > .logo {
+  background: #e0e8f4 !important; border-bottom: none !important;
+  box-shadow: 0 4px 12px #c2cfde !important;
+}
+body.light .dropbtn, body.light .dropdown-content a { color: #2d3e50 !important; }
+body.light .dropdown-content {
+  background: #e0e8f4 !important; border: none !important;
+  box-shadow: 10px 10px 20px #c2cfde, -5px -5px 12px #ffffff !important;
+}
+body.light .subscription, body.light .subscription-container,
+body.light .subscription-item, body.light .account-section {
+  background: #e0e8f4 !important; border: none !important;
+  box-shadow: 8px 8px 18px #c2cfde, -8px -8px 18px #ffffff !important;
+}
+body.light .subscription:hover, body.light .subscription-item:hover {
+  box-shadow: 10px 10px 22px #b8c8d8, -10px -10px 22px #ffffff !important;
+}
+body.light .account-section header { border-bottom: 1px solid rgba(14,165,233,0.15) !important; }
+body.light .account-section header h2 { color: #0284c7 !important; }
+body.light input[type="text"], body.light input[type="email"], body.light input[type="password"],
+body.light input[type="date"], body.light input[type="number"], body.light input[type="url"],
+body.light textarea, body.light select {
+  background: #e0e8f4 !important; border: none !important; color: #2d3e50 !important;
+  box-shadow: inset 4px 4px 10px #c2cfde, inset -4px -4px 10px #ffffff !important;
+}
+body.light input::placeholder, body.light textarea::placeholder { color: rgba(45,62,80,0.4) !important; }
+body.light .button, body.light button.button {
+  background: #e0e8f4 !important; color: #0ea5e9 !important;
+  box-shadow: 5px 5px 12px #c2cfde, -5px -5px 12px #ffffff !important;
+}
+body.light .button:hover, body.light button.button:hover {
+  box-shadow: 7px 7px 15px #b8c8d8, -7px -7px 15px #ffffff !important;
+}
+body.light .subscription-modal .modal-footer .button.danger-button,
+body.light .subscription-modal .modal-footer .button.success-button,
+body.light .subscription-modal .modal-footer .button.secondary-button {
+  box-shadow: 5px 5px 12px #c2cfde, -3px -3px 8px rgba(255,255,255,0.8) !important;
+}
+body.light input[type="checkbox"]+label::before {
+  background: #e0e8f4 !important;
+  box-shadow: inset 3px 3px 6px #c2cfde, inset -3px -3px 6px #ffffff !important;
+}
+body.light .subscription-form, body.light .subscription-modal {
+  background: #e0e8f4 !important; border: none !important;
+  box-shadow: 16px 16px 40px #c2cfde, -16px -16px 40px #ffffff !important;
+}
+body.light .subscription-form h3, body.light .subscription-modal h3 {
+  border-bottom-color: rgba(14,165,233,0.2) !important; color: #2d3e50 !important;
+}
+body.light .dashboard h2, body.light .upcoming-subscriptions h2,
+body.light .overdue-subscriptions h2, body.light .budget-subscriptions h2 { color: #0284c7 !important; }
+body.light .mobile-nav {
+  background: #e0e8f4 !important;
+  box-shadow: 0 -4px 12px #c2cfde !important;
+}
+body.light .mobile-nav > a { color: rgba(45,62,80,0.4) !important; }
+body.light .mobile-nav > a.active { color: #0ea5e9 !important; }
+body.light .toast {
+  background: #e0e8f4 !important;
+  box-shadow: 8px 8px 20px #c2cfde, -4px -4px 12px #ffffff !important;
+}
+body.light .calendar .calendar-body .calendar-cell { border-color: rgba(14,165,233,0.08) !important; }
+body.light .calendar .calendar-body .calendar-cell .calendar-cell-header { background: rgba(255,255,255,0.3) !important; }

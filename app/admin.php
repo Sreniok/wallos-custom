@@ -190,14 +190,17 @@ $loginDisabledAllowed = $userCount == 1 && $settings['registrations_open'] == 0;
             </div>
             <h2><?= translate('create_user', $i18n) ?></h2>
             <div class="form-group">
+                <label for="newUsername" class="sr-only"><?= translate('username', $i18n) ?></label>
                 <input type="text" id="newUsername" autocomplete="off"
                     placeholder="<?= translate('username', $i18n) ?>" />
             </div>
             <div class="form-group">
+                <label for="newEmail" class="sr-only"><?= translate('email', $i18n) ?></label>
                 <input type="email" id="newEmail" autocomplete="off"
                     placeholder="<?= translate('email', $i18n) ?>" />
             </div>
             <div class="form-group-inline">
+                <label for="newPassword" class="sr-only"><?= translate('password', $i18n) ?></label>
                 <input type="password" id="newPassword" autocomplete="off"
                     placeholder="<?= translate('password', $i18n) ?>" />
                 <input type="submit" class="thin" value="<?= translate('add', $i18n) ?>" id="addUserButton"

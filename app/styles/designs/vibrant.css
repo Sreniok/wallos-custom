@@ -1,0 +1,223 @@
+/* ── VIBRANT / GRADIENT – Dark + Cyan/Blue/Teal ── */
+
+/* ── DARK MODE (default) ── */
+:root {
+  --background-color: #050b18;
+  --box-background-color: #0c1628;
+  --box-border-color: rgba(0,212,255,0.15);
+  --header-background-color: #050b18;
+  --text-color: #e8f8ff;
+  --text-color-rgb: 232, 248, 255;
+  --text-color-inverted: #050b18;
+  --input-background-color: #0c1e38;
+  --input-border-color: rgba(0,212,255,0.2);
+  --input-disabled-background-color: #080f1c;
+  --input-disabled-border-color: rgba(0,212,255,0.08);
+  --box-shadow: 0 4px 24px rgba(0,212,255,0.08);
+  --negative-box-shadow: 0 -4px 24px rgba(0,212,255,0.08);
+  --main-color: #00d4ff;
+  --main-color-rgb: 0, 212, 255;
+  --accent-color: #14f0c8;
+  --accent-color-rgb: 20, 240, 200;
+  --hover-color: #00b8e6;
+  --hover-color-rgb: 0, 184, 230;
+}
+
+body { background: #050b18 !important; }
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background: radial-gradient(ellipse at 20% 20%, rgba(0,212,255,0.05) 0%, transparent 50%),
+              radial-gradient(ellipse at 80% 80%, rgba(20,240,200,0.04) 0%, transparent 50%);
+  pointer-events: none; z-index: 0;
+}
+nav, body > header, .contain > .logo {
+  background: rgba(5,11,24,0.95) !important;
+  border-bottom: 1px solid rgba(0,212,255,0.15) !important;
+}
+.dropbtn { color: #a0e8ff !important; }
+.dropdown-content a { color: #a0e8ff !important; }
+.dropdown-content {
+  background: #0c1628 !important; border: 1px solid rgba(0,212,255,0.2) !important;
+  border-radius: 14px !important; box-shadow: 0 8px 30px rgba(0,212,255,0.1) !important;
+}
+.dropdown-content a:hover { background: rgba(0,212,255,0.08) !important; color: #00d4ff !important; }
+.subscription, .subscription-container {
+  background: linear-gradient(135deg, #0c1628 0%, #091422 100%) !important;
+  border: 1px solid rgba(0,212,255,0.15) !important;
+  border-radius: 16px !important; box-shadow: 0 4px 20px rgba(0,212,255,0.06) !important;
+  transition: border-color 0.25s, box-shadow 0.25s, transform 0.2s !important;
+}
+.subscription:hover {
+  border-color: rgba(0,212,255,0.5) !important;
+  box-shadow: 0 8px 32px rgba(0,212,255,0.18) !important;
+  transform: translateY(-2px) !important;
+}
+.subscription.inactive { background: #070d18 !important; border-color: rgba(0,212,255,0.06) !important; opacity: 0.7; }
+.subscription-item {
+  background: linear-gradient(145deg, #0c1628 0%, #091422 100%) !important;
+  border: 1px solid rgba(0,212,255,0.12) !important;
+  border-radius: 16px !important; box-shadow: 0 4px 16px rgba(0,212,255,0.06) !important;
+  transition: border-color 0.25s, box-shadow 0.25s, transform 0.2s !important;
+}
+.subscription-item:hover {
+  border-color: rgba(0,212,255,0.4) !important;
+  box-shadow: 0 8px 28px rgba(0,212,255,0.15) !important;
+  transform: translateY(-3px) !important;
+}
+.account-section {
+  background: linear-gradient(135deg, #0c1628 0%, #091422 100%) !important;
+  border: 1px solid rgba(0,212,255,0.12) !important;
+  border-radius: 16px !important; box-shadow: 0 4px 20px rgba(0,212,255,0.05) !important;
+}
+.account-section header { border-bottom: 1px solid rgba(0,212,255,0.15) !important; }
+.account-section header h2 {
+  background: linear-gradient(90deg, #00d4ff, #14f0c8);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+input[type="text"], input[type="email"], input[type="password"],
+input[type="date"], input[type="number"], input[type="url"],
+textarea, select {
+  background: #0c1e38 !important; border: 1px solid rgba(0,212,255,0.18) !important;
+  border-radius: 10px !important; color: #e8f8ff !important;
+  transition: border-color 0.2s, box-shadow 0.2s !important;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: rgba(0,212,255,0.6) !important;
+  box-shadow: 0 0 0 3px rgba(0,212,255,0.1), 0 0 16px rgba(0,212,255,0.1) !important;
+  outline: none !important;
+}
+input::placeholder, textarea::placeholder { color: rgba(0,212,255,0.3) !important; }
+.button, button.button {
+  border-radius: 10px !important;
+  transition: box-shadow 0.2s, transform 0.2s !important;
+}
+.button:hover { box-shadow: 0 0 20px rgba(0,212,255,0.3) !important; }
+input[type="checkbox"]+label::before {
+  background: #0c1e38 !important; border: 1px solid rgba(0,212,255,0.2) !important;
+}
+input[type="checkbox"]:checked+label::before {
+  background: linear-gradient(135deg, #00d4ff, #14f0c8) !important;
+  border-color: #00d4ff !important; box-shadow: 0 0 12px rgba(0,212,255,0.4) !important;
+}
+.subscription-form, .subscription-modal {
+  background: linear-gradient(145deg, #0c1628 0%, #091422 100%) !important;
+  border: 1px solid rgba(0,212,255,0.18) !important;
+  border-radius: 20px !important;
+  box-shadow: 0 20px 60px rgba(0,212,255,0.1) !important;
+}
+.subscription-form h3, .subscription-modal h3 {
+  border-bottom: 1px solid rgba(0,212,255,0.2) !important; color: #e8f8ff !important;
+}
+.dashboard h2, .upcoming-subscriptions h2, .overdue-subscriptions h2, .budget-subscriptions h2 {
+  background: linear-gradient(90deg, #00d4ff, #14f0c8);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.mobile-nav {
+  background: rgba(5,11,24,0.98) !important;
+  border-top: 1px solid rgba(0,212,255,0.15) !important;
+}
+.mobile-nav > a { color: rgba(0,212,255,0.4) !important; }
+.mobile-nav > a.active { color: #00d4ff !important; }
+.subscription-progress-bar-fill {
+  background: linear-gradient(90deg, #00d4ff, #14f0c8) !important;
+  box-shadow: 0 0 10px rgba(0,212,255,0.4) !important;
+}
+.calendar .calendar-body .calendar-cell { border-color: rgba(0,212,255,0.08) !important; }
+.calendar .calendar-body .calendar-cell .calendar-cell-header { background: rgba(0,212,255,0.04) !important; }
+.toast {
+  background: #0c1628 !important; border: 1px solid rgba(0,212,255,0.2) !important;
+  border-radius: 14px !important; box-shadow: 0 8px 30px rgba(0,212,255,0.12) !important;
+}
+
+/* ── LIGHT MODE ── */
+body.light {
+  --background-color: #f0f9ff;
+  --box-background-color: #ffffff;
+  --box-border-color: rgba(0,180,220,0.2);
+  --text-color: #0c4a6e;
+  --text-color-rgb: 12, 74, 110;
+  --input-background-color: #e0f7ff;
+  --input-border-color: rgba(0,180,220,0.3);
+  --main-color: #0284c7;
+  --main-color-rgb: 2, 132, 199;
+  --accent-color: #0ea5e9;
+  --hover-color: #0369a1;
+}
+body.light { background: #f0f9ff !important; }
+body.light::before {
+  background: radial-gradient(ellipse at 20% 20%, rgba(0,180,220,0.08) 0%, transparent 50%),
+              radial-gradient(ellipse at 80% 80%, rgba(20,200,170,0.06) 0%, transparent 50%) !important;
+}
+body.light nav, body.light body > header, body.light .contain > .logo {
+  background: rgba(240,249,255,0.97) !important;
+  border-bottom-color: rgba(0,180,220,0.2) !important;
+}
+body.light .dropbtn, body.light .dropdown-content a { color: #0369a1 !important; }
+body.light .dropdown-content {
+  background: #ffffff !important; border-color: rgba(0,180,220,0.25) !important;
+  box-shadow: 0 8px 30px rgba(0,180,220,0.12) !important;
+}
+body.light .dropdown-content a:hover { background: rgba(0,180,220,0.06) !important; color: #0284c7 !important; }
+body.light .subscription, body.light .subscription-container {
+  background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%) !important;
+  border-color: rgba(0,180,220,0.2) !important;
+  box-shadow: 0 4px 20px rgba(0,180,220,0.08) !important;
+}
+body.light .subscription:hover {
+  border-color: rgba(2,132,199,0.5) !important;
+  box-shadow: 0 8px 32px rgba(2,132,199,0.15) !important;
+}
+body.light .subscription.inactive { background: #f8fbff !important; border-color: rgba(0,180,220,0.1) !important; }
+body.light .subscription-item {
+  background: linear-gradient(145deg, #ffffff 0%, #f0f9ff 100%) !important;
+  border-color: rgba(0,180,220,0.18) !important;
+  box-shadow: 0 4px 16px rgba(0,180,220,0.08) !important;
+}
+body.light .subscription-item:hover {
+  border-color: rgba(2,132,199,0.4) !important;
+  box-shadow: 0 8px 28px rgba(2,132,199,0.15) !important;
+}
+body.light .account-section {
+  background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%) !important;
+  border-color: rgba(0,180,220,0.15) !important;
+}
+body.light .account-section header { border-bottom-color: rgba(0,180,220,0.2) !important; }
+body.light .account-section header h2 {
+  background: linear-gradient(90deg, #0284c7, #0ea5e9);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+body.light input[type="text"], body.light input[type="email"], body.light input[type="password"],
+body.light input[type="date"], body.light input[type="number"], body.light input[type="url"],
+body.light textarea, body.light select {
+  background: #e0f7ff !important; border-color: rgba(0,180,220,0.3) !important; color: #0c4a6e !important;
+}
+body.light input::placeholder, body.light textarea::placeholder { color: rgba(12,74,110,0.4) !important; }
+body.light .subscription-form, body.light .subscription-modal {
+  background: linear-gradient(145deg, #ffffff 0%, #f0f9ff 100%) !important;
+  border-color: rgba(0,180,220,0.2) !important;
+  box-shadow: 0 20px 60px rgba(0,180,220,0.12) !important;
+}
+body.light .subscription-form h3, body.light .subscription-modal h3 {
+  border-bottom-color: rgba(0,180,220,0.25) !important; color: #0c4a6e !important;
+}
+body.light .dashboard h2, body.light .upcoming-subscriptions h2,
+body.light .overdue-subscriptions h2, body.light .budget-subscriptions h2 {
+  background: linear-gradient(90deg, #0284c7, #0ea5e9);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+body.light .mobile-nav {
+  background: rgba(240,249,255,0.98) !important;
+  border-top-color: rgba(0,180,220,0.2) !important;
+}
+body.light .mobile-nav > a { color: rgba(2,132,199,0.4) !important; }
+body.light .mobile-nav > a.active { color: #0284c7 !important; }
+body.light input[type="checkbox"]+label::before {
+  background: #e0f7ff !important; border-color: rgba(0,180,220,0.3) !important;
+}
+body.light .toast {
+  background: #ffffff !important; border-color: rgba(0,180,220,0.25) !important;
+  box-shadow: 0 8px 30px rgba(0,180,220,0.12) !important;
+}
+body.light .calendar .calendar-body .calendar-cell { border-color: rgba(0,180,220,0.12) !important; }
+body.light .calendar .calendar-body .calendar-cell .calendar-cell-header { background: rgba(0,180,220,0.04) !important; }

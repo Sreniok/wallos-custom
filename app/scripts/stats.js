@@ -1,8 +1,7 @@
 function loadGraph(container, dataPoints, currency, run) {
     if (run) {
-        var ctx = document.getElementById(container).getContext('2d');
-
-        var chart = new Chart(ctx, {
+        renderChartWithSpinner(container, function(ctx) {
+            new Chart(ctx, {
             type: 'pie',
             data: {
                 datasets: [{
@@ -41,15 +40,15 @@ function loadGraph(container, dataPoints, currency, run) {
                     }
                 }
             },
+            });
         });
     }
 }
 
 function loadLineGraph(container, dataPoints, currency, run) {
     if (run) {
-        var ctx = document.getElementById(container).getContext('2d');
-
-        var chart = new Chart(ctx, {
+        renderChartWithSpinner(container, function(ctx) {
+            new Chart(ctx, {
             type: 'line',
             data: {
                 datasets: [{
@@ -85,10 +84,32 @@ function loadLineGraph(container, dataPoints, currency, run) {
                     }
                 }
             }
+            });
         });
     }
 }
 
+function renderChartWithSpinner(container, render) {
+    const canvas = document.getElementById(container);
+    if (!canvas) {
+        return;
+    }
+
+    const draw = () => render(canvas.getContext('2d'));
+    const host = canvas.closest('.graph');
+
+    if (typeof withSpinner === 'function' && host) {
+        withSpinner(new Promise(resolve => {
+            requestAnimationFrame(() => {
+                draw();
+                resolve();
+            });
+        }), host);
+        return;
+    }
+
+    draw();
+}
 
 function closeSubMenus() {
     var subMenus = document.querySelectorAll('.filtermenu-submenu-content');
@@ -96,12 +117,17 @@ function closeSubMenus() {
         subMenu.classList.remove('is-open');
     });
 
+    document.querySelectorAll('.filter-title[aria-expanded="true"]').forEach(button => {
+        button.setAttribute('aria-expanded', 'false');
+    });
 }
 
 document.addEventListener("DOMContentLoaded", function() {
     var filtermenu = document.querySelector('#filtermenu-button');
     filtermenu.addEventListener('click', function() {
-        this.parentElement.querySelector('.filtermenu-content').classList.toggle('is-open');
+        const content = this.parentElement.querySelector('.filtermenu-content');
+        const isOpen = content.classList.toggle('is-open');
+        this.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
         closeSubMenus();
     });
 
@@ -114,18 +140,55 @@ document.addEventListener("DOMContentLoaded", function() {
             if (!filtermenu.contains(e.target) && !clickedInsideSubmenu) {
                 closeSubMenus();
                 filtermenuContent.classList.remove('is-open');
+                filtermenu.setAttribute('aria-expanded', 'false');
             }
         }
+    });
+
+    document.addEventListener('keydown', function(e) {
+        const filtermenuContent = document.querySelector('.filtermenu-content');
+        if (!filtermenuContent || !filtermenuContent.classList.contains('is-open')) {
+            return;
+        }
+
+        if (e.key === 'Escape') {
+            closeSubMenus();
+            filtermenuContent.classList.remove('is-open');
+            filtermenu.setAttribute('aria-expanded', 'false');
+            filtermenu.focus();
+            return;
+        }
+
+        if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') {
+            return;
+        }
+
+        const focusable = Array.from(filtermenuContent.querySelectorAll('button:not([disabled])'))
+            .filter(button => button.offsetParent !== null);
+        if (focusable.length === 0) {
+            return;
+        }
+
+        e.preventDefault();
+        const currentIndex = focusable.indexOf(document.activeElement);
+        const nextIndex = e.key === 'ArrowDown'
+            ? (currentIndex + 1) % focusable.length
+            : (currentIndex <= 0 ? focusable.length - 1 : currentIndex - 1);
+        focusable[nextIndex].focus();
     });
 });
 
 function toggleSubMenu(subMenu) {
-    var subMenu = document.getElementById("filter-" + subMenu);
-    if (subMenu.classList.contains("is-open")) {
+    var subMenuElement = document.getElementById("filter-" + subMenu);
+    var trigger = document.querySelector('[aria-controls="filter-' + subMenu + '"]');
+    if (subMenuElement.classList.contains("is-open")) {
         closeSubMenus();
     } else {
         closeSubMenus();
-        subMenu.classList.add("is-open");
+        subMenuElement.classList.add("is-open");
+        if (trigger) {
+            trigger.setAttribute('aria-expanded', 'true');
+        }
     }
 }
 

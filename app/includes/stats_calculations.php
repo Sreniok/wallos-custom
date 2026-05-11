@@ -1,39 +1,6 @@
 <?php
 
-function getPricePerMonth($cycle, $frequency, $price)
-{
-    switch ($cycle) {
-        case 1:
-            $numberOfPaymentsPerMonth = (30 / $frequency);
-            return $price * $numberOfPaymentsPerMonth;
-        case 2:
-            $numberOfPaymentsPerMonth = (4.35 / $frequency);
-            return $price * $numberOfPaymentsPerMonth;
-        case 3:
-            $numberOfPaymentsPerMonth = (1 / $frequency);
-            return $price * $numberOfPaymentsPerMonth;
-        case 4:
-            $numberOfMonths = (12 * $frequency);
-            return $price / $numberOfMonths;
-    }
-}
-
-function getPriceConverted($price, $currency, $database, $userId)
-{
-    $query = "SELECT rate FROM currencies WHERE id = :currency AND user_id = :userId";
-    $stmt = $database->prepare($query);
-    $stmt->bindParam(':currency', $currency, SQLITE3_INTEGER);
-    $stmt->bindParam(':userId', $userId, SQLITE3_INTEGER);
-    $result = $stmt->execute();
-
-    $exchangeRate = $result->fetchArray(SQLITE3_ASSOC);
-    if ($exchangeRate === false) {
-        return $price;
-    } else {
-        $fromRate = $exchangeRate['rate'];
-        return $price / $fromRate;
-    }
-}
+require_once __DIR__ . '/formatting_helpers.php';
 
 // Get categories
 $categories = array();

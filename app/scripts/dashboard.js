@@ -22,14 +22,14 @@ document.addEventListener("DOMContentLoaded", function () {
       const item = el.closest(".ai-recommendation-item");
       const id = item.getAttribute("data-id");
 
-      fetch("endpoints/ai/delete_recommendation.php", {
+      withSpinner(safeFetch("endpoints/ai/delete_recommendation.php", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "X-CSRF-Token": window.csrfToken,
         },
         body: JSON.stringify({ id: id }),
-      })
+      }), item)
         .then(res => res.json())
         .then(data => {
           if (data.success) {

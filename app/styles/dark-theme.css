@@ -29,7 +29,6 @@ body {
 body>header {
     background-color: var(--header-background-color);
 }
-
 svg .text-color {
     fill: var(--text-color);
 }

@@ -18,14 +18,8 @@ if ($deleteStmt->execute()) {
     $stmt->bindParam(':userId', $userId, SQLITE3_INTEGER);
     $stmt->execute();
 
-    echo json_encode([
-        "success" => true,
-        "message" => translate('subscription_deleted', $i18n)
-    ]);
+    apiSuccess(null, translate('subscription_deleted', $i18n));
 } else {
-    echo json_encode([
-        "success" => false,
-        "message" => translate('error_deleting_subscription', $i18n)
-    ]);
+    apiError(translate('error_deleting_subscription', $i18n));
 }
 $db->close();

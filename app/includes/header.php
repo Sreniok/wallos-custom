@@ -3,8 +3,7 @@ require_once 'connect.php';
 require_once 'checkuser.php';
 require_once 'checksession.php';
 require_once 'checkredirect.php';
-require_once 'currency_formatter.php';
-require_once 'date_formatter.php';
+require_once 'formatting_helpers.php';
 
 require_once 'libs/csrf.php';
 
@@ -91,6 +90,13 @@ $mobileNavigation = $settings['mobile_nav'] ? "mobile-navigation" : "";
   <link rel="stylesheet" href="styles/theme.css?<?= $version ?>">
   <link rel="stylesheet" href="styles/styles.css?<?= $version ?>">
   <link rel="stylesheet" href="styles/dark-theme.css?<?= $version ?>" id="dark-theme" <?= $theme != "dark" ? "disabled" : "" ?>>
+  <?php $activeDesign = $settings['designTheme'] ?? ''; ?>
+  <link rel="stylesheet" href="styles/designs/glass.css?<?= $version ?>" id="design-glass" <?= $activeDesign !== 'glass' ? 'disabled' : '' ?>>
+  <link rel="stylesheet" href="styles/designs/minimal.css?<?= $version ?>" id="design-minimal" <?= $activeDesign !== 'minimal' ? 'disabled' : '' ?>>
+  <link rel="stylesheet" href="styles/designs/neo.css?<?= $version ?>" id="design-neo" <?= $activeDesign !== 'neo' ? 'disabled' : '' ?>>
+  <link rel="stylesheet" href="styles/designs/vibrant.css?<?= $version ?>" id="design-vibrant" <?= $activeDesign !== 'vibrant' ? 'disabled' : '' ?>>
+  <link rel="stylesheet" href="styles/designs/modern.css?<?= $version ?>" id="design-modern" <?= $activeDesign !== 'modern' ? 'disabled' : '' ?>>
+  <link rel="stylesheet" href="styles/mobile-first.css?<?= $version ?>">
   <link rel="stylesheet" href="styles/themes/red.css?<?= $version ?>" id="red-theme" <?= $colorTheme != "red" ? "disabled" : "" ?>>
   <link rel="stylesheet" href="styles/themes/green.css?<?= $version ?>" id="green-theme" <?= $colorTheme != "green" ? "disabled" : "" ?>>
   <link rel="stylesheet" href="styles/themes/yellow.css?<?= $version ?>" id="yellow-theme" <?= $colorTheme != "yellow" ? "disabled" : "" ?>>
@@ -100,6 +106,7 @@ $mobileNavigation = $settings['mobile_nav'] ? "mobile-navigation" : "";
   <link rel="stylesheet" href="styles/brands.css">
   <script type="text/javascript" src="scripts/all.js?<?= $version ?>"></script>
   <script type="text/javascript" src="scripts/common.js?<?= $version ?>"></script>
+  <script type="text/javascript" src="scripts/modern.js?<?= $version ?>"></script>
   <script type="text/javascript">
     window.theme = "<?= $theme ?>";
     window.update_theme_settings = "<?= $updateThemeSettings ?>";
@@ -107,6 +114,7 @@ $mobileNavigation = $settings['mobile_nav'] ? "mobile-navigation" : "";
     window.colorTheme = "<?= $colorTheme ?>";
     window.mobileNavigation = "<?= $settings['mobileNavigation'] == "true" ?>";
     window.csrfToken = "<?= htmlspecialchars(generate_csrf_token()) ?>";
+    window.designTheme = "<?= htmlspecialchars($activeDesign) ?>";
   </script>
   <style>
     <?= htmlspecialchars($customCss, ENT_QUOTES, 'UTF-8') ?>
@@ -157,7 +165,7 @@ $mobileNavigation = $settings['mobile_nav'] ? "mobile-navigation" : "";
   </script>
 </head>
 
-<body class="<?= $theme ?> <?= $languages[$lang]['dir'] ?> <?= $mobileNavigation ?>">
+<body class="<?= $theme ?> <?= $languages[$lang]['dir'] ?> <?= $mobileNavigation ?> <?= !empty($activeDesign) ? 'design-' . htmlspecialchars($activeDesign) : '' ?>">
   <header>
     <div class="contain">
       <div class="logo">

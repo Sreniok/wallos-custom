@@ -144,10 +144,11 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
   }
 
   if ($sortOrder == "next_payment") {
-    usort($subscriptions, function ($a, $b) {
+    $globalAdjust = !empty($settings['adjust_to_working_day']);
+    usort($subscriptions, function ($a, $b) use ($globalAdjust) {
       return strcmp(
-        getUpcomingSubscriptionPaymentDate($a) ?? '',
-        getUpcomingSubscriptionPaymentDate($b) ?? ''
+        getAdjustedPaymentDate($a, null, $globalAdjust) ?? '',
+        getAdjustedPaymentDate($b, null, $globalAdjust) ?? ''
       );
     });
   }
@@ -172,7 +173,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
     $paymentMethodId = $subscription['payment_method_id'];
     $print[$id]['currency_code'] = $currencies[$subscription['currency_id']]['code'];
     $currencyId = $subscription['currency_id'];
-    $displayNextPayment = getUpcomingSubscriptionPaymentDate($subscription) ?? $subscription['next_payment'];
+    $displayNextPayment = getAdjustedPaymentDate($subscription, null, !empty($settings['adjust_to_working_day'])) ?? $subscription['next_payment'];
     $formatted_date = wallosFormatDateValue($displayNextPayment, 'en', null, null, 'MMM d, yyyy');
     $print[$id]['next_payment'] = $formatted_date;
     $print[$id]['auto_renew'] = $subscription['auto_renew'];

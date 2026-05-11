@@ -46,13 +46,83 @@ function toggleDropdown() {
   isDropdownOpen = !isDropdownOpen;
 }
 
-function showErrorMessage(message) {
+/**
+ * Wrap a promise (typically a fetch) with a loading spinner overlay
+ * inside the given DOM element. The spinner is removed when the
+ * promise settles, regardless of success/failure.
+ *
+ *   withSpinner(fetch('/api'), document.querySelector('.subscriptions'))
+ *     .then(...).catch(...)
+ */
+function withSpinner(promise, host) {
+  if (!host) return promise;
+  host.classList.add('mf-busy');
+  const overlay = document.createElement('div');
+  overlay.className = 'mf-spinner-overlay';
+  host.appendChild(overlay);
+  const cleanup = () => {
+    host.classList.remove('mf-busy');
+    if (overlay.parentNode === host) host.removeChild(overlay);
+  };
+  return Promise.resolve(promise).then(
+    (v) => { cleanup(); return v; },
+    (e) => { cleanup(); throw e; }
+  );
+}
+
+/**
+ * Wrap fetch() so that:
+ *  - 401 responses redirect the user to login.php
+ *  - true network failures (no response) raise a friendly toast
+ * Other handling stays unchanged so callers see the response normally.
+ */
+function safeFetch(input, init) {
+  return fetch(input, init).then((response) => {
+    if (response && response.status === 401) {
+      window.location.href = 'login.php';
+      // Return a never-resolving promise so the caller's .then() doesn't
+      // run during the redirect.
+      return new Promise(() => {});
+    }
+    return response;
+  }).catch((err) => {
+    // Network-level failures don't even produce a Response. Show a toast
+    // so the user knows it wasn't their action that failed silently.
+    if (typeof showErrorMessage === 'function') {
+      try {
+        showErrorMessage('Network error. Check your connection and try again.', {
+          retryLabel: 'Retry',
+          onRetry: () => window.location.reload(),
+        });
+      } catch (_) {}
+    }
+    throw err;
+  });
+}
+
+function showErrorMessage(message, options = {}) {
   const toast = document.querySelector(".toast#errorToast");
   const closeIcon = document.querySelector(".close-error");
   const errorMessage = document.querySelector(".errorMessage");
   const progress = document.querySelector(".progress.error");
   let timer1, timer2;
+  const oldRetry = toast.querySelector(".toast-retry");
+  if (oldRetry) {
+    oldRetry.remove();
+  }
   errorMessage.textContent = message;
+  if (options.onRetry) {
+    const retryButton = document.createElement("button");
+    retryButton.type = "button";
+    retryButton.className = "toast-retry";
+    retryButton.textContent = options.retryLabel || "Retry";
+    retryButton.addEventListener("click", function () {
+      toast.classList.remove("active");
+      progress.classList.remove("active");
+      options.onRetry();
+    });
+    errorMessage.insertAdjacentElement("afterend", retryButton);
+  }
   toast.classList.add("active");
   progress.classList.add("active");
   timer1 = setTimeout(() => {

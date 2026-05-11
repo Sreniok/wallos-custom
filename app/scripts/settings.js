@@ -930,6 +930,104 @@ function addFixerKeyButton() {
     });
 }
 
+function updateIcalFeedUrls(data) {
+  const feedInput = document.getElementById("icalFeedUrl");
+  const webcalLink = document.getElementById("icalWebcalLink");
+
+  if (feedInput && data.webcal_url) {
+    feedInput.value = data.webcal_url;
+  }
+  if (webcalLink && data.webcal_url) {
+    webcalLink.href = data.webcal_url;
+  }
+}
+
+function saveIcalSettings() {
+  const checkbox = document.getElementById("icalenabled");
+  if (!checkbox) return;
+
+  checkbox.disabled = true;
+
+  fetch("endpoints/calendar/save_ical_settings.php", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRF-Token": window.csrfToken,
+    },
+    body: JSON.stringify({enabled: checkbox.checked}),
+  })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        updateIcalFeedUrls(data);
+        showSuccessMessage(data.message);
+      } else {
+        checkbox.checked = !checkbox.checked;
+        showErrorMessage(data.message);
+      }
+    })
+    .catch(error => {
+      console.error(error);
+      checkbox.checked = !checkbox.checked;
+      showErrorMessage(translate("unknown_error"));
+    })
+    .finally(() => {
+      checkbox.disabled = false;
+    });
+}
+
+function copyIcalFeedUrl() {
+  const feedInput = document.getElementById("icalFeedUrl");
+  if (!feedInput) return;
+
+  const value = feedInput.value;
+  const copyFallback = () => {
+    feedInput.select();
+    document.execCommand("copy");
+  };
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(value)
+      .then(() => showSuccessMessage(translate("copied_to_clipboard")))
+      .catch(() => {
+        copyFallback();
+        showSuccessMessage(translate("copied_to_clipboard"));
+      });
+  } else {
+    copyFallback();
+    showSuccessMessage(translate("copied_to_clipboard"));
+  }
+}
+
+function regenerateIcalToken() {
+  const button = document.getElementById("regenerateIcalToken");
+  if (button) button.disabled = true;
+
+  fetch("endpoints/calendar/regenerate_ical_token.php", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRF-Token": window.csrfToken,
+    },
+  })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        updateIcalFeedUrls(data);
+        showSuccessMessage(data.message);
+      } else {
+        showErrorMessage(data.message);
+      }
+    })
+    .catch(error => {
+      console.error(error);
+      showErrorMessage(translate("unknown_error"));
+    })
+    .finally(() => {
+      if (button) button.disabled = false;
+    });
+}
+
 
 function storeSettingsOnDB(endpoint, value) {
   fetch('endpoints/settings/' + endpoint + '.php', {
@@ -969,6 +1067,12 @@ function setRemoveBackground() {
   const value = removeBackgroundCheckbox.checked;
 
   storeSettingsOnDB('remove_background', value);
+}
+
+function setAdjustToWorkingDay() {
+  const checkbox = document.querySelector("#adjusttoworkingday");
+  const value = checkbox.checked;
+  storeSettingsOnDB('adjust_to_working_day', value);
 }
 
 function setHideDisabled() {

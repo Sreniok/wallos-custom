@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(docker exec wallos php -r ' *)",
+      "Bash(docker exec *)",
+      "Bash(python3 -m json.tool)",
+      "Bash(docker compose *)",
+      "Bash(*)"
+    ]
+  }
+}

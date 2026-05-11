@@ -297,11 +297,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" || $_SERVER["REQUEST_METHOD"] === "GET
         }
     }
 
+    $globalAdjust = !empty($settings['adjust_to_working_day']);
     if ($sort == "next_payment") {
-        usort($subscriptions, function ($a, $b) {
+        usort($subscriptions, function ($a, $b) use ($globalAdjust) {
             return strcmp(
-                getUpcomingSubscriptionPaymentDate($a) ?? '',
-                getUpcomingSubscriptionPaymentDate($b) ?? ''
+                getAdjustedPaymentDate($a, null, $globalAdjust) ?? '',
+                getAdjustedPaymentDate($b, null, $globalAdjust) ?? ''
             );
         });
     }
@@ -309,7 +310,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" || $_SERVER["REQUEST_METHOD"] === "GET
     $subscriptionsToReturn = array();
     foreach ($subscriptions as $subscription) {
         $subscriptionToReturn = $subscription;
-        $subscriptionToReturn['next_payment'] = getUpcomingSubscriptionPaymentDate($subscription) ?? $subscription['next_payment'];
+        $subscriptionToReturn['next_payment'] = getAdjustedPaymentDate($subscription, null, $globalAdjust) ?? $subscription['next_payment'];
         if (isset($_REQUEST['convert_currency']) && $_REQUEST['convert_currency'] === 'true' && $canConvertCurrency && $subscription['currency_id'] != $userCurrencyId) {
             $subscriptionToReturn['price'] = getPriceConverted($subscription['price'], $subscription['currency_id'], $db);
         } else {

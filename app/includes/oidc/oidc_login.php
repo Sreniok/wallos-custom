@@ -4,10 +4,18 @@ if (!isset($userData)) {
     die("User data missing for OIDC login.");
 }
 
+require_once __DIR__ . '/../cookie_helpers.php';
+
 $userId = $userData['id'];
 $username = $userData['username'];
 $language = $userData['language'];
 $main_currency = $userData['main_currency'];
+
+// Regenerate the session ID after successful OIDC auth so a pre-login
+// session ID can't be fixated and reused to hijack the authenticated session.
+if (session_status() === PHP_SESSION_ACTIVE) {
+    session_regenerate_id(true);
+}
 
 $_SESSION['username'] = $username;
 $_SESSION['loggedin'] = true;
@@ -27,11 +35,7 @@ $addLoginTokensStmt->execute();
 
 $_SESSION['token'] = $token;
 $cookieValue = $username . "|" . $token . "|" . $main_currency;
-setcookie('wallos_login', $cookieValue, [
-    'expires' => $cookieExpire,
-    'samesite' => 'Lax',
-    'httponly' => true,
-]);
+setcookie('wallos_login', $cookieValue, wallosAuthCookieParams($cookieExpire));
 
 // Set language cookie
 setcookie('language', $language, [

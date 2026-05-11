@@ -7,15 +7,20 @@ require_once 'validate.php';
 require_once __DIR__ . '/../../includes/connect_endpoint_crontabs.php';
 require_once __DIR__ . '/../../includes/ssrf_helper.php';
 require_once __DIR__ . '/../../includes/subscription_dates.php';
+require_once __DIR__ . '/../../includes/formatting_helpers.php';
 require_once __DIR__ . '/email_template_helpers.php';
 
 require __DIR__ . '/../../libs/PHPMailer/PHPMailer.php';
 require __DIR__ . '/../../libs/PHPMailer/SMTP.php';
 require __DIR__ . '/../../libs/PHPMailer/Exception.php';
 
-require __DIR__ . '/../../includes/currency_formatter.php';
-
 require 'settimezone.php';
+
+$lockFile = fopen(sys_get_temp_dir() . '/wallos-sendnotifications.lock', 'c');
+if ($lockFile === false || !flock($lockFile, LOCK_EX | LOCK_NB)) {
+    echo "sendnotifications.php is already running. Skipping this run.<br />\n";
+    exit;
+}
 
 if (php_sapi_name() == 'cli') {
     $date = new DateTime('now');
@@ -40,18 +45,6 @@ function getDaysText($days)
     }
 }
 
-function formatPrice($price, $currencyCode, $currencySymbol)
-{
-    $formattedPrice = CurrencyFormatter::format($price, $currencyCode);
-
-    if (strpos($formattedPrice, $currencyCode) !== false) {
-        $formattedPrice = str_replace($currencyCode, $currencySymbol . ' ', $formattedPrice);
-        $formattedPrice = preg_replace('/\s+/', ' ', $formattedPrice);
-    }
-
-    return $formattedPrice;
-}
-
 while ($userToNotify = $usersToNotify->fetchArray(SQLITE3_ASSOC)) {
     $userId = $userToNotify['id'];
     if (php_sapi_name() !== 'cli') {
@@ -69,6 +62,15 @@ while ($userToNotify = $usersToNotify->fetchArray(SQLITE3_ASSOC)) {
     $discordNotificationsEnabled = false;
     $ntfyNotificationsEnabled = false;
     $serverchanNotificationsEnabled = false;
+
+    // Get global adjust_to_working_day setting for this user
+    $globalAdjust = false;
+    $settingsStmt = $db->prepare("SELECT adjust_to_working_day FROM settings WHERE user_id = :userId");
+    $settingsStmt->bindValue(':userId', $userId, SQLITE3_INTEGER);
+    $settingsResult = $settingsStmt->execute();
+    if ($settingsRow = $settingsResult->fetchArray(SQLITE3_ASSOC)) {
+        $globalAdjust = !empty($settingsRow['adjust_to_working_day']);
+    }
 
     // Get notification settings (how many days before the subscription ends should the notification be sent)
     $query = "SELECT days FROM notification_settings WHERE user_id = :userId";
@@ -279,7 +281,27 @@ while ($userToNotify = $usersToNotify->fetchArray(SQLITE3_ASSOC)) {
                 $difference += 1;
             }
 
-            if ($difference === $daysToCompare && $nextPaymentDate->format('Y-m-d') >= $currentDate->format('Y-m-d')) {
+            $shouldNotify = ($difference === $daysToCompare && $nextPaymentDate->format('Y-m-d') >= $currentDate->format('Y-m-d'));
+            $displayDate = $upcomingPayment;
+
+            if ($globalAdjust && !empty($rowSubscription['adjust_to_working_day'])) {
+                $adjustedPayment = getAdjustedPaymentDate($rowSubscription, $currentDate, true);
+                if ($adjustedPayment !== null && $adjustedPayment !== $upcomingPayment) {
+                    $adjustedDate = new DateTime($adjustedPayment);
+                    $adjDiff = $currentDate->diff($adjustedDate)->days;
+                    if ($adjustedDate > $currentDate) {
+                        $adjDiff += 1;
+                    }
+                    if ($adjDiff === $daysToCompare && $adjustedDate->format('Y-m-d') >= $currentDate->format('Y-m-d')) {
+                        $shouldNotify = true;
+                    }
+                }
+                if ($shouldNotify) {
+                    $displayDate = getAdjustedPaymentDate($rowSubscription, $currentDate, true) ?? $upcomingPayment;
+                }
+            }
+
+            if ($shouldNotify) {
                 echo "Subscription: " . $rowSubscription['name'] . "<br />";
                 echo "Next payment date: " . $nextPaymentDate->format('Y-m-d') . "<br />";
                 echo "Current date: " . $currentDate->format('Y-m-d') . "<br />";
@@ -291,7 +313,7 @@ while ($userToNotify = $usersToNotify->fetchArray(SQLITE3_ASSOC)) {
                 $notify[$rowSubscription['payer_user_id']][$i]['formatted_price'] = formatPrice($rowSubscription['price'], $currencies[$rowSubscription['currency_id']]['code'], $currencies[$rowSubscription['currency_id']]['symbol']);
                 $notify[$rowSubscription['payer_user_id']][$i]['category'] = $categories[$rowSubscription['category_id']]['name'];
                 $notify[$rowSubscription['payer_user_id']][$i]['payer'] = $household[$rowSubscription['payer_user_id']]['name'];
-                $notify[$rowSubscription['payer_user_id']][$i]['date'] = $upcomingPayment;
+                $notify[$rowSubscription['payer_user_id']][$i]['date'] = $displayDate;
                 $notify[$rowSubscription['payer_user_id']][$i]['days'] = $daysToCompare;
                 $notify[$rowSubscription['payer_user_id']][$i]['badge'] = getDaysText($daysToCompare);
                 $notify[$rowSubscription['payer_user_id']][$i]['price'] = $notify[$rowSubscription['payer_user_id']][$i]['formatted_price'];

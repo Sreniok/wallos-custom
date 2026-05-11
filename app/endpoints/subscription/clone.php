@@ -13,20 +13,19 @@ $stmt->bindValue(':user_id', $userId, SQLITE3_INTEGER);
 $result = $stmt->execute();
 $subscriptionToClone = $result->fetchArray(SQLITE3_ASSOC);
 if ($subscriptionToClone === false) {
-    die(json_encode([
-        "success" => false,
-        "message" => translate("error", $i18n)
-    ]));
+    apiError(translate("error", $i18n), 404);
 }
 
 $query = "INSERT INTO subscriptions (
     name, logo, price, regular_price, currency_id, next_payment, last_payment_date, auto_renew, start_date,
     cycle, frequency, notes, payment_method_id, payer_user_id, category_id, notify, url, inactive,
-    notify_days_before, user_id, cancellation_date, replacement_subscription_id, ended_at, completion_notified
+    notify_days_before, user_id, cancellation_date, replacement_subscription_id, ended_at, completion_notified,
+    adjust_to_working_day
 ) VALUES (
     :name, :logo, :price, :regular_price, :currency_id, :next_payment, :last_payment_date, :auto_renew, :start_date,
     :cycle, :frequency, :notes, :payment_method_id, :payer_user_id, :category_id, :notify, :url, :inactive,
-    :notify_days_before, :user_id, :cancellation_date, :replacement_subscription_id, NULL, 0
+    :notify_days_before, :user_id, :cancellation_date, :replacement_subscription_id, NULL, 0,
+    :adjust_to_working_day
 )";
 $cloneStmt = $db->prepare($query);
 $cloneStmt->bindValue(':name', $subscriptionToClone['name'], SQLITE3_TEXT);
@@ -51,19 +50,12 @@ $cloneStmt->bindValue(':notify_days_before', $subscriptionToClone['notify_days_b
 $cloneStmt->bindValue(':user_id', $userId, SQLITE3_INTEGER);
 $cloneStmt->bindValue(':cancellation_date', $subscriptionToClone['cancellation_date'], $subscriptionToClone['cancellation_date'] === null ? SQLITE3_NULL : SQLITE3_TEXT);
 $cloneStmt->bindValue(':replacement_subscription_id', $subscriptionToClone['replacement_subscription_id'], $subscriptionToClone['replacement_subscription_id'] === null ? SQLITE3_NULL : SQLITE3_INTEGER);
+$cloneStmt->bindValue(':adjust_to_working_day', $subscriptionToClone['adjust_to_working_day'] ?? 0, SQLITE3_INTEGER);
 
 if ($cloneStmt->execute()) {
-    $response = [
-        "success" => true,
-        "message" => translate('success', $i18n),
-        "id" => $db->lastInsertRowID()
-    ];
-    echo json_encode($response);
+    apiSuccess(["id" => $db->lastInsertRowID()], translate('success', $i18n));
 } else {
-    die(json_encode([
-        "success" => false,
-        "message" => translate("error", $i18n)
-    ]));
+    apiError(translate("error", $i18n));
 }
 
 $db->close();

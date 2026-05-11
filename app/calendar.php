@@ -2,23 +2,6 @@
 require_once 'includes/header.php';
 require_once 'includes/subscription_dates.php';
 
-function getPriceConverted($price, $currency, $database, $userId)
-{
-  $query = "SELECT rate FROM currencies WHERE id = :currency AND user_id = :userId";
-  $stmt = $database->prepare($query);
-  $stmt->bindParam(':currency', $currency, SQLITE3_INTEGER);
-  $stmt->bindParam(':userId', $userId, SQLITE3_INTEGER);
-  $result = $stmt->execute();
-
-  $exchangeRate = $result->fetchArray(SQLITE3_ASSOC);
-  if ($exchangeRate === false) {
-    return $price;
-  } else {
-    $fromRate = $exchangeRate['rate'];
-    return $price / $fromRate;
-  }
-}
-
 // Get budget from user table
 $query = "SELECT budget FROM user WHERE id = :userId";
 $stmt = $db->prepare($query);
@@ -119,15 +102,15 @@ $yearsToLoad = $calendarYear - $currentYear + 1;
       <?php
       if (!$sameAsCurrent) {
         ?>
-        <button class="button secondary-button tiny" onClick="currentMoth()" title="<?= translate('reset', $i18n) ?>"><i
+        <button class="button secondary-button tiny" onClick="currentMoth()" aria-label="<?= translate('reset', $i18n) ?>" title="<?= translate('reset', $i18n) ?>"><i
             class="fa-solid fa-calendar-day"></i></button>
-        <button class="button tiny" id="prev" onclick="prevMonth(<?= $calendarMonth ?>, <?= $calendarYear ?>)"><i
+        <button class="button tiny" id="prev" aria-label="<?= translate('previous_month', $i18n) ?>" onclick="prevMonth(<?= $calendarMonth ?>, <?= $calendarYear ?>)"><i
             class="fa-solid fa-chevron-left"></i></button>
         <?php
       }
       ?>
       <span id="month" class="month"><?= translate('month-' . $calendarMonth, $i18n) ?> <?= $calendarYear ?></span>
-      <button class="button tiny" id="next" onclick="nextMonth(<?= $calendarMonth ?>, <?= $calendarYear ?>)"><i
+      <button class="button tiny" id="next" aria-label="<?= translate('next_month', $i18n) ?>" onclick="nextMonth(<?= $calendarMonth ?>, <?= $calendarYear ?>)"><i
           class="fa-solid fa-chevron-right"></i></button>
     </div>
   </div>
@@ -176,7 +159,7 @@ $yearsToLoad = $calendarYear - $currentYear + 1;
             if ($day <= $daysInMonth) {
               $dayClass = ($day == $todayDay && $calendarMonth == $todayMonth && $calendarYear == $todayYear) ? "today" : "";
               ?>
-              <div class="calendar-cell <?= $dayClass ?>">
+              <div class="calendar-cell <?= $dayClass ?>" tabindex="0">
                 <div class="calendar-cell-header">
                   <span class="day"><?= $day ?></span>
                 </div>
@@ -195,9 +178,9 @@ $yearsToLoad = $calendarYear - $currentYear + 1;
                         $amountDueThisMonth += getPriceConverted($subscription['price'], $subscription['currency_id'], $db, $userId);
                       }
                       ?>
-                      <div class="calendar-subscription-title" onClick="openSubscriptionModal(<?= $subscription['id'] ?>)">
+                      <button type="button" class="calendar-subscription-title" onClick="openSubscriptionModal(<?= $subscription['id'] ?>)" aria-label="<?= translate('open_subscription', $i18n) ?>: <?= htmlspecialchars($subscription['name'], ENT_QUOTES, 'UTF-8') ?>">
                         <?= htmlspecialchars($subscription['name']) ?>
-                      </div>
+                      </button>
                       <?php
                     }
                   }
@@ -217,7 +200,7 @@ $yearsToLoad = $calendarYear - $currentYear + 1;
             }
             $dayClass = ($day == $todayDay && $calendarMonth == $todayMonth && $calendarYear == $todayYear) ? "today" : "";
             ?>
-            <div class="calendar-cell <?= $dayClass ?>">
+            <div class="calendar-cell <?= $dayClass ?>" tabindex="0">
               <div class="calendar-cell-header">
                 <span class="day"><?= $day ?></span>
               </div>
@@ -236,9 +219,9 @@ $yearsToLoad = $calendarYear - $currentYear + 1;
                       $amountDueThisMonth += getPriceConverted($subscription['price'], $subscription['currency_id'], $db, $userId);
                     }
                     ?>
-                    <div class="calendar-subscription-title" onClick="openSubscriptionModal(<?= $subscription['id'] ?>)">
-                      <?= $subscription['name'] ?>
-                    </div>
+                    <button type="button" class="calendar-subscription-title" onClick="openSubscriptionModal(<?= $subscription['id'] ?>)" aria-label="<?= translate('open_subscription', $i18n) ?>: <?= htmlspecialchars($subscription['name'], ENT_QUOTES, 'UTF-8') ?>">
+                      <?= htmlspecialchars($subscription['name']) ?>
+                    </button>
                     <?php
                   }
                 }
@@ -264,6 +247,17 @@ $yearsToLoad = $calendarYear - $currentYear + 1;
         </div>
       </div>
     </div>
+
+    <?php
+      if ($numberOfSubscriptionsToPayThisMonth === 0) {
+        ?>
+          <div class="mf-empty-state">
+            <i class="fa-solid fa-calendar-xmark"></i>
+            <p><?= translate('no_payments_this_month', $i18n) ?></p>
+          </div>
+        <?php
+      }
+    ?>
 
     <?php
       if ($budget > 0 && $totalCostThisMonth > $budget) {

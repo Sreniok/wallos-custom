@@ -227,6 +227,7 @@ $frequency = $_POST["frequency"];
 $cycle = $_POST["cycle"];
 $nextPayment = $_POST["next_payment"];
 $autoRenew = isset($_POST['auto_renew']) ? true : false;
+$adjustToWorkingDay = isset($_POST['adjust_to_working_day']) ? 1 : 0;
 $startDate = trim($_POST["start_date"] ?? '');
 $paymentMethodId = $_POST["payment_method_id"];
 $payerUserId = $_POST["payer_user_id"];
@@ -275,9 +276,22 @@ if ($logoUrl !== "") {
     }
 } else {
     if (!empty($_FILES['logo']['name'])) {
-        $fileType = mime_content_type($_FILES['logo']['tmp_name']);
-        if (strpos($fileType, 'image') === false) {
-            echo translate("fill_all_fields", $i18n);
+        // Hardened logo validation: enforce a 2 MB cap and verify the file is
+        // actually an image via getimagesize() rather than relying on
+        // mime_content_type() which is spoofable via crafted magic bytes.
+        $maxLogoBytes = 2 * 1024 * 1024;
+        if (($_FILES['logo']['size'] ?? 0) > $maxLogoBytes) {
+            echo json_encode(["status" => "Error", "message" => "Logo file is too large (max 2 MB)."]);
+            exit();
+        }
+        $imageInfo = @getimagesize($_FILES['logo']['tmp_name']);
+        if ($imageInfo === false) {
+            echo json_encode(["status" => "Error", "message" => "Logo must be a valid image (PNG, JPG, GIF, or WebP)."]);
+            exit();
+        }
+        $allowedMime = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
+        if (!in_array($imageInfo['mime'] ?? '', $allowedMime, true)) {
+            echo json_encode(["status" => "Error", "message" => "Unsupported logo format."]);
             exit();
         }
         $logo = resizeAndUploadLogo($_FILES['logo'], '../../images/uploads/logos/', $name, $settings);
@@ -289,12 +303,12 @@ if (!$isEdit) {
                         name, logo, price, regular_price, currency_id, next_payment, last_payment_date, cycle, frequency, notes, 
                         payment_method_id, payer_user_id, category_id, notify, inactive, url, 
                         notify_days_before, user_id, cancellation_date, replacement_subscription_id,
-                        auto_renew, start_date, ended_at, completion_notified
+                        auto_renew, start_date, ended_at, completion_notified, adjust_to_working_day
                     ) VALUES (
-                        :name, :logo, :price, :regularPrice, :currencyId, :nextPayment, :lastPaymentDate, :cycle, :frequency, :notes, 
-                        :paymentMethodId, :payerUserId, :categoryId, :notify, :inactive, :url, 
+                        :name, :logo, :price, :regularPrice, :currencyId, :nextPayment, :lastPaymentDate, :cycle, :frequency, :notes,
+                        :paymentMethodId, :payerUserId, :categoryId, :notify, :inactive, :url,
                         :notifyDaysBefore, :userId, :cancellationDate, :replacement_subscription_id,
-                        :autoRenew, :startDate, NULL, 0
+                        :autoRenew, :startDate, NULL, 0, :adjustToWorkingDay
                     )";
 } else {
     $id = $_POST['id'];
@@ -320,7 +334,8 @@ if (!$isEdit) {
                         cancellation_date = :cancellationDate, 
                         replacement_subscription_id = :replacement_subscription_id,
                         ended_at = NULL,
-                        completion_notified = 0";
+                        completion_notified = 0,
+                        adjust_to_working_day = :adjustToWorkingDay";
 
     if ($logo != "") {
         $sql .= ", logo = :logo";
@@ -357,6 +372,7 @@ if ($isEdit) {
 }
 $stmt->bindParam(':userId', $userId, SQLITE3_INTEGER);
 $stmt->bindValue(':replacement_subscription_id', $replacementSubscriptionId, $replacementSubscriptionId === null ? SQLITE3_NULL : SQLITE3_INTEGER);
+$stmt->bindValue(':adjustToWorkingDay', $adjustToWorkingDay, SQLITE3_INTEGER);
 
 if ($stmt->execute()) {
     $success['status'] = "Success";

@@ -49,7 +49,11 @@ function getUpcomingSubscriptionPaymentDate($subscription, $currentDate = null)
     $startDate = normalizeSubscriptionDate($subscription['start_date'] ?? null);
     $nextPaymentDate = normalizeSubscriptionDate($subscription['next_payment'] ?? null);
 
-    if ($startDate !== null && $nextPaymentDate !== null && $startDate < $nextPaymentDate && $startDate >= $currentDate) {
+    // Only treat start_date as the upcoming payment when it's strictly in the future
+    // (e.g. a trial that ends on a known date). When start_date == today it means the
+    // subscription started today (already paid implicitly), so the recurring
+    // next_payment is the actual next due date.
+    if ($startDate !== null && $nextPaymentDate !== null && $startDate < $nextPaymentDate && $startDate > $currentDate) {
         return $startDate->format('Y-m-d');
     }
 
@@ -114,6 +118,24 @@ function getSubscriptionOccurrencesInRange($subscription, $rangeStart, $rangeEnd
     }
 
     return array_values(array_unique($occurrences));
+}
+
+function shiftToNextWorkingDay(DateTimeImmutable $date): DateTimeImmutable
+{
+    // N format: 1=Monday … 6=Saturday, 7=Sunday
+    while ((int)$date->format('N') >= 6) {
+        $date = $date->modify('+1 day');
+    }
+    return $date;
+}
+
+function getAdjustedPaymentDate($subscription, $currentDate = null, $globalAdjust = false): ?string
+{
+    $date = getUpcomingSubscriptionPaymentDate($subscription, $currentDate);
+    if ($date === null || !$globalAdjust || empty($subscription['adjust_to_working_day'])) {
+        return $date;
+    }
+    return shiftToNextWorkingDay(new DateTimeImmutable($date))->format('Y-m-d');
 }
 
 function getPassedAutoRenewalOccurrencesInRange($subscription, $rangeStart, $rangeEnd)

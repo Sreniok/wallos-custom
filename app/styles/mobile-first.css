@@ -1,0 +1,1421 @@
+/* ──────────────────────────────────────────────────────────
+   MOBILE-FIRST UX — universal structural improvements that
+   apply to ALL design themes (default / glass / minimal /
+   neo / vibrant / modern). Each theme keeps its own colors
+   and visual identity via the CSS variables in theme.css.
+   This file is loaded after styles.css and after the design
+   theme stylesheets so layout rules win, but variables stay
+   theme-specific.
+   ────────────────────────────────────────────────────────── */
+
+/* Modern layout tokens — themes can override via their own CSS.
+   The muted/soft greys use direct hex (not rgba+var) because some browsers
+   don't reliably resolve rgba(var(--text-color-rgb), alpha) — and we want
+   strong contrast for the meta lines on both light and dark backgrounds. */
+:root {
+  --mf-card-radius: 18px;
+  --mf-shadow-sm: 0 1px 2px rgba(15,23,42,.06);
+  --mf-shadow-md: 0 6px 16px rgba(15,23,42,.08);
+  /* Default = dark-mode values (most themes default to dark) */
+  --mf-text-muted: #B1B7C2;
+  --mf-text-soft: #6B7280;
+}
+/* Light-mode override — much darker for contrast on white backgrounds */
+body.light {
+  --mf-text-muted: #4B5563;
+  --mf-text-soft: #9CA3AF;
+}
+
+/* Hide the new mobile-only elements by default — only the @media (max-width: 768px)
+   rules below show them. Other themes never see them on desktop.
+   The selector matches the parent rule's specificity (.subscription-main > span)
+   so default desktop hides it. */
+.subscription-main > .subscription-mobile-meta { display: none; }
+.subscription-main > .price > .cycle-suffix { display: none; }
+
+/* ──────────────────────────────────────────────────────────
+   DESKTOP SUBSCRIPTION ROW — left-align the title, give it
+   more horizontal space, and wrap the logo in a soft rounded
+   tile so the icon styling matches the mobile cards.
+   ────────────────────────────────────────────────────────── */
+@media (min-width: 769px) {
+  .subscription-main > .logo {
+    flex: 0 0 56px !important;
+    max-width: 56px !important;
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(var(--text-color-rgb), .04);
+    border-radius: 12px;
+    overflow: hidden;
+    padding: 6px;
+    box-sizing: border-box;
+    margin-right: 4px;
+  }
+  .subscription-main > .logo > img,
+  .subscription-main > .logo > svg {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+  }
+  /* Left-align the title and let it claim the freed-up space. */
+  .subscription-main > .name {
+    flex: 1 1 auto !important;
+    flex-basis: 32% !important;
+    justify-content: flex-start !important;
+    text-align: left !important;
+    gap: 6px;
+    min-width: 0;
+    overflow: hidden;
+  }
+  .subscription-main > .name > .name-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+  }
+  .subscription-main > .name > .name-badges {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  .subscription-main > .name > .name-badges .meta-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 6px;
+    border-radius: 999px;
+    font-size: 11px;
+    line-height: 1;
+  }
+  .subscription-main > .name > .name-badges .meta-notify,
+  .subscription-main > .name > .name-badges .meta-workday {
+    color: var(--main-color);
+    background: rgba(var(--main-color-rgb), .14);
+  }
+  .subscription-main > .name > .name-badges .meta-inactive {
+    color: #E54B3B;
+    background: rgba(229, 75, 59, .14);
+  }
+  /* Tighten the right-hand columns so the title gets the breathing room. */
+  .subscription-main > .cycle,
+  .subscription-main > .next {
+    flex-grow: 0 !important;
+    flex-basis: 12% !important;
+  }
+  .subscription-main > .price {
+    flex-basis: 10% !important;
+  }
+}
+
+/* ──────────────────────────────────────────────────────────
+   NEXT-PAYMENT HERO — uses theme variables for the gradient
+   so each design theme blends in.
+   ────────────────────────────────────────────────────────── */
+.next-payment-hero {
+  display: block;
+  position: relative;
+  width: 100%;
+  margin: 0 0 22px;
+  padding: 22px 22px 20px;
+  border-radius: 24px;
+  background: linear-gradient(135deg,
+    var(--hover-color, #2848D0) 0%,
+    var(--main-color, #4F6EF7) 60%,
+    var(--accent-color, #B0BEFE) 100%);
+  color: #fff;
+  box-shadow: 0 18px 32px -10px rgba(var(--main-color-rgb, 79,110,247), 0.45),
+              0 6px 16px rgba(0,0,0,.12);
+  overflow: hidden;
+}
+.next-payment-hero::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at 100% 0%, rgba(255,255,255,.18) 0%, transparent 55%);
+  pointer-events: none;
+}
+.next-payment-hero .nph-top {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px;
+  position: relative;
+}
+.next-payment-hero .nph-label {
+  font-size: 12px;
+  opacity: .9;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.next-payment-hero .nph-when {
+  font-size: 12px;
+  background: rgba(255,255,255,.18);
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-weight: 600;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.next-payment-hero .nph-date {
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -.025em;
+  margin: 8px 0 16px;
+  line-height: 1;
+  position: relative;
+}
+.next-payment-hero .nph-list {
+  display: flex; flex-direction: column; gap: 8px;
+  position: relative;
+}
+.next-payment-hero .nph-item {
+  display: flex; align-items: center; gap: 12px;
+  background: rgba(255,255,255,.13);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 10px 12px;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: background .15s, transform .15s;
+}
+.next-payment-hero .nph-item:hover { background: rgba(255,255,255,.18); transform: translateY(-1px); }
+.next-payment-hero .nph-logo {
+  width: 38px; height: 38px;
+  border-radius: 11px;
+  background: rgba(255,255,255,.92);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0,0,0,.2);
+}
+.next-payment-hero .nph-logo img { width: 100%; height: 100%; object-fit: contain; }
+.next-payment-hero .nph-logo.empty { background: rgba(255,255,255,.18); color: #fff; font-weight: 700; font-size: 14px; }
+.next-payment-hero .nph-body { flex: 1; min-width: 0; }
+.next-payment-hero .nph-name {
+  font-size: 14px; font-weight: 600;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.next-payment-hero .nph-meta { font-size: 11px; opacity: .82; margin-top: 1px; }
+.next-payment-hero .nph-price { font-size: 15px; font-weight: 700; letter-spacing: -.01em; white-space: nowrap; }
+.next-payment-hero .nph-total {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 12px; padding-top: 12px;
+  border-top: 1px solid rgba(255,255,255,.22);
+  font-size: 13px;
+  position: relative;
+}
+.next-payment-hero .nph-total .nph-total-amt { font-weight: 800; font-size: 16px; letter-spacing: -.01em; }
+
+/* Single-payment variant — bigger logo + bigger price */
+.next-payment-hero.single .nph-item { background: transparent; backdrop-filter: none; padding: 0; cursor: pointer; }
+.next-payment-hero.single .nph-item:hover { background: transparent; transform: none; }
+.next-payment-hero.single .nph-logo { width: 52px; height: 52px; border-radius: 14px; }
+.next-payment-hero.single .nph-name { font-size: 18px; font-weight: 700; }
+.next-payment-hero.single .nph-meta { font-size: 12px; }
+.next-payment-hero.single .nph-price { font-size: 22px; font-weight: 800; letter-spacing: -.02em; }
+
+@media (max-width: 768px) {
+  .next-payment-hero { 
+    padding: 18px 18px 16px; 
+    border-radius: 20px;
+    width: 92%; }
+  .next-payment-hero .nph-date { font-size: 26px; margin: 6px 0 14px; }
+  .next-payment-hero.single .nph-name { font-size: 16px; }
+  .next-payment-hero.single .nph-price { font-size: 20px; }
+}
+
+/* ──────────────────────────────────────────────────────────
+   SWIPE-TO-REVEAL ACTIONS — wraps each subscription row
+   (used on subscriptions.php). Same colored buttons across
+   all themes.
+   ────────────────────────────────────────────────────────── */
+.subscription-container {
+  overflow: hidden;
+  position: relative;
+}
+.subscription-container .modern-swipe-actions {
+  position: absolute;
+  top: 0; bottom: 0; right: 0;
+  display: flex;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: var(--mf-card-radius);
+  overflow: hidden;
+}
+.subscription-container.modern-swipe-revealed .modern-swipe-actions { pointer-events: auto; }
+.modern-swipe-action {
+  width: 76px;
+  border: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 4px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter .15s;
+}
+.modern-swipe-action:hover { filter: brightness(1.06); }
+.modern-swipe-action svg { width: 18px; height: 18px; }
+.modern-swipe-action.edit   { background: #FFD93D; color: #2A2200; }
+.modern-swipe-action.delete { background: #F45A40; color: #ffffff; }
+.modern-swipe-action.clone  { background: #5BC0EB; color: #043247; }
+/* Dashboard swipe variants */
+.modern-swipe-action.dash-missing { background: #F45A40; color: #ffffff; }
+.modern-swipe-action.dash-paid    { background: #1AA053; color: #ffffff; }
+.modern-swipe-action.dash-edit    { background: #5BC0EB; color: #043247; }
+
+.subscription-container .subscription {
+  position: relative;
+  z-index: 1;
+  transition: transform .28s cubic-bezier(.2,.8,.2,1), box-shadow .15s, border-color .15s;
+  touch-action: pan-y;
+  user-select: none;
+}
+.subscription-container.modern-swipe-dragging .subscription { transition: none !important; }
+.subscription-container.modern-swipe-revealed .subscription { transform: translateX(-228px); }
+
+/* Dashboard swipe-row wrapper — same structure but for .subscription-item */
+.dashboard-swipe-row {
+  position: relative;
+  border-radius: var(--mf-card-radius);
+  overflow: hidden;
+  width: 100%;
+}
+.dashboard-swipe-row .modern-swipe-actions {
+  position: absolute;
+  top: 0; bottom: 0; right: 0;
+  display: flex;
+  z-index: 0;
+  pointer-events: none;
+}
+.dashboard-swipe-row.modern-swipe-revealed .modern-swipe-actions { pointer-events: auto; }
+.dashboard-swipe-row > .subscription-item {
+  position: relative;
+  z-index: 1;
+  transition: transform .28s cubic-bezier(.2,.8,.2,1), box-shadow .15s !important;
+  touch-action: pan-y;
+  user-select: none;
+}
+.dashboard-swipe-row.modern-swipe-dragging > .subscription-item { transition: none !important; }
+.dashboard-swipe-row.modern-swipe-revealed > .subscription-item { transform: translateX(-228px); }
+
+/* ──────────────────────────────────────────────────────────
+   FLOATING ACTION BUTTON (FAB)
+   By default hidden; shown only when the JS in modern.js
+   inserts it (which it does for every design theme on mobile).
+   ────────────────────────────────────────────────────────── */
+.modern-fab {
+  display: none;
+  border: 0;
+  font-size: 26px;
+  font-weight: 300;
+  align-items: center; justify-content: center;
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--hover-color, #2848D0), var(--main-color, #4F6EF7));
+  color: #fff;
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  box-shadow: 0 10px 24px -6px rgba(var(--main-color-rgb, 79,110,247), .55);
+}
+
+@media (max-width: 768px) {
+  .modern-fab { display: flex; }
+}
+
+/* FAB inside the bottom nav — flex item, raised above the row */
+.mobile-navigation .mobile-nav > .modern-fab.in-nav {
+  position: relative;
+  bottom: auto;
+  left: auto;
+  right: auto;
+  flex: 0 0 56px;
+  width: 56px;
+  height: 56px;
+  margin: 0 4px;
+  transform: translateY(-14px);
+  align-self: center;
+}
+.mobile-navigation .mobile-nav > .modern-fab.in-nav:hover  { transform: translateY(-14px) scale(1.05); }
+.mobile-navigation .mobile-nav > .modern-fab.in-nav:active { transform: translateY(-14px) scale(.95); }
+/* Allow lifted FAB to extend above the nav's top edge */
+.mobile-navigation .mobile-nav { overflow: visible; }
+
+/* When mobile_nav is OFF — FAB floats bottom-right */
+.modern-fab:not(.in-nav) {
+  position: fixed;
+  bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  right: 16px;
+  left: auto;
+  transform: none;
+}
+.modern-fab:not(.in-nav):hover  { transform: scale(1.05); }
+.modern-fab:not(.in-nav):active { transform: scale(.95); }
+
+/* Hide FAB when a subscription form / modal is open so it doesn't cover Save/Cancel */
+body.no-scroll .modern-fab,
+body.fab-hidden .modern-fab {
+  display: none !important;
+}
+
+/* ──────────────────────────────────────────────────────────
+   BOTTOM NAV — universal: hide Settings (it's in the avatar
+   dropdown), force position:fixed even on iOS to prevent
+   scroll jitter from the JS-driven absolute fallback.
+   ────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .mobile-navigation .mobile-nav > a[href="settings.php"] {
+    display: none !important;
+  }
+  .mobile-navigation .dropdown-content a.mobileNavigationHideOnMobile[href="settings.php"] {
+    display: flex !important;
+  }
+  .ios-fixed-nav-fallback .mobile-nav {
+    position: fixed !important;
+    top: auto !important;
+    bottom: 0 !important;
+  }
+  .mobile-navigation .mobile-nav {
+    transform: translateZ(0);
+    will-change: transform;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
+}
+
+/* ──────────────────────────────────────────────────────────
+   MOBILE SUBSCRIPTION CARD — restructure the horizontal row
+   into a 3-column grid: [logo 48px] [name + next stacked] [price]
+   ────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .subscription {
+    padding: 12px !important;
+    border-radius: var(--mf-card-radius) !important;
+  }
+  .subscription-main {
+    display: grid !important;
+    grid-template-columns: 48px 1fr auto !important;
+    grid-template-rows: auto auto !important;
+    gap: 2px 12px !important;
+    align-items: center !important;
+    padding: 0 !important;
+  }
+  .subscription-main > .logo,
+  .subscription-main > .logo.hideOnMobile {
+    grid-column: 1;
+    grid-row: 1 / 3;
+    width: 48px !important;
+    height: 48px !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    background: rgba(var(--text-color-rgb), .04);
+    border-radius: 12px;
+    overflow: hidden;
+    padding: 4px;
+    flex: 0 0 48px !important;
+    max-width: 48px !important;
+  }
+  .subscription-main > .logo > svg,
+  .subscription-main > .logo > img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+  /* Name becomes a flex container so the status badges (notify/working-day/
+     inactive) sit inline next to the title text. The text shrinks/ellipses
+     while badges stay full-size on the right of the name. */
+  .subscription-main > .name,
+  .subscription-main > .name.hideOnMobile {
+    grid-column: 2;
+    grid-row: 1;
+    display: flex !important;
+    align-items: center;
+    justify-content: flex-start !important;
+    gap: 6px;
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    text-align: left !important;
+    max-height: none !important;
+    line-height: 1.25 !important;
+    margin: 0 !important;
+    overflow: hidden;
+    flex: none !important;
+    min-width: 0;
+  }
+  .subscription-main > .name > .name-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex-shrink: 1;
+    min-width: 0;
+  }
+  .subscription-main > .name > .name-badges {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  .subscription-main > .name > .name-badges .meta-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 6px;
+    border-radius: 999px;
+    font-size: 11px;
+    line-height: 1;
+  }
+  .subscription-main > .name > .name-badges .meta-badge i {
+    font-size: 11px;
+  }
+  .subscription-main > .name > .name-badges .meta-notify {
+    color: var(--main-color);
+    background: rgba(var(--main-color-rgb), .14);
+  }
+  .subscription-main > .name > .name-badges .meta-workday {
+    color: var(--main-color);
+    background: rgba(var(--main-color-rgb), .14);
+  }
+  .subscription-main > .name > .name-badges .meta-inactive {
+    color: #E54B3B;
+    background: rgba(229, 75, 59, .14);
+  }
+  /* Hide the original .next (date) and .cycle on mobile —
+     replaced by the richer .subscription-mobile-meta */
+  .subscription-main > .next,
+  .subscription-main > .cycle { display: none !important; }
+
+  /* Mockup-style meta line: "in 3 days · auto · Visa" */
+  .subscription-main > .subscription-mobile-meta {
+    display: inline-flex !important;
+    justify-content: flex-start;
+    align-items: center;
+    grid-column: 2;
+    grid-row: 2;
+    font-size: 12px !important;
+    color: var(--mf-text-muted) !important;
+    text-align: left !important;
+    overflow: hidden;
+    margin: 0 !important;
+    flex-wrap: nowrap;
+    min-width: 0;
+    line-height: 1.25;
+  }
+  .subscription-main > .subscription-mobile-meta > span {
+    flex-shrink: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .subscription-main > .subscription-mobile-meta > span:not(:first-child)::before {
+    content: '·';
+    margin: 0 6px;
+    color: var(--mf-text-soft);
+    font-weight: 600;
+  }
+  .subscription-main > .subscription-mobile-meta > .rel-time {
+    color: #E08A00;
+    font-weight: 600;
+  }
+  .subscription-main > .subscription-mobile-meta > .rel-time.overdue {
+    color: #E54B3B;
+  }
+  .subscription-main > .subscription-mobile-meta > .date-label,
+  .subscription-main > .subscription-mobile-meta > .renew-label,
+  .subscription-main > .subscription-mobile-meta > .pm-label {
+    color: var(--mf-text-muted);
+  }
+  /* Price column with "/month" subtitle */
+  .subscription-main > .price {
+    grid-column: 3;
+    grid-row: 1 / 3;
+    font-size: 16px !important;
+    font-weight: 700 !important;
+    text-align: right !important;
+    align-self: center !important;
+    flex: none !important;
+    margin: 0 !important;
+    white-space: nowrap;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-end !important;
+    gap: 1px;
+  }
+  .subscription-main > .price > .value { line-height: 1.1; }
+  .subscription-main > .price > .cycle-suffix {
+    font-size: 11px !important;
+    color: var(--mf-text-muted) !important;
+    font-weight: 500 !important;
+    line-height: 1.2;
+  }
+  .subscription-main > .payment_method,
+  .subscription-main > .actions-expand {
+    display: none !important;
+  }
+  /* Hide the entire secondary section on mobile — its info is now consolidated
+     into the .subscription-mobile-meta line above (date · relative · auto · payment
+     method · status badges). Cleaner card, no duplicate info. */
+  .subscription-secondary,
+  .subscription-notes,
+  .subscription-progress-container {
+    display: none !important;
+  }
+  /* Inactive cards: dimmed + struck-through price */
+  .subscription.inactive { opacity: 0.6; }
+  .subscription.inactive .subscription-main > .price { text-decoration: line-through; }
+
+  /* Hide "New Subscription" big button on mobile (FAB replaces it) */
+  section.contain > header#main-actions > button.button:first-child {
+    display: none !important;
+  }
+}
+
+/* ──────────────────────────────────────────────────────────
+   DASHBOARD — full-width row cards [logo][name+meta][price]
+   for upcoming / overdue / paid sections (mobile only).
+   Budget / Active / Savings .thin tiles wrap to 2-col grid.
+   ────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  /* Container had overflow-x:auto for horizontal scroll mini-cards.
+     Stacked vertically now — release the overflow clip so prices
+     don't get cut off on the right. */
+  .upcoming-subscriptions .dashboard-subscriptions-container,
+  .overdue-subscriptions .dashboard-subscriptions-container,
+  .paid-this-month-subscriptions .dashboard-subscriptions-container {
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+    padding-bottom: 0 !important;
+    max-width: 100% !important;
+  }
+  .upcoming-subscriptions .dashboard-subscriptions-list,
+  .overdue-subscriptions .dashboard-subscriptions-list,
+  .paid-this-month-subscriptions .dashboard-subscriptions-list {
+    flex-direction: column !important;
+    gap: 8px !important;
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+  /* Card → 3-col grid */
+  .upcoming-subscriptions .subscription-item:not(.thin),
+  .overdue-subscriptions .subscription-item:not(.thin),
+  .paid-this-month-subscriptions .subscription-item:not(.thin) {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 12px !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    display: grid !important;
+    grid-template-columns: 40px minmax(0, 1fr) max-content !important;
+    grid-template-rows: auto auto !important;
+    grid-column-gap: 12px !important;
+    grid-row-gap: 2px !important;
+    align-items: center !important;
+  }
+  .upcoming-subscriptions .subscription-item-logo,
+  .overdue-subscriptions .subscription-item-logo,
+  .paid-this-month-subscriptions .subscription-item-logo {
+    grid-column: 1 !important;
+    grid-row: 1 / 3 !important;
+    width: 40px !important;
+    height: 40px !important;
+    flex-shrink: 0 !important;
+    border-radius: 10px !important;
+    object-fit: contain;
+    background: rgba(var(--text-color-rgb), .04);
+    padding: 3px;
+    align-self: center !important;
+  }
+  /* Name (NEW element) on row 1, col 2 */
+  .upcoming-subscriptions .subscription-item-name,
+  .overdue-subscriptions .subscription-item-name,
+  .paid-this-month-subscriptions .subscription-item-name {
+    display: block !important;
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    margin: 0 !important;
+    text-align: left !important;
+    letter-spacing: -0.005em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  /* Flatten .subscription-item-info into the parent grid */
+  .upcoming-subscriptions .subscription-item-info,
+  .overdue-subscriptions .subscription-item-info,
+  .paid-this-month-subscriptions .subscription-item-info {
+    display: contents !important;
+  }
+  /* Modern meta line: "in 3 days · May 12 · auto-renew" / "✓ paid" */
+  .upcoming-subscriptions .subscription-item-meta,
+  .overdue-subscriptions .subscription-item-meta,
+  .paid-this-month-subscriptions .subscription-item-meta {
+    display: flex !important;
+    align-items: center;
+    gap: 6px;
+    grid-column: 2 !important;
+    grid-row: 2 !important;
+    font-size: 12px !important;
+    color: var(--mf-text-muted) !important;
+    margin: 0 !important;
+    text-align: left !important;
+    overflow: hidden;
+    flex-wrap: nowrap;
+    min-width: 0;
+  }
+  .subscription-item-meta .rel-time {
+    font-weight: 600;
+    color: var(--text-color);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .upcoming-subscriptions .subscription-item-meta .rel-time {
+    color: #E08A00;
+  }
+  .overdue-subscriptions .subscription-item-meta .rel-time,
+  .subscription-item-meta .rel-time.overdue {
+    color: #E54B3B;
+  }
+  .subscription-item-meta .meta-sep {
+    color: var(--mf-text-soft);
+    font-weight: 400;
+    flex-shrink: 0;
+  }
+  .subscription-item-meta .rel-date {
+    color: var(--mf-text-muted);
+    font-weight: 500;
+    flex-shrink: 0;
+  }
+  .subscription-item-meta .renew-label {
+    color: var(--mf-text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .subscription-item-meta .paid-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    background: rgba(26,160,83,.14);
+    color: #1AA053;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.4;
+    flex-shrink: 0;
+  }
+  .upcoming-subscriptions .subscription-item-date,
+  .overdue-subscriptions .subscription-item-date,
+  .paid-this-month-subscriptions .subscription-item-date {
+    display: none !important;
+  }
+  .upcoming-subscriptions .subscription-item-price,
+  .overdue-subscriptions .subscription-item-price,
+  .paid-this-month-subscriptions .subscription-item-price {
+    grid-column: 3 !important;
+    grid-row: 1 / 3 !important;
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    margin: 0 !important;
+    text-align: right !important;
+    white-space: nowrap;
+    align-self: center !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-end !important;
+    gap: 1px !important;
+    min-width: 72px !important;
+  }
+  .upcoming-subscriptions .subscription-item-price .price-amount,
+  .overdue-subscriptions .subscription-item-price .price-amount,
+  .paid-this-month-subscriptions .subscription-item-price .price-amount {
+    line-height: 1.1 !important;
+  }
+  .upcoming-subscriptions .subscription-item-price .price-cycle,
+  .overdue-subscriptions .subscription-item-price .price-cycle,
+  .paid-this-month-subscriptions .subscription-item-price .price-cycle {
+    color: var(--mf-text-muted) !important;
+    font-size: 11px !important;
+    font-weight: 500 !important;
+    line-height: 1.2 !important;
+  }
+  .upcoming-subscriptions .subscription-item-title,
+  .overdue-subscriptions .subscription-item-title,
+  .paid-this-month-subscriptions .subscription-item-title {
+    display: none !important;
+  }
+  .overdue-subscriptions .subscription-item {
+    border-color: rgba(229,75,59,.3) !important;
+  }
+  .overdue-subscriptions .subscription-item-date {
+    color: #E54B3B !important;
+    font-weight: 600 !important;
+  }
+
+  /* Budget / Subscriptions / Savings — 2-col wrap grid */
+  .budget-subscriptions .dashboard-subscriptions-list,
+  .current-subscriptions .dashboard-subscriptions-list,
+  .savings-subscriptions .dashboard-subscriptions-list {
+    flex-wrap: wrap !important;
+    flex-direction: row !important;
+    gap: 8px !important;
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+  .budget-subscriptions .subscription-item.thin,
+  .current-subscriptions .subscription-item.thin,
+  .savings-subscriptions .subscription-item.thin {
+    flex: 1 1 calc(50% - 4px) !important;
+    min-width: calc(50% - 4px) !important;
+    max-width: none !important;
+    width: auto !important;
+  }
+
+  /* Page padding so FAB doesn't cover bottom content */
+  body main { padding-bottom: 100px !important; }
+  body.mobile-navigation main { padding-bottom: 130px !important; }
+}
+
+/* Dashboard payment rows: use the scannable mobile row pattern on desktop too.
+   Numeric summary sections keep their compact tiles. */
+.upcoming-subscriptions .dashboard-subscriptions-container,
+.overdue-subscriptions .dashboard-subscriptions-container,
+.paid-this-month-subscriptions .dashboard-subscriptions-container {
+  overflow-x: visible !important;
+  overflow-y: visible !important;
+  padding-bottom: 0 !important;
+  max-width: 100% !important;
+}
+
+.upcoming-subscriptions .dashboard-subscriptions-list,
+.overdue-subscriptions .dashboard-subscriptions-list,
+.paid-this-month-subscriptions .dashboard-subscriptions-list {
+  flex-direction: column !important;
+  gap: 10px !important;
+  min-width: 0 !important;
+  width: 100% !important;
+}
+
+.upcoming-subscriptions .subscription-item:not(.thin),
+.overdue-subscriptions .subscription-item:not(.thin),
+.paid-this-month-subscriptions .subscription-item:not(.thin) {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  height: auto !important;
+  min-height: 76px !important;
+  padding: 14px 16px !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+  display: grid !important;
+  grid-template-columns: 48px minmax(0, 1fr) max-content !important;
+  grid-template-rows: auto auto !important;
+  grid-column-gap: 14px !important;
+  grid-row-gap: 3px !important;
+  align-items: center !important;
+}
+
+.upcoming-subscriptions .subscription-item-logo,
+.overdue-subscriptions .subscription-item-logo,
+.paid-this-month-subscriptions .subscription-item-logo {
+  grid-column: 1 !important;
+  grid-row: 1 / 3 !important;
+  width: 48px !important;
+  height: 48px !important;
+  max-width: 48px !important;
+  max-height: 48px !important;
+  border-radius: 12px !important;
+  object-fit: contain !important;
+  background: rgba(var(--text-color-rgb), .04);
+  padding: 4px;
+  align-self: center !important;
+}
+
+.upcoming-subscriptions .subscription-item-name,
+.overdue-subscriptions .subscription-item-name,
+.paid-this-month-subscriptions .subscription-item-name {
+  display: block !important;
+  grid-column: 2 !important;
+  grid-row: 1 !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  margin: 0 !important;
+  text-align: left !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.upcoming-subscriptions .subscription-item-info,
+.overdue-subscriptions .subscription-item-info,
+.paid-this-month-subscriptions .subscription-item-info {
+  display: contents !important;
+}
+
+.upcoming-subscriptions .subscription-item-meta,
+.overdue-subscriptions .subscription-item-meta,
+.paid-this-month-subscriptions .subscription-item-meta {
+  display: flex !important;
+  align-items: center;
+  gap: 6px;
+  grid-column: 2 !important;
+  grid-row: 2 !important;
+  min-width: 0;
+  margin: 0 !important;
+  color: var(--mf-text-muted) !important;
+  font-size: 13px !important;
+  line-height: 1.25;
+  overflow: hidden;
+  text-align: left !important;
+  flex-wrap: nowrap;
+}
+
+.subscription-item-meta .rel-time {
+  font-weight: 700;
+  color: var(--text-color);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.upcoming-subscriptions .subscription-item-meta .rel-time {
+  color: #E08A00;
+}
+
+.overdue-subscriptions .subscription-item-meta .rel-time,
+.subscription-item-meta .rel-time.overdue {
+  color: #E54B3B;
+}
+
+.subscription-item-meta .meta-sep {
+  color: var(--mf-text-soft);
+  flex-shrink: 0;
+}
+
+.subscription-item-meta .rel-date,
+.subscription-item-meta .renew-label {
+  color: var(--mf-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.subscription-item-meta .paid-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: rgba(26,160,83,.14);
+  color: #1AA053;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.4;
+  flex-shrink: 0;
+}
+
+.upcoming-subscriptions .subscription-item-date,
+.overdue-subscriptions .subscription-item-date,
+.paid-this-month-subscriptions .subscription-item-date,
+.upcoming-subscriptions .subscription-item-title,
+.overdue-subscriptions .subscription-item-title,
+.paid-this-month-subscriptions .subscription-item-title {
+  display: none !important;
+}
+
+.upcoming-subscriptions .subscription-item-price,
+.overdue-subscriptions .subscription-item-price,
+.paid-this-month-subscriptions .subscription-item-price {
+  grid-column: 3 !important;
+  grid-row: 1 / 3 !important;
+  min-width: 90px !important;
+  margin: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-end !important;
+  align-self: center !important;
+  gap: 1px !important;
+  text-align: right !important;
+  white-space: nowrap;
+}
+
+.upcoming-subscriptions .subscription-item-price .price-amount,
+.overdue-subscriptions .subscription-item-price .price-amount,
+.paid-this-month-subscriptions .subscription-item-price .price-amount {
+  font-size: 17px !important;
+  font-weight: 800 !important;
+  line-height: 1.1 !important;
+}
+
+.upcoming-subscriptions .subscription-item-price .price-cycle,
+.overdue-subscriptions .subscription-item-price .price-cycle,
+.paid-this-month-subscriptions .subscription-item-price .price-cycle {
+  color: var(--mf-text-muted) !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  line-height: 1.2 !important;
+}
+
+.overdue-subscriptions .subscription-item {
+  border-color: rgba(229,75,59,.3) !important;
+}
+
+/* Dashboard numeric summaries: keep labels visible and lay tiles out as a grid. */
+.budget-subscriptions .dashboard-subscriptions-container,
+.current-subscriptions .dashboard-subscriptions-container,
+.savings-subscriptions .dashboard-subscriptions-container {
+  overflow: visible !important;
+  padding-bottom: 0 !important;
+  max-width: 100% !important;
+}
+
+.budget-subscriptions .dashboard-subscriptions-list,
+.current-subscriptions .dashboard-subscriptions-list,
+.savings-subscriptions .dashboard-subscriptions-list {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) !important;
+  gap: 10px !important;
+  min-width: 0 !important;
+  width: 100% !important;
+}
+
+.budget-subscriptions .subscription-item.thin,
+.current-subscriptions .subscription-item.thin,
+.savings-subscriptions .subscription-item.thin {
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  height: auto !important;
+  min-height: 104px !important;
+  padding: 16px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: flex-start !important;
+  gap: 8px !important;
+}
+
+.budget-subscriptions .subscription-item-title,
+.current-subscriptions .subscription-item-title,
+.savings-subscriptions .subscription-item-title {
+  display: block !important;
+  color: var(--mf-text-muted) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  line-height: 1.25 !important;
+  margin: 0 !important;
+  overflow: visible !important;
+  text-align: left !important;
+  text-overflow: initial !important;
+  white-space: normal !important;
+  -webkit-line-clamp: unset !important;
+  line-clamp: unset !important;
+}
+
+.budget-subscriptions .subscription-item-info,
+.current-subscriptions .subscription-item-info,
+.savings-subscriptions .subscription-item-info {
+  display: block !important;
+  min-width: 0 !important;
+}
+
+.budget-subscriptions .subscription-item-value,
+.current-subscriptions .subscription-item-value,
+.savings-subscriptions .subscription-item-value {
+  color: var(--text-color) !important;
+  font-size: 20px !important;
+  font-weight: 800 !important;
+  line-height: 1.15 !important;
+  margin: 0 !important;
+  overflow-wrap: anywhere;
+}
+
+@media (min-width: 769px) {
+  .dashboard {
+    max-width: 920px;
+  }
+
+  .dashboard > .next-payment-hero,
+  .upcoming-subscriptions,
+  .overdue-subscriptions,
+  .paid-this-month-subscriptions,
+  .budget-subscriptions,
+  .current-subscriptions,
+  .savings-subscriptions {
+    width: 100%;
+    max-width: 720px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .dashboard > h1 {
+    max-width: 720px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .dashboard-swipe-row .modern-swipe-actions {
+    display: none !important;
+  }
+
+  .dashboard-swipe-row.modern-swipe-revealed > .subscription-item,
+  .dashboard-swipe-row > .subscription-item {
+    transform: none !important;
+  }
+}
+
+@media (max-width: 768px) {
+  body.design-modern .budget-subscriptions .dashboard-subscriptions-list,
+  body.design-modern .current-subscriptions .dashboard-subscriptions-list,
+  body.design-modern .savings-subscriptions .dashboard-subscriptions-list,
+  .budget-subscriptions .dashboard-subscriptions-list,
+  .current-subscriptions .dashboard-subscriptions-list,
+  .savings-subscriptions .dashboard-subscriptions-list {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  body.design-modern .budget-subscriptions .subscription-item.thin,
+  body.design-modern .current-subscriptions .subscription-item.thin,
+  body.design-modern .savings-subscriptions .subscription-item.thin,
+  .budget-subscriptions .subscription-item.thin,
+  .current-subscriptions .subscription-item.thin,
+  .savings-subscriptions .subscription-item.thin {
+    flex: initial !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    min-height: 96px !important;
+    padding: 14px !important;
+    justify-content: center !important;
+    align-items: flex-start !important;
+    gap: 7px !important;
+  }
+
+  body.design-modern .budget-subscriptions .subscription-item-title,
+  body.design-modern .current-subscriptions .subscription-item-title,
+  body.design-modern .savings-subscriptions .subscription-item-title,
+  .budget-subscriptions .subscription-item-title,
+  .current-subscriptions .subscription-item-title,
+  .savings-subscriptions .subscription-item-title {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: static !important;
+    height: auto !important;
+    color: var(--mf-text-muted) !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    line-height: 1.25 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    text-align: left !important;
+    text-overflow: initial !important;
+    white-space: normal !important;
+    -webkit-line-clamp: unset !important;
+    line-clamp: unset !important;
+  }
+
+  body.design-modern .budget-subscriptions .subscription-item-value,
+  body.design-modern .current-subscriptions .subscription-item-value,
+  body.design-modern .savings-subscriptions .subscription-item-value,
+  .budget-subscriptions .subscription-item-value,
+  .current-subscriptions .subscription-item-value,
+  .savings-subscriptions .subscription-item-value {
+    font-size: 18px !important;
+    line-height: 1.15 !important;
+    margin: 0 !important;
+  }
+}
+
+@media (max-width: 380px) {
+  body.design-modern .budget-subscriptions .dashboard-subscriptions-list,
+  body.design-modern .current-subscriptions .dashboard-subscriptions-list,
+  body.design-modern .savings-subscriptions .dashboard-subscriptions-list,
+  .budget-subscriptions .dashboard-subscriptions-list,
+  .current-subscriptions .dashboard-subscriptions-list,
+  .savings-subscriptions .dashboard-subscriptions-list {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Reset native button styling on filter elements that switched from
+   <div> to <button> for keyboard accessibility — keep the same visual. */
+button.filter-title,
+button.filter-item {
+  font: inherit;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  color: inherit;
+  width: 100%;
+  cursor: pointer;
+  display: block;
+}
+button.filter-title:focus-visible,
+button.filter-item:focus-visible {
+  outline: 2px solid var(--main-color);
+  outline-offset: 2px;
+}
+
+.account-calendar-feed #icalFeedUrl {
+  min-width: 0;
+  font-family: monospace;
+  font-size: 13px;
+}
+
+.account-calendar-feed .buttons.wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* ──────────────────────────────────────────────────────────
+   STATS / PROFILE / ADMIN — finish the mobile-first redesign
+   for the pages we hadn't yet touched.
+   ────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  /* stats.php — make the filter menu a full-width drawer */
+  body section.contain > .split-header { flex-direction: column; align-items: stretch; gap: 8px; }
+  body section.contain > .split-header > .filtermenu { width: 100%; position: relative; }
+  body section.contain > .split-header > .filtermenu .filtermenu-content {
+    width: 100% !important;
+    max-width: 100vw !important;
+    left: 0 !important;
+    right: 0 !important;
+    position: absolute;
+    top: calc(100% + 4px);
+    box-sizing: border-box;
+  }
+  body .statistics {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+  }
+  body .statistic { min-width: 0 !important; }
+  body .graph { flex-basis: 100% !important; min-width: 0 !important; }
+
+  /* profile.php — clamp avatar picker, stack inline rows */
+  .avatar-select {
+    width: min(336px, calc(100vw - 32px)) !important;
+    max-width: calc(100vw - 32px) !important;
+    box-sizing: border-box;
+  }
+  body .account-section .form-group-inline { flex-wrap: wrap; gap: 8px; }
+  body .account-section .form-group-inline > input[type="text"],
+  body .account-section .form-group-inline > input[type="email"],
+  body .account-section .form-group-inline > input[type="password"],
+  body .account-section .form-group-inline > input[type="number"] {
+    flex: 1 1 100% !important;
+    min-width: 0 !important;
+  }
+  body .account-section .form-group-inline > input[type="submit"],
+  body .account-section .form-group-inline > input[type="button"],
+  body .account-section .form-group-inline > button {
+    flex: 1 1 100% !important;
+  }
+
+  .account-calendar-feed .form-group-inline {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  /* admin.php — user list rows stack cleanly */
+  body .user-list-row {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 4px !important;
+  }
+  body .user-list-icon { width: 100% !important; }
+
+  body .admin-form .form-group-inline,
+  body .account-section > .form-group-inline {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+
+  body .admin-form .form-group-inline > input[type="text"],
+  body .admin-form .form-group-inline > input[type="email"],
+  body .admin-form .form-group-inline > input[type="password"],
+  body .admin-form .form-group-inline > input[type="number"],
+  body .account-section > .form-group-inline > input[type="text"],
+  body .account-section > .form-group-inline > input[type="email"],
+  body .account-section > .form-group-inline > input[type="password"] {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  body .admin-form .form-group-inline > input[type="submit"],
+  body .admin-form .form-group-inline > input[type="button"],
+  body .admin-form .form-group-inline > button,
+  body .account-section > .form-group-inline > input[type="submit"],
+  body .account-section > .form-group-inline > input[type="button"],
+  body .account-section > .form-group-inline > button {
+    width: 100% !important;
+  }
+}
+
+/* ──────────────────────────────────────────────────────────
+   LOADING SPINNER — universal overlay component used by
+   common.js withSpinner(). Renders inside any container with
+   a `data-mf-spinner-host` attribute or a wrapping element.
+   ────────────────────────────────────────────────────────── */
+.mf-spinner-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(var(--background-color-rgb, 255,255,255), 0.55);
+  backdrop-filter: blur(2px);
+  z-index: 50;
+  border-radius: inherit;
+}
+.mf-spinner-overlay::after {
+  content: '';
+  width: 28px;
+  height: 28px;
+  border: 3px solid rgba(var(--text-color-rgb, 30,30,30), 0.15);
+  border-top-color: var(--main-color, #4F6EF7);
+  border-radius: 50%;
+  animation: mfSpin 0.7s linear infinite;
+}
+@keyframes mfSpin { to { transform: rotate(360deg); } }
+.mf-busy { position: relative !important; min-height: 80px; }
+
+/* ──────────────────────────────────────────────────────────
+   FOCUS INDICATORS — keyboard navigation visibility
+   ────────────────────────────────────────────────────────── */
+.subscription-container:focus-visible,
+.subscription:focus-visible,
+.subscription-item.subscription-item-clickable:focus-visible,
+.calendar-cell:focus-visible {
+  outline: 2px solid var(--main-color);
+  outline-offset: 2px;
+}
+.modern-fab:focus-visible {
+  outline: 2px solid var(--text-color);
+  outline-offset: 3px;
+}
+
+/* ──────────────────────────────────────────────────────────
+   EMPTY STATES — soft illustration + message
+   ────────────────────────────────────────────────────────── */
+.mf-empty-state {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--mf-text-muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.mf-empty-state i {
+  font-size: 28px;
+  opacity: 0.5;
+  margin-bottom: 4px;
+}
+.mf-empty-state p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.calendar .calendar-subscription-title {
+  display: block;
+  width: 100%;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: inherit;
+}
+
+.calendar .calendar-subscription-title:focus-visible {
+  outline: 2px solid var(--main-color);
+  outline-offset: 2px;
+}
+
+.calendar {
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.calendar .calendar-header,
+.calendar .calendar-row {
+  display: grid !important;
+  grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.calendar .calendar-cell {
+  min-width: 0 !important;
+  flex: none !important;
+}
+
+body.design-modern .calendar .calendar-body .calendar-cell {
+  overflow: hidden !important;
+}
+
+body.design-modern .calendar .calendar-cell-content {
+  overflow: hidden !important;
+}
+
+.toast-retry {
+  margin-top: 6px;
+  border: 0;
+  background: transparent;
+  color: var(--main-color);
+  font: inherit;
+  font-weight: 700;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+}
+
+/* ──────────────────────────────────────────────────────────
+   COMPACT TOP ACTION BAR (subscriptions page) on mobile
+   ────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  section.contain > header#main-actions {
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    gap: 8px !important;
+    align-items: center !important;
+    padding: 0 !important;
+    margin-bottom: 12px !important;
+  }
+  section.contain > header#main-actions .top-actions {
+    flex: 1;
+    display: flex !important;
+    gap: 8px !important;
+    flex-wrap: nowrap !important;
+  }
+  section.contain > header#main-actions .search { flex: 1; min-width: 0 !important; }
+  section.contain > header#main-actions .search input {
+    width: 100% !important;
+    height: 40px !important;
+    border-radius: 12px !important;
+  }
+  section.contain > header#main-actions .filtermenu button,
+  section.contain > header#main-actions .sort-container button {
+    width: 40px !important;
+    height: 40px !important;
+    padding: 0 !important;
+    border-radius: 12px !important;
+    flex-shrink: 0 !important;
+  }
+}

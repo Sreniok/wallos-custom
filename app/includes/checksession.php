@@ -14,6 +14,13 @@ if (isset($_GET['code']) && isset($_GET['state'])) {
     // This request is coming from the OIDC login flow
     $code = $_GET['code'];
     $state = $_GET['state'];
+    if (empty($_SESSION['oidc_state']) || !hash_equals($_SESSION['oidc_state'], $state)) {
+        unset($_SESSION['oidc_state']);
+        $db->close();
+        header("Location: login.php?error=oidc_invalid_state");
+        exit();
+    }
+    unset($_SESSION['oidc_state']);
 
     require_once 'includes/oidc/handle_oidc_callback.php';
 
@@ -42,6 +49,12 @@ if (isset($_GET['code']) && isset($_GET['state'])) {
 
         if (isset($_COOKIE['wallos_login'])) {
             $cookie = explode('|', $_COOKIE['wallos_login'], 3);
+            if (count($cookie) !== 3 || $cookie[0] === '' || $cookie[1] === '') {
+                $db->close();
+                header("Location: logout.php");
+                exit();
+            }
+
             $username = $cookie[0];
             $token = $cookie[1];
             $main_currency = $cookie[2];
@@ -65,19 +78,10 @@ if (isset($_GET['code']) && isset($_GET['state'])) {
                 $userId = $userData['id'];
                 $main_currency = $userData['main_currency'];
 
-                $adminQuery = "SELECT login_disabled FROM admin";
-                $adminResult = $db->query($adminQuery);
-                $adminRow = $adminResult->fetchArray(SQLITE3_ASSOC);
-                if ($adminRow['login_disabled'] == 1) {
-                    $sql = "SELECT * FROM login_tokens WHERE user_id = :userId";
-                    $stmt = $db->prepare($sql);
-                    $stmt->bindParam(':userId', $userId, SQLITE3_TEXT);
-                } else {
-                    $sql = "SELECT * FROM login_tokens WHERE user_id = :userId AND token = :token";
-                    $stmt = $db->prepare($sql);
-                    $stmt->bindParam(':userId', $userId, SQLITE3_TEXT);
-                    $stmt->bindParam(':token', $token, SQLITE3_TEXT);
-                }
+                $sql = "SELECT * FROM login_tokens WHERE user_id = :userId AND token = :token";
+                $stmt = $db->prepare($sql);
+                $stmt->bindValue(':userId', $userId, SQLITE3_INTEGER);
+                $stmt->bindValue(':token', $token, SQLITE3_TEXT);
                 $result = $stmt->execute();
                 $row = $result->fetchArray(SQLITE3_ASSOC);
 
