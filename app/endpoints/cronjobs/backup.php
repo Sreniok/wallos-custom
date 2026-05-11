@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../../includes/backup_helpers.php';
 
-$backupDir = getenv('WALLOS_BACKUP_PATH') ?: '/var/www/html/backups';
+$backupDir = getenv('WALLOS_BACKUP_PATH') ?: '/var/www/backups';
 $retentionDays = getenv('WALLOS_BACKUP_RETENTION_DAYS') ?: 30;
 $timestamp = (new DateTime())->format('Ymd-His');
 $zipPath = rtrim($backupDir, '/') . "/Wallos-Backup-$timestamp.zip";

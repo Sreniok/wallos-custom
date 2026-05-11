@@ -8,12 +8,16 @@ services:
     ports:
       - "8282:80/tcp"
     environment:
-      TZ: 'Europe/Dublin'
-      WALLOS_BACKUP_PATH: '/var/www/html/backups'
-      WALLOS_BACKUP_RETENTION_DAYS: '30'
+      TZ: '${TZ:-Europe/Dublin}'
+      PUID: '${PUID:-82}'
+      PGID: '${PGID:-82}'
+      WALLOS_BACKUP_PATH: '${WALLOS_BACKUP_PATH:-/var/www/backups}'
+      WALLOS_BACKUP_RETENTION_DAYS: '${WALLOS_BACKUP_RETENTION_DAYS:-30}'
+      WALLOS_TRUST_PROXY_HEADERS: '${WALLOS_TRUST_PROXY_HEADERS:-false}'
+      DEMO_MODE: '${DEMO_MODE:-false}'
     # Volumes store your data between container upgrades
     volumes:
       - './db:/var/www/html/db'
       - './logos:/var/www/html/images/uploads/logos'
-      - './backups:/var/www/html/backups'
+      - './backups:/var/www/backups'
     restart: unless-stopped

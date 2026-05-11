@@ -105,9 +105,7 @@ function backupDB() {
     .then(response => response.json())
     .then(data => {
       if (data.success) {
-        const link = document.createElement("a");
         const filename = data.file;
-        link.href = ".tmp/" + filename;
 
         const date = new Date();
         const year = date.getFullYear();
@@ -116,11 +114,32 @@ function backupDB() {
         const hours = String(date.getHours()).padStart(2, "0");
         const minutes = String(date.getMinutes()).padStart(2, "0");
         const timestamp = `${year}${month}${day}-${hours}${minutes}`;
-        link.download = `Wallos-Backup-${timestamp}.zip`;
 
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        return fetch("endpoints/db/download_backup.php", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "X-CSRF-Token": window.csrfToken,
+          },
+          body: new URLSearchParams({ file: filename }),
+        })
+          .then(response => {
+            if (!response.ok) {
+              throw new Error(translate("backup_failed"));
+            }
+            return response.blob();
+          })
+          .then(blob => {
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.href = url;
+            link.download = `Wallos-Backup-${timestamp}.zip`;
+
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+          });
       } else {
         showErrorMessage(data.message || translate("backup_failed"));
       }

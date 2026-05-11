@@ -518,7 +518,7 @@ $loginDisabledAllowed = $userCount == 1 && $settings['registrations_open'] == 0;
     </section>
 
     <section class="account-section">
-        <?php $backupPath = getenv('WALLOS_BACKUP_PATH') ?: '/var/www/html/backups'; ?>
+        <?php $backupPath = getenv('WALLOS_BACKUP_PATH') ?: '/var/www/backups'; ?>
         <header>
             <h2><?= translate('backup_and_restore', $i18n) ?></h2>
         </header>

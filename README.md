@@ -47,7 +47,7 @@ Create the persistent data folders:
 mkdir -p db logos backups
 ```
 
-Review `docker-compose.yml` before starting. By default this custom build:
+Review `compose.yaml` and copy `.env.example` to `.env` if you want to override defaults before starting. By default this custom build:
 
 - builds the image locally as `wallos-custom:latest`
 - exposes Wallos on host port `8282`
@@ -93,17 +93,17 @@ This build also creates a scheduled backup every day at `03:15` container time. 
 ./backups
 ```
 
-You can change the in-container backup path and retention in `docker-compose.yml`:
+You can change the in-container backup path and retention in `.env` or `compose.yaml`:
 
 ```yaml
 environment:
-  WALLOS_BACKUP_PATH: '/var/www/html/backups'
-  WALLOS_BACKUP_RETENTION_DAYS: '30'
+  WALLOS_BACKUP_PATH: '${WALLOS_BACKUP_PATH:-/var/www/backups}'
+  WALLOS_BACKUP_RETENTION_DAYS: '${WALLOS_BACKUP_RETENTION_DAYS:-30}'
 volumes:
-  - './backups:/var/www/html/backups'
+  - './backups:/var/www/backups'
 ```
 
-Backups include the SQLite database and uploaded logos. The `db/`, `logos/`, and `backups/` folders contain private Wallos data and are intentionally not committed to GitHub.
+Backups include the SQLite database and uploaded logos. The mounted backup directory is outside the webroot, and nginx also blocks `/backups/` for compatibility with older deployments. The `db/`, `logos/`, and `backups/` folders contain private Wallos data and are intentionally not committed to GitHub.
 
 ## Mobile/PWA Cache
 

@@ -13,11 +13,18 @@ PGID=${PGID:-82}
 groupmod -o -g "$PGID" www-data
 usermod -o -u "$PUID" www-data
 
-BACKUP_PATH=${WALLOS_BACKUP_PATH:-/var/www/html/backups}
+BACKUP_PATH=${WALLOS_BACKUP_PATH:-/var/www/backups}
 
-mkdir -p /tmp /var/www/html/.tmp /var/www/html/db /var/www/html/images/uploads/logos/avatars "$BACKUP_PATH"
-chown -R www-data:www-data /tmp /var/www/html/.tmp /var/www/html/db /var/www/html/images/uploads/logos "$BACKUP_PATH"
-chmod -R 770 /tmp
+mkdir -p /tmp
+chmod 1777 /tmp
+
+install -d -o www-data -g www-data -m 750 /var/www/html/.tmp /var/www/html/db "$BACKUP_PATH"
+install -d -o www-data -g www-data -m 755 /var/www/html/images/uploads/logos /var/www/html/images/uploads/logos/avatars
+chown -R www-data:www-data /var/www/html/.tmp /var/www/html/db /var/www/html/images/uploads/logos "$BACKUP_PATH"
+find /var/www/html/.tmp /var/www/html/db "$BACKUP_PATH" -type d -exec chmod 750 {} \;
+find /var/www/html/.tmp /var/www/html/db "$BACKUP_PATH" -type f -exec chmod 640 {} \;
+find /var/www/html/images/uploads/logos -type d -exec chmod 755 {} \;
+find /var/www/html/images/uploads/logos -type f -exec chmod 644 {} \;
 
 # PIDs we’ll track
 PHP_FPM_PID=
@@ -67,11 +74,11 @@ sleep 1
 # Perform any database migrations
 /usr/local/bin/php /var/www/html/endpoints/db/migrate.php
 
-# Change permissions on the database directory
-chmod -R 755 /var/www/html/db/
-
-# Change permissions on the logos directory
-chmod -R 755 /var/www/html/images/uploads/logos
+# Keep runtime data writable only by www-data where possible.
+find /var/www/html/db -type d -exec chmod 750 {} \;
+find /var/www/html/db -type f -exec chmod 640 {} \;
+find /var/www/html/images/uploads/logos -type d -exec chmod 755 {} \;
+find /var/www/html/images/uploads/logos -type f -exec chmod 644 {} \;
 
 # Remove crontab for the user
 crontab -d -u root

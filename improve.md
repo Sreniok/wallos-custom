@@ -89,19 +89,21 @@ Status 2026-05-11: DONE. Service worker ma cache wersjonowany przez `app/include
    - Są już pierwsze kroki: `role`, `tabindex`, `aria-label`.
    - Dodać testy klawiatury dla modali, focus trap, Escape close, poprawne etykiety ikon i brak pułapek focusu na mobile actions.
 
-## Priorytet 5: Docker i operacje
+## Priorytet 5: Docker i operacje - DONE
 
-1. Zaktualizować README do faktycznych nazw plików.
+Status 2026-05-11: DONE. README wskazuje `compose.yaml`, dodano `.env.example`, compose przekazuje operacyjne zmienne przez `.env`, backupy domyślnie trafiają poza webroot do `/var/www/backups`, nginx nadal blokuje stare `/backups/` i `.tmp`, ręczne pobieranie backupu działa przez endpoint admina, a `startup.sh` ustawia ciaśniejsze uprawnienia dla bazy, `.tmp`, backupów i uploadów.
+
+1. [x] Zaktualizować README do faktycznych nazw plików.
    - README mówi o `docker-compose.yml` (`README.md:50` i `README.md:96`), a w repo widać `compose.yaml`; `docker-compose.yml` jest usunięty w statusie git.
    - To drobiazg, ale wpływa na pierwsze uruchomienie przez nową osobę.
 
-2. Rozdzielić backupy od webroot albo zablokować je w nginx.
+2. [x] Rozdzielić backupy od webroot albo zablokować je w nginx.
    - Backupy są montowane do `/var/www/html/backups`. Nawet jeśli listing katalogu nie jest włączony, lepiej trzymać je poza webroot albo jawnie zablokować `location ^~ /backups/`.
 
-3. Dodać `.env.example`.
+3. [x] Dodać `.env.example`.
    - Przyda się dla `TZ`, `PUID`, `PGID`, `WALLOS_BACKUP_PATH`, `WALLOS_BACKUP_RETENTION_DAYS`, `WALLOS_TRUST_PROXY_HEADERS`, ewentualnie `DEMO_MODE`.
 
-4. Uspójnić uprawnienia.
+4. [x] Uspójnić uprawnienia.
    - `startup.sh` tworzy katalogi i potem ustawia `chmod -R 755` na db/logos. Dla bazy i uploadów lepiej minimalne uprawnienia dla `www-data`, szczególnie jeśli host jest współdzielony.
 
 ## Szybkie wygrane
