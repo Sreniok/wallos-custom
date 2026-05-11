@@ -16,10 +16,15 @@ if (!function_exists('wallosSafeZipExtract')) {
     /**
      * @param string $zipPath        Path to the source .zip
      * @param string $destination    Target directory (must already exist)
+     * @param array  $options        Optional max_files, max_total_bytes, max_entry_bytes
      * @return array{ok:bool,error?:string}  Result; on success ok=true.
      */
-    function wallosSafeZipExtract(string $zipPath, string $destination): array
+    function wallosSafeZipExtract(string $zipPath, string $destination, array $options = []): array
     {
+        $maxFiles = (int) ($options['max_files'] ?? 500);
+        $maxTotalBytes = (int) ($options['max_total_bytes'] ?? (64 * 1024 * 1024));
+        $maxEntryBytes = (int) ($options['max_entry_bytes'] ?? (32 * 1024 * 1024));
+
         if (!is_dir($destination)) {
             if (!mkdir($destination, 0755, true) && !is_dir($destination)) {
                 return ['ok' => false, 'error' => 'Cannot create destination directory'];
@@ -37,6 +42,11 @@ if (!function_exists('wallosSafeZipExtract')) {
         }
 
         try {
+            if ($zip->numFiles > $maxFiles) {
+                return ['ok' => false, 'error' => 'Too many files in zip'];
+            }
+
+            $totalBytes = 0;
             for ($i = 0; $i < $zip->numFiles; $i++) {
                 $entryName = $zip->getNameIndex($i);
                 if ($entryName === false || $entryName === '') {
@@ -70,6 +80,16 @@ if (!function_exists('wallosSafeZipExtract')) {
                     continue;
                 }
 
+                $entryStat = $zip->statIndex($i);
+                $entryBytes = (int) ($entryStat['size'] ?? 0);
+                if ($entryBytes > $maxEntryBytes) {
+                    return ['ok' => false, 'error' => 'Zip entry is too large: ' . $entryName];
+                }
+                $totalBytes += $entryBytes;
+                if ($totalBytes > $maxTotalBytes) {
+                    return ['ok' => false, 'error' => 'Zip contents are too large'];
+                }
+
                 $parentDir = dirname($targetPath);
                 if (!is_dir($parentDir) && !mkdir($parentDir, 0755, true) && !is_dir($parentDir)) {
                     return ['ok' => false, 'error' => 'Cannot create parent directory for: ' . $entryName];
@@ -91,9 +111,13 @@ if (!function_exists('wallosSafeZipExtract')) {
                     fclose($stream);
                     return ['ok' => false, 'error' => 'Cannot write entry: ' . $entryName];
                 }
-                stream_copy_to_stream($stream, $out);
+                $copied = stream_copy_to_stream($stream, $out, $maxEntryBytes + 1);
                 fclose($stream);
                 fclose($out);
+                if ($copied === false || $copied > $maxEntryBytes) {
+                    @unlink($targetPath);
+                    return ['ok' => false, 'error' => 'Zip entry exceeded size limit: ' . $entryName];
+                }
             }
         } finally {
             $zip->close();

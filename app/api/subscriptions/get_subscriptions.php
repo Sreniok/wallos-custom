@@ -97,20 +97,17 @@ Example response:
 */
 
 require_once '../../includes/connect_endpoint.php';
+require_once '../../includes/api_response.php';
+require_once '../../includes/request_helpers.php';
 require_once '../../includes/subscription_dates.php';
 
 header('Content-Type: application/json; charset=UTF-8');
 
 if ($_SERVER["REQUEST_METHOD"] === "POST" || $_SERVER["REQUEST_METHOD"] === "GET") {
     // if the parameters are not set, return an error
-    $apiKey = $_REQUEST['api_key'] ?? $_REQUEST['apiKey'] ?? null;
+    $apiKey = requestApiKey();
     if (!$apiKey) {
-        $response = [
-            "success" => false,
-            "title" => "Missing parameters"
-        ];
-        echo json_encode($response);
-        exit;
+        apiPublicError("Missing API key", 400);
     }
 
     function getPriceConverted($price, $currency, $database)
@@ -137,24 +134,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" || $_SERVER["REQUEST_METHOD"] === "GET
 
     // If the user is not found, return an error
     if (!$user) {
-        $response = [
-            "success" => false,
-            "title" => "Invalid API key"
-        ];
-        echo json_encode($response);
-        exit;
+        apiPublicError("Invalid API key", 401);
     }
     $userId = $user['id'];
     $userCurrencyId = $user['main_currency'];
+    require '../../includes/getsettings.php';
 
     $allUserSubscription = isset($_REQUEST['all-user-subscription']) ? $_REQUEST['all-user-subscription'] : null;
     if ($allUserSubscription == 1 && $userId != 1) {
-        $response = [
-            "success" => false,
-            "title" => "Denied. Not admin user"
-        ];
-        echo json_encode($response);
-        exit;
+        apiPublicError("Denied. Not admin user", 403);
     }
 
     // Get last exchange update date for user
@@ -218,6 +206,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" || $_SERVER["REQUEST_METHOD"] === "GET
     if (!in_array($sort, $allowedSortCriteria)) {
         $sort = "next_payment";
     }
+    $disabledToBottom = parseBoolParam($_REQUEST['disabled_to_bottom'] ?? null);
+    $convertCurrency = parseBoolParam($_REQUEST['convert_currency'] ?? null);
 
     // Construction of the main SQL Query
     $params = [];
@@ -228,8 +218,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" || $_SERVER["REQUEST_METHOD"] === "GET
         $params[':userId'] = $userId;
     }
 
-    if (isset($_REQUEST['member'])) {
-        $memberIds = explode(',', $_REQUEST['member']);
+    $filterError = null;
+    $memberIds = parseIntegerListParam($_REQUEST['member'] ?? null, 'member', $filterError);
+    if ($filterError !== null) {
+        apiPublicError('Invalid member filter', 400, ['parameter' => 'member', 'error' => $filterError]);
+    }
+    if ($memberIds !== null && count($memberIds) > 0) {
         $placeholders = array_map(function ($key) {
             return ":member{$key}";
         }, array_keys($memberIds));
@@ -238,8 +232,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" || $_SERVER["REQUEST_METHOD"] === "GET
             $params[":member{$key}"] = $memberId;
         }
     }
-    if (isset($_REQUEST['category'])) {
-        $categoryIds = explode(',', $_REQUEST['category']);
+    $categoryIds = parseIntegerListParam($_REQUEST['category'] ?? null, 'category', $filterError);
+    if ($filterError !== null) {
+        apiPublicError('Invalid category filter', 400, ['parameter' => 'category', 'error' => $filterError]);
+    }
+    if ($categoryIds !== null && count($categoryIds) > 0) {
         $placeholders = array_map(function ($key) {
             return ":category{$key}";
         }, array_keys($categoryIds));
@@ -248,8 +245,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" || $_SERVER["REQUEST_METHOD"] === "GET
             $params[":category{$key}"] = $categoryId;
         }
     }
-    if (isset($_REQUEST['payment'])) {
-        $paymentIds = explode(',', $_REQUEST['payment']);
+    $paymentFilter = $_REQUEST['payment'] ?? ($_REQUEST['payment_method'] ?? null);
+    $paymentIds = parseIntegerListParam($paymentFilter, 'payment', $filterError);
+    if ($filterError !== null) {
+        apiPublicError('Invalid payment filter', 400, ['parameter' => 'payment', 'error' => $filterError]);
+    }
+    if ($paymentIds !== null && count($paymentIds) > 0) {
         $placeholders = array_map(function ($key) {
             return ":payment{$key}";
         }, array_keys($paymentIds));
@@ -259,12 +260,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" || $_SERVER["REQUEST_METHOD"] === "GET
         }
     }
     if (isset($_REQUEST['state']) && $_REQUEST['state'] != "") {
+        if (!in_array((string) $_REQUEST['state'], ['0', '1'], true)) {
+            apiPublicError('Invalid state filter', 400, ['parameter' => 'state', 'error' => 'state must be 0 or 1']);
+        }
         $sql .= " AND inactive = :inactive";
-        $params[':inactive'] = $_REQUEST['state'];
+        $params[':inactive'] = (int) $_REQUEST['state'];
     }
 
     $orderByClauses = [];
-    if (isset($_REQUEST['disabled_to_bottom']) && $_REQUEST['disabled_to_bottom'] === 'true') {
+    if ($disabledToBottom) {
         if (in_array($sort, ["payer_user_id", "category_id", "payment_method_id"])) {
             $orderByClauses[] = "$sort $order";
             $orderByClauses[] = "inactive ASC";
@@ -311,7 +315,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" || $_SERVER["REQUEST_METHOD"] === "GET
     foreach ($subscriptions as $subscription) {
         $subscriptionToReturn = $subscription;
         $subscriptionToReturn['next_payment'] = getAdjustedPaymentDate($subscription, null, $globalAdjust) ?? $subscription['next_payment'];
-        if (isset($_REQUEST['convert_currency']) && $_REQUEST['convert_currency'] === 'true' && $canConvertCurrency && $subscription['currency_id'] != $userCurrencyId) {
+        if ($convertCurrency && $canConvertCurrency && $subscription['currency_id'] != $userCurrencyId) {
             $subscriptionToReturn['price'] = getPriceConverted($subscription['price'], $subscription['currency_id'], $db);
         } else {
             $subscriptionToReturn['price'] = $subscription['price'];
@@ -323,7 +327,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" || $_SERVER["REQUEST_METHOD"] === "GET
     }
 
     $response = [
-        "success" => true,
         "title" => "subscriptions",
         "subscriptions" => $subscriptionsToReturn,
         "notes" => []
@@ -357,16 +360,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" || $_SERVER["REQUEST_METHOD"] === "GET
         $response['users'] = $users;
     }
 
-    echo json_encode($response);
     $db->close();
-    exit;
+    apiPublicSuccess($response);
 
 
 } else {
-    $response = [
-        "success" => false,
-        "title" => "Invalid request method"
-    ];
-    echo json_encode($response);
-    exit;
+    apiPublicError("Invalid request method", 405);
 }

@@ -1,6 +1,8 @@
 <?php
 // Add global adjust_to_working_day toggle to settings table.
-// Also migrate subscription column: 0 → 1 so all existing subscriptions follow the global when it is turned on.
+// Data migration note: this intentionally flips existing subscription rows
+// from 0 to 1 so they keep following the global working-day behavior after
+// the meaning of the per-subscription flag changed in this release.
 
 $columnQuery = $db->query("SELECT * FROM pragma_table_info('settings') where name='adjust_to_working_day'");
 if ($columnQuery->fetchArray(SQLITE3_ASSOC) === false) {

@@ -138,6 +138,52 @@ function getAdjustedPaymentDate($subscription, $currentDate = null, $globalAdjus
     return shiftToNextWorkingDay(new DateTimeImmutable($date))->format('Y-m-d');
 }
 
+function getPreviousSubscriptionPaymentDate($subscription, $currentDate = null): ?string
+{
+    $upcomingPayment = getUpcomingSubscriptionPaymentDate($subscription, $currentDate);
+    if ($upcomingPayment === null) {
+        return null;
+    }
+
+    $upcomingPaymentDate = new DateTimeImmutable($upcomingPayment);
+    $startDate = normalizeSubscriptionDate($subscription['start_date'] ?? null);
+    $interval = getSubscriptionInterval($subscription['cycle'] ?? 3, $subscription['frequency'] ?? 1);
+    $previousPaymentDate = $upcomingPaymentDate->sub($interval);
+
+    if ($startDate !== null && $previousPaymentDate < $startDate) {
+        return $startDate->format('Y-m-d');
+    }
+
+    return $previousPaymentDate->format('Y-m-d');
+}
+
+function getSubscriptionCycleProgress($subscription, $currentDate = null): int
+{
+    $upcomingPayment = getUpcomingSubscriptionPaymentDate($subscription, $currentDate);
+    $previousPayment = getPreviousSubscriptionPaymentDate($subscription, $currentDate);
+    if ($upcomingPayment === null || $previousPayment === null) {
+        return 0;
+    }
+
+    $upcomingPaymentDate = new DateTimeImmutable($upcomingPayment);
+    $previousPaymentDate = new DateTimeImmutable($previousPayment);
+    $currentDate = $currentDate instanceof DateTimeInterface
+        ? new DateTimeImmutable($currentDate->format('Y-m-d'))
+        : new DateTimeImmutable('today');
+
+    $totalCycleDays = $previousPaymentDate->diff($upcomingPaymentDate)->days;
+    if ($totalCycleDays <= 0) {
+        return 0;
+    }
+
+    $elapsedDays = $previousPaymentDate->diff($currentDate)->days;
+    if ($currentDate < $previousPaymentDate) {
+        $elapsedDays = 0;
+    }
+
+    return (int) floor(min(100, max(0, ($elapsedDays / $totalCycleDays) * 100)));
+}
+
 function getPassedAutoRenewalOccurrencesInRange($subscription, $rangeStart, $rangeEnd)
 {
     $rangeStart = new DateTimeImmutable($rangeStart->format('Y-m-d'));

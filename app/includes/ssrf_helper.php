@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/api_response.php';
 
 /**
  * Checks if an IP falls in the RFC 6598 Carrier-Grade NAT range (100.64.0.0/10).
@@ -20,33 +21,41 @@ function is_cgnat_ip($ip) {
  * @param array $i18n The translation array
  * @return array Returns an array with ['host', 'ip', 'port'] for cURL hardening
  */
-function validate_webhook_url_for_ssrf($url, $db, $i18n) {
+function wallos_ssrf_error($message, $http = 400) {
+    if (function_exists('apiError')) {
+        apiError($message, $http);
+    }
+
+    http_response_code($http);
+    die(json_encode([
+        "success" => false,
+        "message" => $message
+    ]));
+}
+
+function wallos_validate_url_for_ssrf($url, $db) {
     $parsedUrl = parse_url($url);
-    
-    // Fallback if parse_url fails completely
+
     if (!$parsedUrl || !isset($parsedUrl['host'])) {
-        die(json_encode([
-            "success" => false,
-            "message" => translate("error", $i18n)
-        ]));
+        return ['ok' => false, 'error' => 'invalid_url'];
+    }
+
+    $scheme = strtolower($parsedUrl['scheme'] ?? '');
+    if (!in_array($scheme, ['http', 'https'], true)) {
+        return ['ok' => false, 'error' => 'invalid_url'];
     }
 
     $urlHost = $parsedUrl['host'];
     $port = $parsedUrl['port'] ?? '';
     $ip = gethostbyname($urlHost);
 
-    // CATCH DNS FAILURES
     if ($ip === $urlHost && filter_var($urlHost, FILTER_VALIDATE_IP) === false) {
-        die(json_encode([
-            "success" => false,
-            "message" => "Error: Could not resolve the hostname. Please check the URL or your server's DNS."
-        ]));
+        return ['ok' => false, 'error' => 'dns'];
     }
 
     $hostWithPort = $port ? $urlHost . ':' . $port : $urlHost;
     $ipWithPort = $port ? $ip . ':' . $port : $ip;
 
-    // Check if it's a private IP
     $is_private = filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false || is_cgnat_ip($ip);
 
     if ($is_private) {
@@ -57,26 +66,39 @@ function validate_webhook_url_for_ssrf($url, $db, $i18n) {
         $allowlist_str = $row ? $row['local_webhook_notifications_allowlist'] : '';
         $allowlist = array_filter(array_map('trim', explode(',', $allowlist_str)));
         
-        if (!in_array($urlHost, $allowlist) && 
-            !in_array($ip, $allowlist) && 
-            !in_array($hostWithPort, $allowlist) && 
+        if (!in_array($urlHost, $allowlist) &&
+            !in_array($ip, $allowlist) &&
+            !in_array($hostWithPort, $allowlist) &&
             !in_array($ipWithPort, $allowlist)) {
-            
-            die(json_encode([
-                "success" => false,
-                "message" => "Security Block: The target IP/Port is private and not present in the Webhook Allowlist."
-            ]));
+            return ['ok' => false, 'error' => 'private'];
         }
     }
 
-    // Determine the exact port being targeted for cURL DNS rebinding protection
-    $targetPort = $port ?: (strtolower($parsedUrl['scheme'] ?? 'http') === 'https' ? 443 : 80);
+    $targetPort = $port ?: ($scheme === 'https' ? 443 : 80);
 
     return [
+        'ok'   => true,
         'host' => $urlHost,
         'ip'   => $ip,
         'port' => $targetPort
     ];
+}
+
+function validate_webhook_url_for_ssrf($url, $db, $i18n) {
+    $result = wallos_validate_url_for_ssrf($url, $db);
+    if ($result['ok']) {
+        unset($result['ok']);
+        return $result;
+    }
+
+    $message = translate("error", $i18n);
+    if ($result['error'] === 'dns') {
+        $message = "Error: Could not resolve the hostname. Please check the URL or your server's DNS.";
+    } elseif ($result['error'] === 'private') {
+        $message = "Security Block: The target IP/Port is private and not present in the Webhook Allowlist.";
+    }
+
+    wallos_ssrf_error($message, 400);
 }
 
 /**
@@ -90,48 +112,13 @@ function validate_webhook_url_for_ssrf($url, $db, $i18n) {
  * @return array|false
  */
 function is_url_safe_for_ssrf($url, $db) {
-    $parsedUrl = parse_url($url);
-    if (!$parsedUrl || !isset($parsedUrl['host'])) return false;
+    $result = wallos_validate_url_for_ssrf($url, $db);
+    if (!$result['ok']) return false;
 
-    $scheme = strtolower($parsedUrl['scheme'] ?? '');
-    if (!in_array($scheme, ['http', 'https'])) return false;
-
-    $urlHost = $parsedUrl['host'];
-    $port    = $parsedUrl['port'] ?? '';
-    $ip      = gethostbyname($urlHost);
-
-    // DNS failure
-    if ($ip === $urlHost && filter_var($urlHost, FILTER_VALIDATE_IP) === false) return false;
-
-    $hostWithPort = $port ? $urlHost . ':' . $port : $urlHost;
-    $ipWithPort   = $port ? $ip . ':' . $port : $ip;
-
-    $is_private = filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false
-               || is_cgnat_ip($ip);
-
-    if ($is_private) {
-        $stmt  = $db->prepare("SELECT local_webhook_notifications_allowlist FROM admin LIMIT 1");
-        $result = $stmt->execute();
-        $row   = $result->fetchArray(SQLITE3_ASSOC);
-
-        $allowlist_str = $row ? $row['local_webhook_notifications_allowlist'] : '';
-        $allowlist     = array_filter(array_map('trim', explode(',', $allowlist_str)));
-
-        if (
-            !in_array($urlHost, $allowlist) &&
-            !in_array($ip, $allowlist) &&
-            !in_array($hostWithPort, $allowlist) &&
-            !in_array($ipWithPort, $allowlist)
-        ) {
-            return false; // private and not in allowlist — skip silently
-        }
-    }
-
-    $targetPort = $port ?: ($scheme === 'https' ? 443 : 80);
-
+    unset($result['ok']);
     return [
-        'host' => $urlHost,
-        'ip'   => $ip,
-        'port' => $targetPort
+        'host' => $result['host'],
+        'ip'   => $result['ip'],
+        'port' => $result['port']
     ];
 }

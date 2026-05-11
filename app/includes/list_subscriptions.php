@@ -20,19 +20,11 @@ function getBillingCycle($cycle, $frequency, $i18n)
 
 function getSubscriptionProgress($cycle, $frequency, $next_payment)
 {
-    $nextPaymentDate = new DateTimeImmutable($next_payment);
-    $currentDate = new DateTimeImmutable('now');
-    $lastPaymentDate = $nextPaymentDate->sub(getSubscriptionInterval($cycle, $frequency));
-
-    $totalCycleDays = $lastPaymentDate->diff($nextPaymentDate)->days;
-    $daysSinceLastPayment = $lastPaymentDate->diff($currentDate)->days;
-
-    $subscriptionProgress = 0;
-    if ($totalCycleDays > 0) {
-        $subscriptionProgress = ($daysSinceLastPayment / $totalCycleDays) * 100;
-    }
-
-    return floor($subscriptionProgress);
+    return getSubscriptionCycleProgress([
+        'cycle' => $cycle,
+        'frequency' => $frequency,
+        'next_payment' => $next_payment,
+    ]);
 }
 
 function formatNotificationLeadTime($days, $i18n)

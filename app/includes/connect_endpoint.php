@@ -1,6 +1,6 @@
 <?php
 
-$databaseFile = '../../db/wallos.db';
+$databaseFile = getenv('WALLOS_DATABASE_FILE') ?: '../../db/wallos.db';
 $db = new SQLite3($databaseFile);
 $db->busyTimeout(5000);
 

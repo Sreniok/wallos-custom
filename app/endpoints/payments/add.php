@@ -4,6 +4,7 @@ require_once '../../includes/connect_endpoint.php';
 require_once '../../includes/inputvalidation.php';
 require_once '../../includes/getsettings.php';
 require_once '../../includes/validate_endpoint.php';
+require_once '../../includes/logo_fetcher.php';
 
 if (!file_exists('../../images/uploads/logos')) {
     mkdir('../../images/uploads/logos', 0777, true);
@@ -24,55 +25,22 @@ function validateFileExtension($fileExtension)
     return in_array($fileExtension, $allowedExtensions);
 }
 
-function getLogoFromUrl($url, $uploadDir, $name, $i18n, $settings)
+function getLogoFromUrl($url, $uploadDir, $name, $i18n, $settings, SQLite3 $db)
 {
-    if (!filter_var($url, FILTER_VALIDATE_URL) || !preg_match('/^https?:\/\//i', $url)) {
-        $response = [
-            "success" => false,
-            "message" => "Invalid URL format."
-        ];
-        echo json_encode($response);
-        exit();
+    $fetchResult = wallosFetchLogoFromUrl($url, $db);
+    if (!$fetchResult['success']) {
+        apiError(translate('error_fetching_image', $i18n) . ': ' . $fetchResult['message'], 400);
     }
 
-    $host = parse_url($url, PHP_URL_HOST);
-    $ip = gethostbyname($host);
-    if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false) {
-        $response = [
-            "success" => false,
-            "message" => "Invalid IP Address."
-        ];
-        echo json_encode($response);
-        exit();
+    $timestamp = time();
+    $fileName = $timestamp . '-payments-' . sanitizeFilename($name) . '.png';
+    $uploadFile = $uploadDir . $fileName;
+
+    if (!saveLogo($fetchResult['data'], $uploadFile, $name, $settings)) {
+        apiError(translate('error_fetching_image', $i18n), 400);
     }
 
-    $ch = curl_init($url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 5);
-    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-    curl_setopt($ch, CURLOPT_MAXREDIRS, 3);
-
-    $imageData = curl_exec($ch);
-
-    if ($imageData !== false) {
-        $timestamp = time();
-        $fileName = $timestamp . '-payments-' . sanitizeFilename($name) . '.png';
-        $uploadDir = '../../images/uploads/logos/';
-        $uploadFile = $uploadDir . $fileName;
-
-        if (saveLogo($imageData, $uploadFile, $name, $settings)) {
-            unset($ch);
-            return $fileName;
-        } else {
-            echo translate('error_fetching_image', $i18n) . ": " . curl_error($ch);
-            unset($ch);
-            return "";
-        }
-    } else {
-        echo translate('error_fetching_image', $i18n) . ": " . curl_error($ch);
-        unset($ch);
-        return "";
-    }
+    return $fileName;
 }
 
 
@@ -201,29 +169,37 @@ $name = validate($_POST["paymentname"]);
 $iconUrl = validate($_POST['icon-url']);
 
 if ($name === "" || ($iconUrl === "" && empty($_FILES['paymenticon']['name']))) {
-    $response = [
-        "success" => false,
-        "message" => translate('fill_all_fields', $i18n)
-    ];
-    echo json_encode($response);
-    exit();
+    apiError(translate('fill_all_fields', $i18n), 400);
 }
 
 
 $icon = "";
 
 if ($iconUrl !== "") {
-    $icon = getLogoFromUrl($iconUrl, '../../images/uploads/logos/', $name, $i18n, $settings);
+    $icon = getLogoFromUrl($iconUrl, '../../images/uploads/logos/', $name, $i18n, $settings, $db);
 } else {
     if (!empty($_FILES['paymenticon']['name'])) {
-        $fileType = mime_content_type($_FILES['paymenticon']['tmp_name']);
-        if (strpos($fileType, 'image') === false) {
-            $response = [
-                "success" => false,
-                "message" => translate('fill_all_fields', $i18n)
-            ];
-            echo json_encode($response);
-            exit();
+        if (($_FILES['paymenticon']['size'] ?? 0) > WALLOS_LOGO_MAX_BYTES) {
+            apiError("Logo file is too large (max 2 MB).", 400);
+        }
+        $imageInfo = @getimagesize($_FILES['paymenticon']['tmp_name']);
+        if ($imageInfo === false) {
+            apiError("Logo must be a valid image (PNG, JPG, GIF, or WebP).", 400);
+        }
+        $allowedMime = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
+        if (!in_array($imageInfo['mime'] ?? '', $allowedMime, true)) {
+            apiError("Unsupported logo format.", 400);
+        }
+        $width = (int) $imageInfo[0];
+        $height = (int) $imageInfo[1];
+        if (
+            $width <= 0 ||
+            $height <= 0 ||
+            $width > WALLOS_LOGO_MAX_DIMENSION ||
+            $height > WALLOS_LOGO_MAX_DIMENSION ||
+            ($width * $height) > WALLOS_LOGO_MAX_PIXELS
+        ) {
+            apiError("Logo dimensions are too large.", 400);
         }
         $icon = resizeAndUploadLogo($_FILES['paymenticon'], '../../images/uploads/logos/', $name);
     }
@@ -249,14 +225,9 @@ $stmt->bindParam(':enabled', $enabled, SQLITE3_INTEGER);
 $stmt->bindParam(':userId', $userId, SQLITE3_INTEGER);
 
 if ($stmt->execute()) {
-    $success['success'] = true;
-    $success['message'] = translate('payment_method_added_successfuly', $i18n);
-    $json = json_encode($success);
-    header('Content-Type: application/json');
-    echo $json;
-    exit();
+    apiSuccess(null, translate('payment_method_added_successfuly', $i18n));
 } else {
-    echo translate('error', $i18n) . ": " . $db->lastErrorMsg();
+    apiError(translate('error', $i18n) . ": " . $db->lastErrorMsg(), 500);
 }
 
 $db->close();

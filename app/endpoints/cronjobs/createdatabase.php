@@ -1,6 +1,11 @@
 <?php
 
-$databaseFile = __DIR__ . '/../../db/wallos.db';
+$databaseFile = getenv('WALLOS_DATABASE_FILE') ?: __DIR__ . '/../../db/wallos.db';
+$databaseDirectory = dirname($databaseFile);
+
+if (!is_dir($databaseDirectory)) {
+    mkdir($databaseDirectory, 0755, true);
+}
 
 if (!file_exists($databaseFile)) {
     echo "Database does not exist. Creating it...\n";
@@ -14,8 +19,6 @@ if (!file_exists($databaseFile)) {
         password TEXT NOT NULL,
         main_currency INTEGER NOT NULL,
         avatar TEXT,
-        ical_token TEXT,
-        ical_enabled INTEGER DEFAULT 0,
         FOREIGN KEY(main_currency) REFERENCES currencies(id)
     )');
 
@@ -30,10 +33,8 @@ if (!file_exists($databaseFile)) {
         name TEXT NOT NULL,
         logo TEXT,
         price REAL NOT NULL,
-        regular_price REAL,
         currency_id INTEGER,
         next_payment DATE,
-        last_payment_date DATE,
         cycle INTEGER,
         frequency INTEGER,
         notes TEXT,
@@ -41,13 +42,11 @@ if (!file_exists($databaseFile)) {
         payer_user_id INTEGER,
         category_id INTEGER,
         notify BOOLEAN DEFAULT false,
-        ended_at DATE,
-        completion_notified INTEGER DEFAULT 0,
         FOREIGN KEY(currency_id) REFERENCES currencies(id),
         FOREIGN KEY(cycle) REFERENCES cycles(id),
         FOREIGN KEY(frequency) REFERENCES frequencies(id),
         FOREIGN KEY(payment_method_id) REFERENCES payment_methods(id),
-        FOREIGN KEY(payer_user_id) REFERENCES household(id)
+        FOREIGN KEY(payer_user_id) REFERENCES household(id),
         FOREIGN KEY(category_id) REFERENCES categories(id)
     )');
 

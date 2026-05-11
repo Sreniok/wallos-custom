@@ -34,6 +34,7 @@ $allMigrations = glob('migrations/*.php');
 if (count($allMigrations) == 0) {
     $allMigrations = glob('../../migrations/*.php');
 }
+sort($allMigrations, SORT_STRING);
 
 $allMigrations = array_map(function ($migration) {
     return str_replace('../../', '', $migration);
