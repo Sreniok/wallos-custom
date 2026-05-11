@@ -100,6 +100,64 @@ function safeFetch(input, init) {
   });
 }
 
+class ApiFetchError extends Error {
+  constructor(message, response, data) {
+    super(message);
+    this.name = 'ApiFetchError';
+    this.response = response;
+    this.status = response ? response.status : 0;
+    this.data = data || null;
+  }
+}
+
+function translateOrDefault(key, fallback) {
+  return typeof translate === 'function' ? translate(key) : fallback;
+}
+
+function apiFetch(input, init = {}, options = {}) {
+  const expectJson = options.expectJson !== false;
+
+  return safeFetch(input, init).then(async (response) => {
+    const contentType = response.headers.get('content-type') || '';
+    const isJson = contentType.includes('application/json');
+    const data = isJson ? await response.json() : await response.text();
+
+    if (response.status === 403 && typeof showErrorMessage === 'function') {
+      showErrorMessage(
+        (data && data.message) || translateOrDefault('error', 'Permission denied')
+      );
+    }
+
+    if (!response.ok) {
+      const message = (data && (data.message || data.title)) || translateOrDefault('network_response_error', 'Network response error');
+      throw new ApiFetchError(message, response, data);
+    }
+
+    if (expectJson && !isJson) {
+      throw new ApiFetchError(translateOrDefault('network_response_error', 'Expected JSON response'), response, data);
+    }
+
+    if (isJson && data && data.success === false) {
+      const message = data.message || data.title || translateOrDefault('error', 'Error');
+      throw new ApiFetchError(message, response, data);
+    }
+
+    return data;
+  });
+}
+
+function apiErrorMessage(error, fallback) {
+  if (error && error.data && (error.data.message || error.data.title)) {
+    return error.data.message || error.data.title;
+  }
+
+  if (error && error.message) {
+    return error.message;
+  }
+
+  return fallback;
+}
+
 function showErrorMessage(message, options = {}) {
   const toast = document.querySelector(".toast#errorToast");
   const closeIcon = document.querySelector(".close-error");

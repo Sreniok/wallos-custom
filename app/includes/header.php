@@ -115,6 +115,7 @@ $mobileNavigation = $settings['mobile_nav'] ? "mobile-navigation" : "";
     window.mobileNavigation = "<?= $settings['mobileNavigation'] == "true" ?>";
     window.csrfToken = "<?= htmlspecialchars(generate_csrf_token()) ?>";
     window.designTheme = "<?= htmlspecialchars($activeDesign) ?>";
+    window.appVersion = "<?= htmlspecialchars($version, ENT_QUOTES, 'UTF-8') ?>";
   </script>
   <style>
     <?= htmlspecialchars($customCss, ENT_QUOTES, 'UTF-8') ?>

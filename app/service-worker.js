@@ -1,15 +1,23 @@
-const STATIC_CACHE = 'static-cache-v7';
-const PAGES_CACHE = 'pages-cache-v7';
-const LOGOS_CACHE = 'logos-cache-v7';
+const CACHE_VERSION = new URL(self.location.href).searchParams.get('v') || 'dev';
+const STATIC_CACHE = `static-cache-${CACHE_VERSION}`;
+const PAGES_CACHE = `pages-cache-${CACHE_VERSION}`;
+const LOGOS_CACHE = `logos-cache-${CACHE_VERSION}`;
 
 const staticAssets = [
     'manifest.json',
+    'styles/theme.css',
     'styles/styles.css',
     'styles/dark-theme.css',
+    'styles/mobile-first.css',
     'styles/login.css',
     'styles/font-awesome.min.css',
     'styles/brands.css',
     'styles/barlow.css',
+    'styles/designs/glass.css',
+    'styles/designs/minimal.css',
+    'styles/designs/modern.css',
+    'styles/designs/neo.css',
+    'styles/designs/vibrant.css',
     'styles/themes/red.css',
     'styles/themes/green.css',
     'styles/themes/yellow.css',
@@ -31,6 +39,8 @@ const staticAssets = [
     'scripts/login.js',
     'scripts/admin.js',
     'scripts/calendar.js',
+    'scripts/modern.js',
+    'scripts/profile.js',
     'scripts/i18n/cs.js',
     'scripts/i18n/da.js',
     'scripts/i18n/de.js',
@@ -62,10 +72,14 @@ const staticAssets = [
     'scripts/libs/qrcode.min.js',
     'images/icon/favicon.ico',
     'images/icon/android-chrome-192x192.png',
-    'images/icon/apple-touch-icon-180',
-    'images/icon/apple-touch-icon-152',
-    'images/icon/apple-touch-icon',
+    'images/icon/android-chrome-512x512.png',
+    'images/icon/maskable_icon_x192.png',
+    'images/icon/maskable_icon_x512.png',
+    'images/icon/apple-touch-icon-180.png',
+    'images/icon/apple-touch-icon-152.png',
+    'images/icon/apple-touch-icon.png',
     'images/screenshots/desktop.png',
+    'images/screenshots/mobile.png',
     'images/siteicons/wallos.png',
     'images/siteicons/walloswhite.png',
     'images/siteimages/empty.png',
@@ -86,7 +100,7 @@ const staticAssets = [
     'images/siteicons/svg/delete.php',
     'images/siteicons/svg/edit.php',
     'images/siteicons/svg/notes.php',
-    'images/siteicons/scg/payment.php',
+    'images/siteicons/svg/payment.php',
     'images/siteicons/svg/save.php',
     'images/siteicons/svg/subscription.php',
     'images/siteicons/svg/web.php',
@@ -145,8 +159,12 @@ const pagesToPrefetch = [
     'settings.php',
     'stats.php',
     'about.php',
-    'login.php',
-    'admin.php',
+];
+
+const excludedPagePaths = [
+    '/login.php',
+    '/admin.php',
+    '/logout.php',
 ];
 
 // Install: cache static assets only
@@ -203,6 +221,8 @@ self.addEventListener('fetch', function (event) {
     // Never intercept non-GET requests (POST, etc.)
     if (request.method !== 'GET') return;
 
+    if (url.origin !== self.location.origin) return;
+
     // Logo images: cache-first, populate on first load
     if (url.pathname.includes('images/uploads/logos')) {
         event.respondWith(
@@ -235,7 +255,20 @@ self.addEventListener('fetch', function (event) {
         return;
     }
 
-    // PHP pages and everything else: network-first, cache as fallback
+    const isExcludedPage = excludedPagePaths.some(path => url.pathname.endsWith(path));
+    const isApiOrEndpoint = url.pathname.includes('/api/') || url.pathname.includes('/endpoints/');
+    const isPageRequest = request.mode === 'navigate' || url.pathname.endsWith('.php') || url.pathname === '/';
+
+    if (isApiOrEndpoint || isExcludedPage) {
+        event.respondWith(fetch(request));
+        return;
+    }
+
+    if (!isPageRequest) {
+        return;
+    }
+
+    // PHP pages: network-first, cache as fallback
     // Also update the pages cache on every successful load
     event.respondWith(
         fetch(request).then(response => {

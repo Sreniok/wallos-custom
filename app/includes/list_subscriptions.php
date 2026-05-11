@@ -110,29 +110,29 @@ function printSubscriptions($subscriptions, $sort, $categories, $members, $i18n,
                 ?>
                 <div class="mobile-actions" data-id="<?= $subscription['id'] ?>">
                     <button class="mobile-action-clone"></button>
-                    <button class="mobile-action-clone" aria-label="<?= translate('clone', $i18n) ?>" onClick="cloneSubscription(event, <?= $subscription['id'] ?>)">
+                    <button class="mobile-action-clone" aria-label="<?= translate('clone', $i18n) ?>" data-action="clone-subscription" data-id="<?= $subscription['id'] ?>">
                         <?php include $imagePath . "images/siteicons/svg/mobile-menu/clone.php"; ?>
                         Clone
                     </button>
-                    <button class="mobile-action-delete" aria-label="<?= translate('delete', $i18n) ?>" onClick="deleteSubscription(event, <?= $subscription['id'] ?>)">
+                    <button class="mobile-action-delete" aria-label="<?= translate('delete', $i18n) ?>" data-action="delete-subscription" data-id="<?= $subscription['id'] ?>">
                         <?php include $imagePath . "images/siteicons/svg/mobile-menu/delete.php"; ?>
                         Delete
                     </button>
                     <?php
                     if ($subscription['auto_renew'] != 1) {
                         ?>
-                        <button class="mobile-action-paid" aria-label="<?= translate('mark_paid', $i18n) ?>" onClick="markSubscriptionPaid(event, <?= $subscription['id'] ?>)">
+                        <button class="mobile-action-paid" aria-label="<?= translate('mark_paid', $i18n) ?>" data-action="mark-paid" data-id="<?= $subscription['id'] ?>">
                             <?php include $imagePath . "images/siteicons/svg/check.php"; ?>
                             <?= translate('mark_paid', $i18n) ?>
                         </button>
-                        <button class="mobile-action-renew" aria-label="<?= translate('skip_missing_payments', $i18n) ?>" onClick="renewSubscription(event, <?= $subscription['id'] ?>)">
+                        <button class="mobile-action-renew" aria-label="<?= translate('skip_missing_payments', $i18n) ?>" data-action="renew-subscription" data-id="<?= $subscription['id'] ?>">
                             <?php include $imagePath . "images/siteicons/svg/mobile-menu/renew.php"; ?>
                             <?= translate('skip_missing_payments', $i18n) ?>
                         </button>
                         <?php
                     }
                     ?>
-                    <button class="mobile-action-edit" aria-label="<?= translate('edit_subscription', $i18n) ?>" onClick="openEditSubscription(event, <?= $subscription['id'] ?>)">
+                    <button class="mobile-action-edit" aria-label="<?= translate('edit_subscription', $i18n) ?>" data-action="edit-subscription" data-id="<?= $subscription['id'] ?>">
                         <?php include $imagePath . "images/siteicons/svg/mobile-menu/edit.php"; ?>
                         Edit
                     </button>
@@ -156,9 +156,8 @@ function printSubscriptions($subscriptions, $sort, $categories, $members, $i18n,
             ?>
 
             <div class="subscription<?= $subscriptionExtraClasses ?>"
-                onClick="toggleOpenSubscription(<?= $subscription['id'] ?>)" data-id="<?= $subscription['id'] ?>"
-                data-name="<?= $subscription['name'] ?>" role="button" tabindex="0"
-                onKeyDown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); toggleOpenSubscription(<?= $subscription['id'] ?>); }">
+                data-action="toggle-subscription" data-id="<?= $subscription['id'] ?>"
+                data-name="<?= $subscription['name'] ?>" role="button" tabindex="0">
                 <div class="subscription-main">
                     <span class="logo <?= !$hasLogo ? 'hideOnMobile' : '' ?>">
                         <?php
@@ -248,35 +247,35 @@ function printSubscriptions($subscriptions, $sort, $categories, $members, $i18n,
                     ?>
                     <button type="button" class="actions-expand <?= $desktopMenuButtonClass ?>"
                         aria-label="<?= translate('more_options', $i18n) ?>"
-                        onClick="expandActions(event, <?= $subscription['id'] ?>)">
+                        data-action="expand-actions" data-id="<?= $subscription['id'] ?>">
                         <i class="fas fa-ellipsis-v"></i>
                     </button>
                     <ul class="actions">
-                        <li class="edit" title="<?= translate('edit_subscription', $i18n) ?>"
-                            onClick="openEditSubscription(event, <?= $subscription['id'] ?>)">
+                        <li class="edit" title="<?= translate('edit_subscription', $i18n) ?>" role="button" tabindex="0"
+                            data-action="edit-subscription" data-id="<?= $subscription['id'] ?>">
                             <?php include $imagePath . "images/siteicons/svg/edit.php"; ?>
                             <?= translate('edit_subscription', $i18n) ?>
                         </li>
-                        <li class="delete" title="<?= translate('delete', $i18n) ?>"
-                            onClick="deleteSubscription(event, <?= $subscription['id'] ?>)">
+                        <li class="delete" title="<?= translate('delete', $i18n) ?>" role="button" tabindex="0"
+                            data-action="delete-subscription" data-id="<?= $subscription['id'] ?>">
                             <?php include $imagePath . "images/siteicons/svg/delete.php"; ?>
                             <?= translate('delete', $i18n) ?>
                         </li>
-                        <li class="clone" title="<?= translate('clone', $i18n) ?>"
-                            onClick="cloneSubscription(event, <?= $subscription['id'] ?>)">
+                        <li class="clone" title="<?= translate('clone', $i18n) ?>" role="button" tabindex="0"
+                            data-action="clone-subscription" data-id="<?= $subscription['id'] ?>">
                             <?php include $imagePath . "images/siteicons/svg/clone.php"; ?>
                             <?= translate('clone', $i18n) ?>
                         </li>
                         <?php
                         if ($subscription['auto_renew'] != 1) {
                             ?>
-                            <li class="paid" title="<?= translate('mark_paid', $i18n) ?>"
-                                onClick="markSubscriptionPaid(event, <?= $subscription['id'] ?>)">
+                            <li class="paid" title="<?= translate('mark_paid', $i18n) ?>" role="button" tabindex="0"
+                                data-action="mark-paid" data-id="<?= $subscription['id'] ?>">
                                 <?php include $imagePath . "images/siteicons/svg/check.php"; ?>
                                 <?= translate('mark_paid', $i18n) ?>
                             </li>
-                            <li class="renew" title="<?= translate('renew', $i18n) ?>"
-                                onClick="renewSubscription(event, <?= $subscription['id'] ?>)">
+                            <li class="renew" title="<?= translate('renew', $i18n) ?>" role="button" tabindex="0"
+                                data-action="renew-subscription" data-id="<?= $subscription['id'] ?>">
                                 <?php include $imagePath . "images/siteicons/svg/renew.php"; ?>
                                 <?= translate('skip_missing_payments', $i18n) ?>
                             </li>

@@ -68,7 +68,9 @@ Status 2026-05-11: DONE. Dodano wspólne helpery request/API (`request_helpers.p
    - Dodać wersjonowanie odpowiedzi, np. `/api/v1/...`, i stabilny kontrakt błędów.
    - Parametry listowe (`member`, `category`, `payment`) powinny być walidowane jako integer list, zanim trafią do bindowania.
 
-## Priorytet 4: frontend i PWA
+## Priorytet 4: frontend i PWA — DONE
+
+Status 2026-05-11: DONE. Service worker ma cache wersjonowany przez `app/includes/version.php`, poprawione ścieżki assetów PWA, nie prefetchuje ani nie cache'uje `login.php`/`admin.php` jako stron offline i omija API/endpointy w page cache. Frontend dostał wspólny `apiFetch()` parsujący JSON, obsługujący `success:false`, HTTP błędy i komunikaty z API. Lista subskrypcji przeszła z inline handlerów na delegację po `data-action`, a modal subskrypcji ma podstawowy focus trap, Escape close, `role="dialog"` i stabilniejszą obsługę klawiatury.
 
 1. Poprawić service worker manifest.
    - W `service-worker.js` są literówki lub brak rozszerzeń: `images/siteicons/scg/payment.php` zamiast `svg` (`service-worker.js:89`) oraz ikony Apple bez `.png` (`service-worker.js:65-67`).

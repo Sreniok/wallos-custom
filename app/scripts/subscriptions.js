@@ -1,6 +1,15 @@
 let isSortOptionsOpen = false;
 let scrollTopBeforeOpening = 0;
+let subscriptionModalTrigger = null;
 const shouldScroll = window.innerWidth <= 768;
+const focusableModalSelector = [
+  'a[href]',
+  'button:not([disabled])',
+  'input:not([disabled]):not([type="hidden"])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])',
+].join(',');
 
 function toggleOpenSubscription(subId) {
   const subscriptionElement = document.querySelector('.subscription[data-id="' + subId + '"]');
@@ -54,7 +63,7 @@ function resetForm() {
   closeLogoSearch();
   const deleteButton = document.querySelector("#deletesub");
   deleteButton.style = 'display: none';
-  deleteButton.removeAttribute("onClick");
+  deleteButton.removeAttribute("data-id");
 }
 
 function fillEditFormFields(subscription) {
@@ -139,26 +148,21 @@ function fillEditFormFields(subscription) {
 
   const deleteButton = document.querySelector("#deletesub");
   deleteButton.style = 'display: block';
-  deleteButton.setAttribute("onClick", `deleteSubscription(event, ${subscription.id})`);
+  deleteButton.setAttribute("data-id", subscription.id);
 
   const modal = document.getElementById('subscription-form');
   modal.classList.add("is-open");
+  focusSubscriptionModal();
 }
 
 function openEditSubscription(event, id) {
   event.stopPropagation();
+  subscriptionModalTrigger = document.activeElement;
   scrollTopBeforeOpening = window.scrollY;
   const body = document.querySelector('body');
   body.classList.add('no-scroll');
   const url = `endpoints/subscription/get.php?id=${id}`;
-  safeFetch(url)
-    .then((response) => {
-      if (response.ok) {
-        return response.json();
-      } else {
-        showErrorMessage(translate('failed_to_load_subscription'));
-      }
-    })
+  apiFetch(url)
     .then((data) => {
       if (data.error || data === "Error") {
         showErrorMessage(translate('failed_to_load_subscription'));
@@ -174,6 +178,7 @@ function openEditSubscription(event, id) {
 }
 
 function addSubscription() {
+  subscriptionModalTrigger = document.activeElement;
   resetForm();
   const modal = document.getElementById('subscription-form');
   
@@ -183,6 +188,7 @@ function addSubscription() {
   modal.classList.add("is-open");
   const body = document.querySelector('body');
   body.classList.add('no-scroll');
+  focusSubscriptionModal();
 }
 
 function closeAddSubscription() {
@@ -194,6 +200,62 @@ function closeAddSubscription() {
     window.scrollTo(0, scrollTopBeforeOpening);
   }
   resetForm();
+  if (subscriptionModalTrigger && typeof subscriptionModalTrigger.focus === 'function') {
+    subscriptionModalTrigger.focus();
+  }
+  subscriptionModalTrigger = null;
+}
+
+function getFocusableModalElements(modal) {
+  return Array.from(modal.querySelectorAll(focusableModalSelector))
+    .filter((element) => element.offsetParent !== null || element === document.activeElement);
+}
+
+function focusSubscriptionModal() {
+  const modal = document.getElementById('subscription-form');
+  if (!modal) {
+    return;
+  }
+
+  window.requestAnimationFrame(() => {
+    const firstFocusable = getFocusableModalElements(modal)[0];
+    (firstFocusable || modal).focus();
+  });
+}
+
+function trapSubscriptionModalFocus(event) {
+  const modal = document.getElementById('subscription-form');
+  if (!modal || !modal.classList.contains('is-open')) {
+    return;
+  }
+
+  if (event.key === 'Escape') {
+    event.preventDefault();
+    closeAddSubscription();
+    return;
+  }
+
+  if (event.key !== 'Tab') {
+    return;
+  }
+
+  const focusableElements = getFocusableModalElements(modal);
+  if (focusableElements.length === 0) {
+    event.preventDefault();
+    modal.focus();
+    return;
+  }
+
+  const firstElement = focusableElements[0];
+  const lastElement = focusableElements[focusableElements.length - 1];
+
+  if (event.shiftKey && document.activeElement === firstElement) {
+    event.preventDefault();
+    lastElement.focus();
+  } else if (!event.shiftKey && document.activeElement === lastElement) {
+    event.preventDefault();
+    firstElement.focus();
+  }
 }
 
 function handleFileSelect(event) {
@@ -223,7 +285,7 @@ function deleteSubscription(event, id) {
     return;
   }
 
-  safeFetch("endpoints/subscription/delete.php", {
+  apiFetch("endpoints/subscription/delete.php", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -231,19 +293,14 @@ function deleteSubscription(event, id) {
     },
     body: JSON.stringify({ id: id }),
   })
-    .then((response) => response.json())
     .then((data) => {
-      if (data.success) {
-        showSuccessMessage(translate('subscription_deleted'));
-        fetchSubscriptions(null, null, "delete");
-        closeAddSubscription();
-      } else {
-        showErrorMessage(data.message || translate('error_deleting_subscription'));
-      }
+      showSuccessMessage(data.message || translate('subscription_deleted'));
+      fetchSubscriptions(null, null, "delete");
+      closeAddSubscription();
     })
     .catch((error) => {
       console.error("Error:", error);
-      showErrorMessage(translate('error_deleting_subscription'));
+      showErrorMessage(apiErrorMessage(error, translate('error_deleting_subscription')));
     });
 }
 
@@ -252,7 +309,7 @@ function cloneSubscription(event, id) {
   event.stopPropagation();
   event.preventDefault();
 
-  safeFetch("endpoints/subscription/clone.php", {
+  apiFetch("endpoints/subscription/clone.php", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -260,23 +317,13 @@ function cloneSubscription(event, id) {
     },
     body: JSON.stringify({ id: id }),
   })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error(translate("network_response_error"));
-      }
-      return response.json();
-    })
     .then((data) => {
-      if (data.success) {
-        const newId = data.id;
-        fetchSubscriptions(newId, event, "clone");
-        showSuccessMessage(decodeURI(data.message));
-      } else {
-        showErrorMessage(data.message || translate("error"));
-      }
+      const newId = data.id;
+      fetchSubscriptions(newId, event, "clone");
+      showSuccessMessage(decodeURI(data.message));
     })
     .catch((error) => {
-      showErrorMessage(error.message || translate("error"));
+      showErrorMessage(apiErrorMessage(error, translate("error")));
     });
 }
 
@@ -285,7 +332,7 @@ function renewSubscription(event, id) {
   event.stopPropagation();
   event.preventDefault();
 
-  safeFetch("endpoints/subscription/renew.php", {
+  apiFetch("endpoints/subscription/renew.php", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -293,23 +340,13 @@ function renewSubscription(event, id) {
     },
     body: JSON.stringify({ id: id }),
   })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error(translate("network_response_error"));
-      }
-      return response.json();
-    })
     .then((data) => {
-      if (data.success) {
-        const newId = data.id;
-        fetchSubscriptions(newId, event, "renew");
-        showSuccessMessage(decodeURI(data.message));
-      } else {
-        showErrorMessage(data.message || translate("error"));
-      }
+      const newId = data.id;
+      fetchSubscriptions(newId, event, "renew");
+      showSuccessMessage(decodeURI(data.message));
     })
     .catch((error) => {
-      showErrorMessage(error.message || translate("error"));
+      showErrorMessage(apiErrorMessage(error, translate("error")));
     });
 }
 
@@ -317,7 +354,7 @@ function markSubscriptionPaid(event, id) {
   event.stopPropagation();
   event.preventDefault();
 
-  safeFetch("endpoints/subscription/markpaid.php", {
+  apiFetch("endpoints/subscription/markpaid.php", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -325,22 +362,12 @@ function markSubscriptionPaid(event, id) {
     },
     body: JSON.stringify({ id: id }),
   })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error(translate("network_response_error"));
-      }
-      return response.json();
-    })
     .then((data) => {
-      if (data.success) {
-        fetchSubscriptions(data.id, event, "mark-paid");
-        showSuccessMessage(decodeURI(data.message));
-      } else {
-        showErrorMessage(data.message || translate("error"));
-      }
+      fetchSubscriptions(data.id, event, "mark-paid");
+      showSuccessMessage(decodeURI(data.message));
     })
     .catch((error) => {
-      showErrorMessage(error.message || translate("error"));
+      showErrorMessage(apiErrorMessage(error, translate("error")));
     });
 }
 
@@ -365,8 +392,7 @@ function searchLogo() {
     const logoSearchPopup = document.querySelector("#logo-search-results");
     logoSearchPopup.classList.add("is-open");
     const imageSearchUrl = `endpoints/logos/search.php?search=${searchTerm}`;
-    safeFetch(imageSearchUrl)
-      .then(response => response.json())
+    apiFetch(imageSearchUrl)
       .then(data => {
         if (data.results) {
           displayImageResults(data.results);
@@ -521,14 +547,13 @@ function dataURLtoFile(dataurl, filename) {
 }
 
 function submitFormData(formData, submitButton, endpoint) {
-  withSpinner(safeFetch(endpoint, {
+  withSpinner(apiFetch(endpoint, {
     method: "POST",
     headers: {
       "X-CSRF-Token": window.csrfToken,
     },
     body: formData,
   }), document.querySelector("#subscription-form"))
-    .then((response) => response.json())
     .then((data) => {
       if (data.status === "Success") {
         showSuccessMessage(data.message);
@@ -543,19 +568,85 @@ function submitFormData(formData, submitButton, endpoint) {
     })
     .catch((error) => {
       console.error(error);
-      showErrorMessage(translate("unknown_error"));
+      showErrorMessage(apiErrorMessage(error, translate("unknown_error")));
     })
     .finally(() => {
       submitButton.disabled = false;
     });
 }
 
+function runSubscriptionAction(action, id, event) {
+  switch (action) {
+  case 'toggle-subscription':
+    toggleOpenSubscription(id);
+    break;
+  case 'expand-actions':
+    expandActions(event, id);
+    break;
+  case 'edit-subscription':
+    openEditSubscription(event, id);
+    break;
+  case 'delete-subscription':
+    deleteSubscription(event, id);
+    break;
+  case 'clone-subscription':
+    cloneSubscription(event, id);
+    break;
+  case 'mark-paid':
+    markSubscriptionPaid(event, id);
+    break;
+  case 'renew-subscription':
+    renewSubscription(event, id);
+    break;
+  default:
+  }
+}
+
+function bindSubscriptionActionDelegates() {
+  document.addEventListener('click', function (event) {
+    const actionTarget = event.target.closest('[data-action]');
+    if (!actionTarget || !document.contains(actionTarget)) {
+      return;
+    }
+
+    const action = actionTarget.dataset.action;
+    const id = actionTarget.dataset.id;
+    if (!action || !id) {
+      return;
+    }
+
+    runSubscriptionAction(action, id, event);
+  });
+
+  document.addEventListener('keydown', function (event) {
+    if (event.key !== 'Enter' && event.key !== ' ') {
+      return;
+    }
+
+    const actionTarget = event.target.closest('[data-action][role="button"]');
+    if (!actionTarget) {
+      return;
+    }
+
+    event.preventDefault();
+    actionTarget.click();
+  });
+}
+
 document.addEventListener('DOMContentLoaded', function () {
   const subscriptionForm = document.querySelector("#subs-form");
   const submitButton = document.querySelector("#save-button");
   const endpoint = "endpoints/subscription/add.php";
+  const deleteButton = document.querySelector("#deletesub");
+
+  bindSubscriptionActionDelegates();
+  document.addEventListener('keydown', trapSubscriptionModalFocus);
 
   document.querySelectorAll('[role="button"][tabindex="0"]').forEach(function (el) {
+    if (el.dataset.action) {
+      return;
+    }
+
     el.addEventListener('keydown', function (event) {
       if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
@@ -563,6 +654,15 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     });
   });
+
+  if (deleteButton) {
+    deleteButton.addEventListener("click", function (event) {
+      const id = deleteButton.dataset.id;
+      if (id) {
+        deleteSubscription(event, id);
+      }
+    });
+  }
 
   subscriptionForm.addEventListener("submit", function (e) {
     e.preventDefault();

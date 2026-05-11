@@ -1,5 +1,8 @@
 <?php
 
+require_once __DIR__ . '/inputvalidation.php';
+require_once __DIR__ . '/request_helpers.php';
+
 function normalizeOptionalDateInput($value): ?string
 {
     $value = trim((string) ($value ?? ''));

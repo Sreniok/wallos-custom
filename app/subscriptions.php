@@ -293,10 +293,10 @@ nav, .logo, .dropdown, .mobile-nav, section.contain { display: none !important; 
     ?>
   </div>
 </section>
-<section class="subscription-form" id="subscription-form">
+<section class="subscription-form" id="subscription-form" role="dialog" aria-modal="true" aria-labelledby="form-title" tabindex="-1">
   <header>
     <h3 id="form-title"><?= translate('add_subscription', $i18n) ?></h3>
-    <span class="fa-solid fa-xmark close-form" onClick="closeAddSubscription()"></span>
+    <span class="fa-solid fa-xmark close-form" role="button" tabindex="0" aria-label="Close" onClick="closeAddSubscription()"></span>
   </header>
   <form action="endpoints/subscription/add.php" method="post" id="subs-form">
     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(generate_csrf_token(), ENT_QUOTES, 'UTF-8') ?>">
