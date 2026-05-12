@@ -415,12 +415,12 @@ function displayImageResults(imageSources) {
   imageSources.forEach(src => {
     const img = document.createElement("img");
     img.src = src.thumbnail || src.image;
-    img.onclick = function () {
+    img.addEventListener("click", function () {
       selectWebLogo(src.thumbnail || src.image);
-    };
-    img.onerror = function () {
+    });
+    img.addEventListener("error", function () {
       this.parentNode.removeChild(this);
-    };
+    });
     logoResults.appendChild(img);
   });
 }
@@ -745,12 +745,16 @@ function setSwipeElements() {
       let currentX = 0;
       let currentY = 0;
       let translateX = 0;
-      const actionButtons = Math.max(0, element.parentElement.querySelectorAll('.mobile-actions > button').length - 1);
-      const maxTranslateX = -(actionButtons * 60);
+      let maxTranslateX = 0;
+      const getMaxTranslateX = () => {
+        const actionButtons = Array.from(element.parentElement.querySelectorAll('.mobile-actions > button[data-action]'));
+        return -actionButtons.reduce((width, button) => width + button.getBoundingClientRect().width, 0);
+      };
 
       element.addEventListener('touchstart', (e) => {
         startX = e.touches[0].clientX;
         startY = e.touches[0].clientY;
+        maxTranslateX = getMaxTranslateX();
         element.style.transition = ''; // Remove transition for smooth dragging
       });
 

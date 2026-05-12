@@ -191,10 +191,30 @@ function enableGoToLoginButton() {
   }
 }
 
+function bindRegistrationControls() {
+  const languageSelect = document.getElementById('language');
+  if (languageSelect) {
+    languageSelect.addEventListener('change', function () {
+      changeLanguage(this.value);
+    });
+  }
+
+  const restoreButton = document.getElementById('restoreDB');
+  if (restoreButton) {
+    restoreButton.addEventListener('click', openRestoreDBFileSelect);
+  }
+
+  const restoreInput = document.getElementById('restoreDBFile');
+  if (restoreInput) {
+    restoreInput.addEventListener('change', restoreDB);
+  }
+}
+
 window.onload = function () {
   restoreFormFields();
   removeFromStorage();
   runDatabaseMigration();
   checkThemeNeedsUpdate();
   enableGoToLoginButton();
+  bindRegistrationControls();
 };

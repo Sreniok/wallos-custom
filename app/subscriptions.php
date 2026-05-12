@@ -173,16 +173,16 @@ nav, .logo, .dropdown, .mobile-nav, section.contain { display: none !important; 
 <section class="contain">
   <?php require 'includes/next_payment_hero.php'; ?>
   <header class="<?= $headerClass ?>" id="main-actions">
-    <button class="button" onClick="addSubscription()">
+    <button class="button" data-click="addSubscription">
       <i class="fa-solid fa-circle-plus"></i>
       <?= translate('new_subscription', $i18n) ?>
     </button>
     <div class="top-actions">
       <div class="search">
         <input type="text" autocomplete="off" name="search" id="search" placeholder="<?= translate('search', $i18n) ?>"
-          onkeyup="searchSubscriptions()" />
+          data-keyup="searchSubscriptions" />
         <span class="fa-solid fa-magnifying-glass search-icon"></span>
-        <span class="fa-solid fa-xmark clear-search" onClick="clearSearch()"></span>
+        <span class="fa-solid fa-xmark clear-search" data-click="clearSearch"></span>
       </div>
 
       <div class="filtermenu on-dashboard">
@@ -193,7 +193,7 @@ nav, .logo, .dropdown, .mobile-nav, section.contain { display: none !important; 
       </div>
 
       <div class="sort-container">
-        <button class="button secondary-button" value="Sort" onClick="toggleSortOptions()" id="sort-button"
+        <button class="button secondary-button" value="Sort" data-click="toggleSortOptions" id="sort-button"
           title="<?= translate('sort', $i18n) ?>">
           <i class="fa-solid fa-arrow-down-wide-short"></i>
         </button>
@@ -283,7 +283,7 @@ nav, .logo, .dropdown, .mobile-nav, section.contain { display: none !important; 
         <p>
           <?= translate('no_subscriptions_yet', $i18n) ?>
         </p>
-        <button class="button" onClick="addSubscription()">
+        <button class="button" data-click="addSubscription">
           <i class="fa-solid fa-circle-plus"></i>
           <?= translate('add_first_subscription', $i18n) ?>
         </button>
@@ -296,7 +296,7 @@ nav, .logo, .dropdown, .mobile-nav, section.contain { display: none !important; 
 <section class="subscription-form" id="subscription-form" role="dialog" aria-modal="true" aria-labelledby="form-title" tabindex="-1">
   <header>
     <h3 id="form-title"><?= translate('add_subscription', $i18n) ?></h3>
-    <span class="fa-solid fa-xmark close-form" role="button" tabindex="0" aria-label="Close" onClick="closeAddSubscription()"></span>
+    <span class="fa-solid fa-xmark close-form" role="button" tabindex="0" aria-label="Close" data-click="closeAddSubscription" data-keydown="closeAddSubscription" data-keys="Enter,Space" data-prevent-default="true"></span>
   </header>
   <form action="endpoints/subscription/add.php" method="post" id="subs-form">
     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(generate_csrf_token(), ENT_QUOTES, 'UTF-8') ?>">
@@ -304,24 +304,24 @@ nav, .logo, .dropdown, .mobile-nav, section.contain { display: none !important; 
     <div class="form-group-inline">
       <input type="text" id="name" name="name" autocomplete="off"
         placeholder="<?= translate('subscription_name', $i18n) ?>"
-        onchange="setSearchButtonStatus()" onkeypress="this.onchange();" onpaste="this.onchange();"
-        oninput="this.onchange();" required>
+        data-change="setSearchButtonStatus" data-keypress="setSearchButtonStatus" data-paste="setSearchButtonStatus"
+        data-input="setSearchButtonStatus" required>
       <label for="logo" class="logo-preview">
         <img src="" alt="<?= translate('logo_preview', $i18n) ?>" id="form-logo">
       </label>
       <input type="file" id="logo" name="logo" accept="image/jpeg, image/png, image/gif, image/webp, image/svg+xml"
-        onchange="handleFileSelect(event)" class="hidden-input">
+        data-change="handleFileSelect" data-pass-event="true" class="hidden-input">
       <input type="hidden" id="logo-url" name="logo-url">
       <div id="logo-search-button" class="image-button medium disabled" role="button" tabindex="0"
         aria-label="<?= translate('search_logo', $i18n) ?>" title="<?= translate('search_logo', $i18n) ?>"
-        onClick="searchLogo()">
+        data-click="searchLogo" data-keydown="searchLogo" data-keys="Enter,Space" data-prevent-default="true">
         <?php include "images/siteicons/svg/websearch.php"; ?>
       </div>
       <input type="hidden" id="id" name="id">
       <div id="logo-search-results" class="logo-search">
         <header>
           <?= translate('web_search', $i18n) ?>
-          <span class="fa-solid fa-xmark close-logo-search" onClick="closeLogoSearch()"></span>
+          <span class="fa-solid fa-xmark close-logo-search" data-click="closeLogoSearch"></span>
         </header>
         <div id="logo-search-images"></div>
       </div>
@@ -402,7 +402,7 @@ nav, .logo, .dropdown, .mobile-nav, section.contain { display: none !important; 
         <button type="button" id="autofill-next-payment-button"
           class="button secondary-button autofill-next-payment hideOnMobile"
           aria-label="<?= translate('calculate_next_payment_date', $i18n) ?>"
-          title="<?= translate('calculate_next_payment_date', $i18n) ?>" onClick="autoFillNextPaymentDate(event)">
+          title="<?= translate('calculate_next_payment_date', $i18n) ?>" data-click="autoFillNextPaymentDate" data-pass-event="true">
           <i class="fa-solid fa-wand-magic-sparkles"></i>
         </button>
         <div class="split50">
@@ -410,7 +410,7 @@ nav, .logo, .dropdown, .mobile-nav, section.contain { display: none !important; 
             <?= translate('next_payment', $i18n) ?>
             <div id="autofill-next-payment-button" class="autofill-next-payment hideOnDesktop" role="button" tabindex="0"
               aria-label="<?= translate('calculate_next_payment_date', $i18n) ?>"
-              title="<?= translate('calculate_next_payment_date', $i18n) ?>" onClick="autoFillNextPaymentDate(event)">
+              title="<?= translate('calculate_next_payment_date', $i18n) ?>" data-click="autoFillNextPaymentDate" data-keydown="autoFillNextPaymentDate" data-keys="Enter,Space" data-prevent-default="true" data-pass-event="true">
               <i class="fa-solid fa-wand-magic-sparkles"></i>
             </div>
           </label>
@@ -468,7 +468,7 @@ nav, .logo, .dropdown, .mobile-nav, section.contain { display: none !important; 
     </div>
 
     <div class="form-group-inline grow">
-      <input type="checkbox" id="notifications" name="notifications" onchange="toggleNotificationDays()">
+      <input type="checkbox" id="notifications" name="notifications" data-change="toggleNotificationDays">
       <label for="notifications" class="grow"><?= translate('enable_notifications', $i18n) ?></label>
     </div>
 
@@ -516,7 +516,7 @@ nav, .logo, .dropdown, .mobile-nav, section.contain { display: none !important; 
 
     <div class="form-group">
       <div class="inline grow">
-        <input type="checkbox" id="inactive" name="inactive" onchange="toggleReplacementSub()">
+        <input type="checkbox" id="inactive" name="inactive" data-change="toggleReplacementSub">
         <label for="inactive" class="grow"><?= translate('inactive', $i18n) ?></label>
       </div>
     </div>
@@ -549,7 +549,7 @@ nav, .logo, .dropdown, .mobile-nav, section.contain { display: none !important; 
       <input type="button" value="<?= translate('delete', $i18n) ?>" class="warning-button left thin" id="deletesub"
         style="display: none">
       <input type="button" value="<?= translate('cancel', $i18n) ?>" class="secondary-button thin"
-        onClick="closeAddSubscription()">
+        data-click="closeAddSubscription">
       <input type="submit" value="<?= translate('save', $i18n) ?>" class="thin" id="save-button">
     </div>
   </form>

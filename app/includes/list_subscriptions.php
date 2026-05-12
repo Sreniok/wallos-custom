@@ -122,7 +122,9 @@ function printSubscriptions($subscriptions, $sort, $categories, $members, $i18n,
                     if ($subscription['auto_renew'] != 1) {
                         ?>
                         <button class="mobile-action-paid" aria-label="<?= translate('mark_paid', $i18n) ?>" data-action="mark-paid" data-id="<?= $subscription['id'] ?>">
-                            <?php include $imagePath . "images/siteicons/svg/check.php"; ?>
+                            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                <path d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"></path>
+                            </svg>
                             <?= translate('mark_paid', $i18n) ?>
                         </button>
                         <button class="mobile-action-renew" aria-label="<?= translate('skip_missing_payments', $i18n) ?>" data-action="renew-subscription" data-id="<?= $subscription['id'] ?>">
@@ -271,7 +273,9 @@ function printSubscriptions($subscriptions, $sort, $categories, $members, $i18n,
                             ?>
                             <li class="paid" title="<?= translate('mark_paid', $i18n) ?>" role="button" tabindex="0"
                                 data-action="mark-paid" data-id="<?= $subscription['id'] ?>">
-                                <?php include $imagePath . "images/siteicons/svg/check.php"; ?>
+                                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                    <path d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"></path>
+                                </svg>
                                 <?= translate('mark_paid', $i18n) ?>
                             </li>
                             <li class="renew" title="<?= translate('renew', $i18n) ?>" role="button" tabindex="0"

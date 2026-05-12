@@ -54,7 +54,7 @@ $icalEnabled = !empty($userData['ical_enabled']);
                 <label for="budget"><?= $userData['currency_symbol'] ?></label>
                 <input type="number" id="budget" name="budget" autocomplete="off" value="<?= $userData['budget'] ?>"
                     placeholder="Budget">
-                <input type="submit" value="<?= translate('save', $i18n) ?>" id="saveBudget" onClick="saveBudget()" />
+                <input type="submit" value="<?= translate('save', $i18n) ?>" id="saveBudget" data-click="saveBudget" />
             </div>
             <div class="settings-notes">
                 <p>
@@ -98,14 +98,14 @@ $icalEnabled = !empty($userData['ical_enabled']);
                             <?php
                         }
                         ?>
-                        <button class="image-button medium" onClick="editMember(<?= $member['id'] ?>)" name="save"
+                        <button class="image-button medium" data-click="editMember" data-args='[<?= $member['id'] ?>]' name="save"
                             title="<?= translate('save_member', $i18n) ?>">
                             <?php include "images/siteicons/svg/save.php"; ?>
                         </button>
                         <?php
                         if ($index !== 0) {
                             ?>
-                            <button class="image-button medium" onClick="removeMember(<?= $member['id'] ?>)"
+                            <button class="image-button medium" data-click="removeMember" data-args='[<?= $member['id'] ?>]'
                                 title="<?= translate('delete_member', $i18n) ?>">
                                 <?php include "images/siteicons/svg/delete.php"; ?>
                             </button>
@@ -124,7 +124,7 @@ $icalEnabled = !empty($userData['ical_enabled']);
                 ?>
             </div>
             <div class="buttons">
-                <input type="submit" value="<?= translate('add', $i18n) ?>" id="addMember" onClick="addMemberButton()"
+                <input type="submit" value="<?= translate('add', $i18n) ?>" id="addMember" data-click="addMemberButton"
                     class="thin mobile-grow" />
             </div>
             <div class="settings-notes">
@@ -417,11 +417,11 @@ $icalEnabled = !empty($userData['ical_enabled']);
                         ?>
                     </select>
                     <input type="submit" class="thin" value="<?= translate('save', $i18n) ?>" id="saveNotifications"
-                        onClick="saveNotifications()" />
+                        data-click="saveNotifications" />
                 </div>
             </section>
             <section class="account-notifications-section">
-                <header class="account-notification-section-header" onclick="openNotificationsSettings('email')">
+                <header class="account-notification-section-header" data-click="openNotificationsSettings" data-args='["email"]'>
                     <h3>
                         <i class="fa-solid fa-envelope"></i>
                         <?= translate('email', $i18n) ?>
@@ -483,9 +483,9 @@ $icalEnabled = !empty($userData['ical_enabled']);
                     <div class="buttons">
                         <input type="button" class="secondary-button thin mobile-grow"
                             value="<?= translate('test', $i18n) ?>" id="testNotificationsEmail"
-                            onClick="testNotificationEmailButton()" />
+                            data-click="testNotificationEmailButton" />
                         <input type="submit" class="thin mobile-grow" value="<?= translate('save', $i18n) ?>"
-                            id="saveNotificationsEmail" onClick="saveNotificationsEmailButton()" />
+                            id="saveNotificationsEmail" data-click="saveNotificationsEmailButton" />
                     </div>
                     <div class="settings-notes">
                         <p>
@@ -496,7 +496,7 @@ $icalEnabled = !empty($userData['ical_enabled']);
                 </div>
             </section>
             <section class="account-notifications-section">
-                <header class="account-notification-section-header" onclick="openNotificationsSettings('discord');">
+                <header class="account-notification-section-header" data-click="openNotificationsSettings" data-args='["discord"]'>
                     <h3>
                         <i class="fa-brands fa-discord"></i>
                         <?= translate('discord', $i18n) ?>
@@ -526,14 +526,14 @@ $icalEnabled = !empty($userData['ical_enabled']);
                     <div class="buttons">
                         <input type="button" class="secondary-button thin mobile-grow"
                             value="<?= translate('test', $i18n) ?>" id="testNotificationsDiscord"
-                            onClick="testNotificationsDiscordButton()" />
+                            data-click="testNotificationsDiscordButton" />
                         <input type="submit" class="thin mobile-grow" value="<?= translate('save', $i18n) ?>"
-                            id="saveNotificationsDiscord" onClick="saveNotificationsDiscordButton()" />
+                            id="saveNotificationsDiscord" data-click="saveNotificationsDiscordButton" />
                     </div>
                 </div>
             </section>
             <section class="account-notifications-section">
-                <header class="account-notification-section-header" onclick="openNotificationsSettings('gotify');">
+                <header class="account-notification-section-header" data-click="openNotificationsSettings" data-args='["gotify"]'>
                     <h3>
                         <i class="fa-solid fa-envelopes-bulk"></i>
                         <?= translate('gotify', $i18n) ?>
@@ -562,14 +562,14 @@ $icalEnabled = !empty($userData['ical_enabled']);
                     <div class="buttons">
                         <input type="button" class="secondary-button thin mobile-grow"
                             value="<?= translate('test', $i18n) ?>" id="testNotificationsGotify"
-                            onClick="testNotificationsGotifyButton()" />
+                            data-click="testNotificationsGotifyButton" />
                         <input type="submit" class="thin mobile-grow" value="<?= translate('save', $i18n) ?>"
-                            id="saveNotificationsGotify" onClick="saveNotificationsGotifyButton()" />
+                            id="saveNotificationsGotify" data-click="saveNotificationsGotifyButton" />
                     </div>
                 </div>
             </section>
             <section class="account-notifications-section">
-                <header class="account-notification-section-header" onclick="openNotificationsSettings('pushover');">
+                <header class="account-notification-section-header" data-click="openNotificationsSettings" data-args='["pushover"]'>
                     <h3>
                         <i class="fa-brands fa-pinterest-p"></i>
                         <?= translate('pushover', $i18n) ?>
@@ -595,14 +595,14 @@ $icalEnabled = !empty($userData['ical_enabled']);
                     <div class="buttons">
                         <input type="button" class="secondary-button thin mobile-grow"
                             value="<?= translate('test', $i18n) ?>" id="testNotificationsPushover"
-                            onClick="testNotificationsPushoverButton()" />
+                            data-click="testNotificationsPushoverButton" />
                         <input type="submit" class="thin mobile-grow" value="<?= translate('save', $i18n) ?>"
-                            id="saveNotificationsPushover" onClick="saveNotificationsPushoverButton()" />
+                            id="saveNotificationsPushover" data-click="saveNotificationsPushoverButton" />
                     </div>
                 </div>
             </section>
             <section class="account-notifications-section">
-                <header class="account-notification-section-header" onclick="openNotificationsSettings('telegram');">
+                <header class="account-notification-section-header" data-click="openNotificationsSettings" data-args='["telegram"]'>
                     <h3>
                         <i class="fa-solid fa-paper-plane"></i>
                         <?= translate('telegram', $i18n) ?>
@@ -627,15 +627,15 @@ $icalEnabled = !empty($userData['ical_enabled']);
                     <div class="buttons">
                         <input type="button" class="secondary-button thin mobile-grow"
                             value="<?= translate('test', $i18n) ?>" id="testNotificationsTelegram"
-                            onClick="testNotificationsTelegramButton()" />
+                            data-click="testNotificationsTelegramButton" />
                         <input type="submit" class="thin mobile-grow" value="<?= translate('save', $i18n) ?>"
-                            id="saveNotificationsTelegram" onClick="saveNotificationsTelegramButton()" />
+                            id="saveNotificationsTelegram" data-click="saveNotificationsTelegramButton" />
                     </div>
                 </div>
             </section>
 
             <section class="account-notifications-section">
-                <header class="account-notification-section-header" onclick="openNotificationsSettings('pushplus');">
+                <header class="account-notification-section-header" data-click="openNotificationsSettings" data-args='["pushplus"]'>
                     <h3>
                         <i class="fa-solid fa-bell"></i>
                         <?= translate('pushplus', $i18n) ?>
@@ -655,15 +655,15 @@ $icalEnabled = !empty($userData['ical_enabled']);
                     <div class="buttons">
                         <input type="button" class="secondary-button thin mobile-grow"
                             value="<?= translate('test', $i18n) ?>" id="testNotificationsPushPlus"
-                            onClick="testNotificationsPushPlusButton()" />
+                            data-click="testNotificationsPushPlusButton" />
                         <input type="submit" class="thin mobile-grow" value="<?= translate('save', $i18n) ?>"
-                            id="saveNotificationsPushPlus" onClick="saveNotificationsPushPlusButton()" />
+                            id="saveNotificationsPushPlus" data-click="saveNotificationsPushPlusButton" />
                     </div>
                 </div>
             </section>
 
             <section class="account-notifications-section">
-                <header class="account-notification-section-header" onclick="openNotificationsSettings('mattermost');">
+                <header class="account-notification-section-header" data-click="openNotificationsSettings" data-args='["mattermost"]'>
                     <h3>
                         <i class="fa-solid fa-gauge-simple-high"></i>
                         <?= translate('mattermost', $i18n) ?>
@@ -693,15 +693,15 @@ $icalEnabled = !empty($userData['ical_enabled']);
                     <div class="buttons">
                         <input type="button" class="secondary-button thin mobile-grow"
                             value="<?= translate('test', $i18n) ?>" id="testNotificationsMattermost"
-                            onClick="testNotificationsMattermostButton()" />
+                            data-click="testNotificationsMattermostButton" />
                         <input type="submit" class="thin mobile-grow" value="<?= translate('save', $i18n) ?>"
-                            id="saveNotificationsMattermost" onClick="saveNotificationsMattermostButton()" />
+                            id="saveNotificationsMattermost" data-click="saveNotificationsMattermostButton" />
                     </div>
                 </div>
             </section>
 
             <section class="account-notifications-section">
-                <header class="account-notification-section-header" onclick="openNotificationsSettings('ntfy');">
+                <header class="account-notification-section-header" data-click="openNotificationsSettings" data-args='["ntfy"]'>
                     <h3>
                         <i class="fa-solid fa-terminal"></i> Ntfy
                     </h3>
@@ -731,14 +731,14 @@ $icalEnabled = !empty($userData['ical_enabled']);
                     <div class="buttons">
                         <input type="button" class="secondary-button thin mobile-grow"
                             value="<?= translate('test', $i18n) ?>" id="testNotificationsNtfy"
-                            onClick="testNotificationsNtfyButton()" />
+                            data-click="testNotificationsNtfyButton" />
                         <input type="submit" class="thin mobile-grow" value="<?= translate('save', $i18n) ?>"
-                            id="saveNotificationsNtfy" onClick="saveNotificationsNtfyButton()" />
+                            id="saveNotificationsNtfy" data-click="saveNotificationsNtfyButton" />
                     </div>
             </section>
 
             <section class="account-notifications-section">
-                <header class="account-notification-section-header" onclick="openNotificationsSettings('serverchan');">
+                <header class="account-notification-section-header" data-click="openNotificationsSettings" data-args='["serverchan"]'>
                     <h3>
                         <i class="fa-solid fa-code"></i>
                         <?= translate('serverchan', $i18n) ?>
@@ -758,15 +758,15 @@ $icalEnabled = !empty($userData['ical_enabled']);
                     <div class="buttons">
                         <input type="button" class="secondary-button thin mobile-grow"
                             value="<?= translate('test', $i18n) ?>" id="testNotificationsServerchan"
-                            onClick="testNotificationsServerchanButton()" />
+                            data-click="testNotificationsServerchanButton" />
                         <input type="submit" class="thin mobile-grow" value="<?= translate('save', $i18n) ?>"
-                            id="saveNotificationsServerchan" onClick="saveNotificationsServerchanButton()" />
+                            id="saveNotificationsServerchan" data-click="saveNotificationsServerchanButton" />
                     </div>
                 </div>
             </section>
 
             <section class="account-notifications-section">
-                <header class="account-notification-section-header" onclick="openNotificationsSettings('webhook');">
+                <header class="account-notification-section-header" data-click="openNotificationsSettings" data-args='["webhook"]'>
                     <h3>
                         <i class="fa-solid fa-bolt"></i>
                         <?= translate('webhook', $i18n) ?>
@@ -814,9 +814,9 @@ $icalEnabled = !empty($userData['ical_enabled']);
                     <div class="buttons">
                         <input type="button" class="secondary-button thin mobile-grow"
                             value="<?= translate('test', $i18n) ?>" id="testNotificationsWebhook"
-                            onClick="testNotificationsWebhookButton()" />
+                            data-click="testNotificationsWebhookButton" />
                         <input type="submit" class="thin mobile-grow" value="<?= translate('save', $i18n) ?>"
-                            id="saveNotificationsWebhook" onClick="saveNotificationsWebhookButton()" />
+                            id="saveNotificationsWebhook" data-click="saveNotificationsWebhookButton" />
                     </div>
                     <div class="settings-notes">
                         <p>
@@ -873,14 +873,14 @@ $icalEnabled = !empty($userData['ical_enabled']);
                             <div class=" drag-icon"><i class="fa-solid fa-grip-vertical"></i></div>
                             <input type="text" name="category" autocomplete="off" value="<?= $category['name'] ?>"
                                 placeholder="Category">
-                            <button class="image-button medium" onClick="editCategory(<?= $category['id'] ?>)" name="save"
+                            <button class="image-button medium" data-click="editCategory" data-args='[<?= $category['id'] ?>]' name="save"
                                 title="<?= translate('save_category', $i18n) ?>">
                                 <?php include "images/siteicons/svg/save.php"; ?>
                             </button>
                             <?php
                             if ($canDelete) {
                                 ?>
-                                <button class="image-button medium" onClick="removeCategory(<?= $category['id'] ?>)"
+                                <button class="image-button medium" data-click="removeCategory" data-args='[<?= $category['id'] ?>]'
                                     title="<?= translate('delete_category', $i18n) ?>">
                                     <?php include "images/siteicons/svg/delete.php"; ?>
                                 </button>
@@ -902,7 +902,7 @@ $icalEnabled = !empty($userData['ical_enabled']);
             </div>
             <div class="buttons">
                 <input type="submit" value="<?= translate('add', $i18n) ?>" id="addCategory"
-                    onClick="addCategoryButton()" class="thin mobile-grow" />
+                    data-click="addCategoryButton" class="thin mobile-grow" />
             </div>
         </div>
     </section>
@@ -966,14 +966,14 @@ $icalEnabled = !empty($userData['ical_enabled']);
                             placeholder="Currency Name">
                         <input type="text" name="code" autocomplete="off" value="<?= $currency['code'] ?>"
                             placeholder="Currency Code" <?= !$canDelete ? 'disabled' : '' ?>>
-                        <button class="image-button medium" onClick="editCurrency(<?= $currency['id'] ?>)" name="save"
+                        <button class="image-button medium" data-click="editCurrency" data-args='[<?= $currency['id'] ?>]' name="save"
                             title="<?= translate('save_currency', $i18n) ?>">
                             <?php include "images/siteicons/svg/save.php"; ?>
                         </button>
                         <?php
                         if ($canDelete) {
                             ?>
-                            <button class="image-button medium" onClick="removeCurrency(<?= $currency['id'] ?>)"
+                            <button class="image-button medium" data-click="removeCurrency" data-args='[<?= $currency['id'] ?>]'
                                 title="<?= translate('delete_currency', $i18n) ?>">
                                 <?php include "images/siteicons/svg/delete.php"; ?>
                             </button>
@@ -995,7 +995,7 @@ $icalEnabled = !empty($userData['ical_enabled']);
             </div>
             <div class="buttons">
                 <input type="submit" value="<?= translate('add', $i18n) ?>" id="addCurrency"
-                    onClick="addCurrencyButton()" class="thin mobile-grow" />
+                    data-click="addCurrencyButton" class="thin mobile-grow" />
             </div>
             <div class="settings-notes">
                 <p>
@@ -1057,7 +1057,7 @@ $icalEnabled = !empty($userData['ical_enabled']);
             </div>
             <div class="buttons">
                 <input type="submit" value="<?= translate('save', $i18n) ?>" id="addFixerKey"
-                    onClick="addFixerKeyButton()" class="thin mobile-grow" />
+                    data-click="addFixerKeyButton" class="thin mobile-grow" />
             </div>
             <div class="settings-notes">
                 <p><i class="fa-solid fa-circle-info"></i><?= translate('fixer_info', $i18n) ?></p>
@@ -1090,14 +1090,14 @@ $icalEnabled = !empty($userData['ical_enabled']);
         </header>
         <div class="account-calendar-feed">
             <div class="form-group-inline">
-                <input type="checkbox" id="icalenabled" name="icalenabled" onChange="saveIcalSettings()"
+                <input type="checkbox" id="icalenabled" name="icalenabled" data-change="saveIcalSettings"
                     <?= $icalEnabled ? "checked" : "" ?>>
                 <label for="icalenabled" class="capitalize"><?= translate('enable_calendar_feed', $i18n) ?></label>
             </div>
             <div class="form-group-inline">
                 <input type="text" id="icalFeedUrl" name="icalFeedUrl" autocomplete="off"
                     value="<?= htmlspecialchars($icalUrls['webcal'], ENT_QUOTES, 'UTF-8') ?>" readonly>
-                <button type="button" class="button secondary-button thin mobile-grow" onClick="copyIcalFeedUrl()">
+                <button type="button" class="button secondary-button thin mobile-grow" data-click="copyIcalFeedUrl">
                     <?= translate('copy_to_clipboard', $i18n) ?>
                 </button>
             </div>
@@ -1107,7 +1107,7 @@ $icalEnabled = !empty($userData['ical_enabled']);
                     <?= translate('subscribe_in_calendar', $i18n) ?>
                 </a>
                 <button type="button" class="button secondary-button thin mobile-grow" id="regenerateIcalToken"
-                    onClick="regenerateIcalToken()">
+                    data-click="regenerateIcalToken">
                     <?= translate('regenerate', $i18n) ?>
                 </button>
             </div>
@@ -1143,7 +1143,7 @@ $icalEnabled = !empty($userData['ical_enabled']);
             </div>
             <div class="form-group">
                 <label for="ai_type"><?= translate('provider', $i18n) ?>:</label>
-                <select id="ai_type" name="ai_type" onchange="toggleAiInputs()">
+                <select id="ai_type" name="ai_type" data-change="toggleAiInputs">
                     <option value="chatgpt" <?= (isset($aiSettings['type']) && $aiSettings['type'] == 'chatgpt') ? 'selected' : '' ?>>ChatGPT</option>
                     <option value="gemini" <?= (isset($aiSettings['type']) && $aiSettings['type'] == 'gemini') ? 'selected' : '' ?>>Gemini</option>
                     <option value="openrouter" <?= (isset($aiSettings['type']) && $aiSettings['type'] == 'openrouter') ? 'selected' : '' ?>>OpenRouter</option>
@@ -1158,7 +1158,7 @@ $icalEnabled = !empty($userData['ical_enabled']);
                     value="<?= isset($aiSettings['url']) ? htmlspecialchars($aiSettings['url']) : '' ?>" />
                     <button type="button" id="fetchModelsButton2" 
                         class="button thin <?= (!isset($aiSettings['type']) || $aiSettings['type'] != 'ollama') ? 'hidden' : '' ?>" 
-                        onclick="fetch_ai_models()">
+                        data-click="fetch_ai_models">
                         <?= translate('test', $i18n) ?>
                     </button>
             </div>
@@ -1167,10 +1167,10 @@ $icalEnabled = !empty($userData['ical_enabled']);
                     class="<?= (isset($aiSettings['type']) && $aiSettings['type'] == 'ollama') ? 'hidden' : '' ?>"
                     placeholder="<?= translate('api_key', $i18n) ?>"
                     value="<?= isset($aiSettings['api_key']) ? htmlspecialchars($aiSettings['api_key']) : '' ?>" />
-                <button type="button" id="toggleAiApiKey" class="button secondary-button icon-button <?= (isset($aiSettings['type']) && $aiSettings['type'] == 'ollama') ? 'hidden' : '' ?>" onclick="toggleAiApiKeyVisibility()" aria-label="Toggle API key visibility">
+                <button type="button" id="toggleAiApiKey" class="button secondary-button icon-button <?= (isset($aiSettings['type']) && $aiSettings['type'] == 'ollama') ? 'hidden' : '' ?>" data-click="toggleAiApiKeyVisibility" aria-label="Toggle API key visibility">
                     <i class="fa-solid fa-eye"></i>
                 </button>
-                <button type="button" id="fetchModelsButton" class="button thin" onclick="fetch_ai_models()">
+                <button type="button" id="fetchModelsButton" class="button thin" data-click="fetch_ai_models">
                     <?= translate('test', $i18n) ?>
                 </button>
             </div>
@@ -1202,11 +1202,11 @@ $icalEnabled = !empty($userData['ical_enabled']);
                 ?>
                 <input type="button" id="runAiRecommendations"
                     class="secondary-button thin mobile-grow-force <?= !$canBeExecuted ? 'hidden' : '' ?>"
-                    onclick="runAiRecommendations()" value="<?= translate('generate_recommendations', $i18n) ?>" />
+                    data-click="runAiRecommendations" value="<?= translate('generate_recommendations', $i18n) ?>" />
                 <div id="aiSpinner" class="spinner ai-spinner hidden"></div>
 
                 <input type="submit" class="thin mobile-grow-force" value="<?= translate('save', $i18n) ?>"
-                    id="saveAiSettings" onClick="saveAiSettingsButton()" />
+                    id="saveAiSettings" data-click="saveAiSettingsButton" />
             </div>
             <div class="settings-notes">
                 <p><i class="fa-solid fa-circle-info"></i><?= translate('ai_recommendations_info', $i18n) ?></p>
@@ -1265,7 +1265,7 @@ $icalEnabled = !empty($userData['ical_enabled']);
                     if (!$inUse) {
                         ?>
                         <div class="delete-payment-method" title="<?= translate('delete', $i18n) ?>"
-                            data-paymentid="<?= $payment['id'] ?>">x</div>
+                            data-click="deletePaymentMethod" data-args='[<?= $payment['id'] ?>]' data-paymentid="<?= $payment['id'] ?>">x</div>
                         <?php
                     }
                     ?>
@@ -1291,30 +1291,30 @@ $icalEnabled = !empty($userData['ical_enabled']);
             <form id="payments-form">
                 <div class="form-group-inline">
                     <input type="text" name="paymentname" id="paymentname" autocomplete="off"
-                        placeholder="<?= translate('payment_method_name', $i18n) ?>" onchange="setSearchButtonStatus()"
-                        onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange();" />
+                        placeholder="<?= translate('payment_method_name', $i18n) ?>" data-change="setSearchButtonStatus"
+                        data-keypress="setSearchButtonStatus" data-paste="setSearchButtonStatus" data-input="setSearchButtonStatus" />
                     <label for="paymenticon" class="icon-preview">
                         <img src="" alt="<?= translate('logo_preview', $i18n) ?>" id="form-icon">
                     </label>
                     <div class="form-icon-search">
                         <input type="file" id="paymenticon" name="paymenticon"
-                            accept="image/jpeg, image/png, image/gif, image/webp" onchange="handleFileSelect(event)"
+                            accept="image/jpeg, image/png, image/gif, image/webp" data-change="handleFileSelect" data-pass-event="true"
                             class="hidden-input">
                         <input type="hidden" id="icon-url" name="icon-url">
                         <div id="icon-search-button" class="image-button medium disabled"
-                            title="<?= translate('search_logo', $i18n) ?>" onClick="searchPaymentIcon()">
+                            title="<?= translate('search_logo', $i18n) ?>" data-click="searchPaymentIcon">
                             <?php include "images/siteicons/svg/websearch.php"; ?>
                         </div>
                         <div id="icon-search-results" class="icon-search">
                             <header>
-                                <span class="fa-solid fa-xmark close-icon-search" onClick="closeIconSearch()"></span>
+                                <span class="fa-solid fa-xmark close-icon-search" data-click="closeIconSearch"></span>
                             </header>
                             <div id="icon-search-images"></div>
                         </div>
                     </div>
 
                     <input type="button" class="button thin" id="add-payment-button" value="+"
-                        title="<?= translate('add', $i18n) ?>" id="addPayment" onClick="addPaymentMethod()" />
+                        title="<?= translate('add', $i18n) ?>" data-click="addPaymentMethod" />
                 </div>
             </form>
         </div>
@@ -1330,17 +1330,17 @@ $icalEnabled = !empty($userData['ical_enabled']);
                 <div class="form-group-inline wrap">
                     <button type="button"
                         class="dark-theme-button capitalize <?= $settings['dark_theme'] == '0' ? 'selected' : '' ?>"
-                        onClick="setDarkTheme('0')" id="theme-light">
+                        data-click="setDarkTheme" data-args='["0"]' id="theme-light">
                         <i class="fa-solid fa-sun"></i> <?= translate('light_theme', $i18n) ?>
                     </button>
                     <button type="button"
                         class="dark-theme-button capitalize <?= $settings['dark_theme'] == '1' ? 'selected' : '' ?>"
-                        onClick="setDarkTheme('1')" id="theme-dark">
+                        data-click="setDarkTheme" data-args='["1"]' id="theme-dark">
                         <i class="fa-solid fa-moon"></i> <?= translate('dark_theme', $i18n) ?>
                     </button>
                     <button type="button"
                         class="dark-theme-button capitalize <?= $settings['dark_theme'] == '2' ? 'selected' : '' ?>"
-                        onClick="setDarkTheme('2')" id="theme-automatic">
+                        data-click="setDarkTheme" data-args='["2"]' id="theme-automatic">
                         <i class="fa-solid fa-circle-half-stroke"></i> <?= translate('automatic', $i18n) ?>
                     </button>
                 </div>
@@ -1362,7 +1362,7 @@ $icalEnabled = !empty($userData['ical_enabled']);
                     <button type="button"
                         class="design-theme-card <?= $currentDesign === $key ? 'is-selected' : '' ?>"
                         data-design="<?= htmlspecialchars($key) ?>"
-                        onclick="setDesignTheme('<?= htmlspecialchars($key) ?>')">
+                        data-click="setDesignTheme" data-args='<?= htmlspecialchars(json_encode([$key]), ENT_QUOTES, 'UTF-8') ?>'>
                         <div class="design-card-preview">
                             <div class="design-card-bg" style="background:<?= $design['dark'][1] ?>">
                                 <div class="design-card-bar" style="background:<?= $design['dark'][0] ?>;border:1px solid <?= $design['dark'][2] ?>"></div>
@@ -1382,7 +1382,7 @@ $icalEnabled = !empty($userData['ical_enabled']);
                     <h3><?= translate('colors', $i18n) ?></h3>
                     <div class="form-group-inline wrap">
                         <div class="theme">
-                            <input type="radio" name="theme" id="theme-blue" value="blue" onClick="setTheme('blue')"
+                            <input type="radio" name="theme" id="theme-blue" value="blue" data-click="setTheme" data-args='["blue"]'
                                 <?= $settings['color_theme'] == 'blue' ? 'checked' : '' ?>>
                             <label for="theme-blue"
                                 class="theme-preview blue <?= $settings['color_theme'] == 'blue' ? 'is-selected' : '' ?>">
@@ -1392,7 +1392,7 @@ $icalEnabled = !empty($userData['ical_enabled']);
                             </label>
                         </div>
                         <div class="theme">
-                            <input type="radio" name="theme" id="theme-green" value="green" onClick="setTheme('green')"
+                            <input type="radio" name="theme" id="theme-green" value="green" data-click="setTheme" data-args='["green"]'
                                 <?= $settings['color_theme'] == 'green' ? 'checked' : '' ?>>
                             <label for="theme-green"
                                 class="theme-preview green <?= $settings['color_theme'] == 'green' ? 'is-selected' : '' ?>">
@@ -1402,7 +1402,7 @@ $icalEnabled = !empty($userData['ical_enabled']);
                             </label>
                         </div>
                         <div class="theme">
-                            <input type="radio" name="theme" id="theme-red" value="red" onClick="setTheme('red')"
+                            <input type="radio" name="theme" id="theme-red" value="red" data-click="setTheme" data-args='["red"]'
                                 <?= $settings['color_theme'] == 'red' ? 'checked' : '' ?>>
                             <label for="theme-red"
                                 class="theme-preview red <?= $settings['color_theme'] == 'red' ? 'is-selected' : '' ?>">
@@ -1413,7 +1413,7 @@ $icalEnabled = !empty($userData['ical_enabled']);
                         </div>
                         <div class="theme">
                             <input type="radio" name="theme" id="theme-yellow" value="yellow"
-                                onClick="setTheme('yellow')" <?= $settings['color_theme'] == 'yellow' ? 'checked' : '' ?>>
+                                data-click="setTheme" data-args='["yellow"]' <?= $settings['color_theme'] == 'yellow' ? 'checked' : '' ?>>
                             <label for="theme-yellow"
                                 class="theme-preview yellow <?= $settings['color_theme'] == 'yellow' ? 'is-selected' : '' ?>">
                                 <span class="main-color"></span>
@@ -1423,7 +1423,7 @@ $icalEnabled = !empty($userData['ical_enabled']);
                         </div>
                         <div class="theme">
                             <input type="radio" name="theme" id="theme-purple" value="purple"
-                                onClick="setTheme('purple')" <?= $settings['color_theme'] == 'purple' ? 'checked' : '' ?>>
+                                data-click="setTheme" data-args='["purple"]' <?= $settings['color_theme'] == 'purple' ? 'checked' : '' ?>>
                             <label for="theme-purple"
                                 class="theme-preview purple <?= $settings['color_theme'] == 'purple' ? 'is-selected' : '' ?>">
                                 <span class="main-color"></span>
@@ -1458,9 +1458,9 @@ $icalEnabled = !empty($userData['ical_enabled']);
                 </div>
                 <div class="custom-colors wrap">
                     <input type="button" value="<?= translate('reset_custom_colors', $i18n) ?>"
-                        onClick="resetCustomColors()" class="secondary-button thin mobile-grow" id="reset-colors">
+                        data-click="resetCustomColors" class="secondary-button thin mobile-grow" id="reset-colors">
                     <input type="button" value="<?= translate('save_custom_colors', $i18n) ?>"
-                        onClick="saveCustomColors()" class="buton thin mobile-grow" id="save-colors">
+                        data-click="saveCustomColors" class="buton thin mobile-grow" id="save-colors">
                 </div>
             </div>
             <?php
@@ -1475,7 +1475,7 @@ $icalEnabled = !empty($userData['ical_enabled']);
                         </div>
                         <div class="form-group-inline">
                             <input type="button" value="<?= translate('save_custom_css', $i18n) ?>"
-                                onClick="saveCustomCss()" class="buton thin mobile-grow" id="save-css">
+                                data-click="saveCustomCss" class="buton thin mobile-grow" id="save-css">
                         </div>
                     </div>
                 </div>
@@ -1492,14 +1492,14 @@ $icalEnabled = !empty($userData['ical_enabled']);
             <h3><?= translate('price', $i18n) ?></h3>
             <div>
                 <div class="form-group-inline">
-                    <input type="checkbox" id="monthlyprice" name="monthlyprice" onChange="setShowMonthlyPrice()" <?php if ($settings['monthly_price'])
+                    <input type="checkbox" id="monthlyprice" name="monthlyprice" data-change="setShowMonthlyPrice" <?php if ($settings['monthly_price'])
                         echo 'checked'; ?>>
                     <label for="monthlyprice"><?= translate('calculate_monthly_price', $i18n) ?></label>
                 </div>
             </div>
             <div>
                 <div class="form-group-inline">
-                    <input type="checkbox" id="convertcurrency" name="convertcurrency" onChange="setConvertCurrency()"
+                    <input type="checkbox" id="convertcurrency" name="convertcurrency" data-change="setConvertCurrency"
                         <?php
                         if ($settings['convert_currency'])
                             echo ' checked';
@@ -1512,7 +1512,7 @@ $icalEnabled = !empty($userData['ical_enabled']);
             <div>
                 <div class="form-group-inline">
                     <input type="checkbox" id="showoriginalprice" name="showoriginalprice"
-                        onChange="setShowOriginalPrice()" <?= $settings['show_original_price'] ? 'checked' : '' ?>>
+                        data-change="setShowOriginalPrice" <?= $settings['show_original_price'] ? 'checked' : '' ?>>
                     <label for="showoriginalprice"><?= translate('show_original_price', $i18n) ?></label>
                 </div>
             </div>
@@ -1520,7 +1520,7 @@ $icalEnabled = !empty($userData['ical_enabled']);
             <div>
                 <div class="form-group-inline">
                     <input type="checkbox" id="mobilenavigation" name="mobilenavigation"
-                        onChange="setMobileNavigation()" <?= $settings['mobile_nav'] ? 'checked' : '' ?>>
+                        data-change="setMobileNavigation" <?= $settings['mobile_nav'] ? 'checked' : '' ?>>
                     <label for="mobilenavigation"><?= translate('use_mobile_navigation_bar', $i18n) ?></label>
                 </div>
                 <div class="mobile-nav-image">
@@ -1529,7 +1529,7 @@ $icalEnabled = !empty($userData['ical_enabled']);
             <div>
                 <div class="form-group-inline">
                     <input type="checkbox" id="showsubscriptionprogress" name="showsubscriptionprogress"
-                        onChange="setShowSubscriptionProgress()" <?= $settings['show_subscription_progress'] ? 'checked' : '' ?>>
+                        data-change="setShowSubscriptionProgress" <?= $settings['show_subscription_progress'] ? 'checked' : '' ?>>
                     <label for="showsubscriptionprogress"><?= translate('show_subscription_progress', $i18n) ?></label>
                 </div>
             </div>
@@ -1537,7 +1537,7 @@ $icalEnabled = !empty($userData['ical_enabled']);
             <div>
                 <div class="form-group-inline">
                     <input type="checkbox" id="adjusttoworkingday" name="adjusttoworkingday"
-                        onChange="setAdjustToWorkingDay()" <?= $settings['adjust_to_working_day'] ? 'checked' : '' ?>>
+                        data-change="setAdjustToWorkingDay" <?= $settings['adjust_to_working_day'] ? 'checked' : '' ?>>
                     <label for="adjusttoworkingday">Move payments to the next working day when they fall on a weekend</label>
                 </div>
             </div>
@@ -1545,14 +1545,14 @@ $icalEnabled = !empty($userData['ical_enabled']);
             <div>
                 <div class="form-group-inline">
                     <input type="checkbox" id="disabledtobottom" name="disabledtobottom"
-                        onChange="setDisabledToBottom()" <?= $settings['disabled_to_bottom'] ? 'checked' : '' ?>>
+                        data-change="setDisabledToBottom" <?= $settings['disabled_to_bottom'] ? 'checked' : '' ?>>
                     <label
                         for="disabledtobottom"><?= translate('show_disabled_subscriptions_at_the_bottom', $i18n) ?></label>
                 </div>
             </div>
             <div>
                 <div class="form-group-inline">
-                    <input type="checkbox" id="hidedisabled" name="hidedisabled" onChange="setHideDisabled()"
+                    <input type="checkbox" id="hidedisabled" name="hidedisabled" data-change="setHideDisabled"
                         <?= $settings['hide_disabled'] ? 'checked' : '' ?>>
                     <label for="hidedisabled"><?= translate('hide_disabled_subscriptions', $i18n) ?></label>
                 </div>
@@ -1568,7 +1568,7 @@ $icalEnabled = !empty($userData['ical_enabled']);
             <div>
                 <div class="buttons">
                     <button type="button" class="button thin mobile-grow-force" id="clear-browser-cache"
-                        onClick="clearBrowserCacheAndReload()">
+                        data-click="clearBrowserCacheAndReload">
                         <?= translate('clear_browser_cache', $i18n) ?>
                     </button>
                 </div>
@@ -1590,7 +1590,7 @@ $icalEnabled = !empty($userData['ical_enabled']);
             <div>
                 <div class="form-group-inline">
                     <input type="checkbox" id="removebackground" name="removebackground"
-                        onChange="setRemoveBackground()" <?= $settings['remove_background'] ? 'checked' : '' ?>>
+                        data-change="setRemoveBackground" <?= $settings['remove_background'] ? 'checked' : '' ?>>
                     <label for="removebackground"><?= translate('remove_background', $i18n) ?></label>
                 </div>
             </div>

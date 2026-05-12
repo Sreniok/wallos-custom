@@ -106,6 +106,7 @@ $mobileNavigation = $settings['mobile_nav'] ? "mobile-navigation" : "";
   <link rel="stylesheet" href="styles/brands.css">
   <script type="text/javascript" src="scripts/all.js?<?= $version ?>"></script>
   <script type="text/javascript" src="scripts/common.js?<?= $version ?>"></script>
+  <script type="text/javascript" src="scripts/theme.js?<?= $version ?>"></script>
   <script type="text/javascript" src="scripts/modern.js?<?= $version ?>"></script>
   <script type="text/javascript">
     window.theme = "<?= $theme ?>";
@@ -177,8 +178,25 @@ $mobileNavigation = $settings['mobile_nav'] ? "mobile-navigation" : "";
         </a>
       </div>
       <nav>
+        <div class="header-theme-switcher" role="group" aria-label="Theme mode">
+          <button type="button" class="header-theme-button <?= $settings['dark_theme'] == '0' ? 'selected' : '' ?>"
+            data-click="setDarkTheme" data-args='["0"]' data-theme-mode="0" title="<?= translate('light_theme', $i18n) ?>"
+            aria-label="<?= translate('light_theme', $i18n) ?>">
+            <i class="fa-solid fa-sun"></i>
+          </button>
+          <button type="button" class="header-theme-button <?= $settings['dark_theme'] == '1' ? 'selected' : '' ?>"
+            data-click="setDarkTheme" data-args='["1"]' data-theme-mode="1" title="<?= translate('dark_theme', $i18n) ?>"
+            aria-label="<?= translate('dark_theme', $i18n) ?>">
+            <i class="fa-solid fa-moon"></i>
+          </button>
+          <button type="button" class="header-theme-button <?= $settings['dark_theme'] == '2' ? 'selected' : '' ?>"
+            data-click="setDarkTheme" data-args='["2"]' data-theme-mode="2" title="<?= translate('automatic', $i18n) ?>"
+            aria-label="<?= translate('automatic', $i18n) ?>">
+            <i class="fa-solid fa-circle-half-stroke"></i>
+          </button>
+        </div>
         <div class="dropdown">
-          <button class="dropbtn" onClick="toggleDropdown()">
+          <button class="dropbtn" data-click="toggleDropdown">
             <img src="<?= htmlspecialchars($userData['avatar'], ENT_QUOTES, 'UTF-8') ?>" alt="me" id="avatar">
             <span id="user" class="mobileNavigationHideOnMobile"><?= $userData['username'] ?></span>
           </button>

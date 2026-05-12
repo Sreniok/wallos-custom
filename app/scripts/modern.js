@@ -284,9 +284,16 @@
        ────────────────────────────── */
 
     function extractDashboardId(card) {
-        const oc = card.getAttribute('onclick') || '';
-        const m = oc.match(/openSubscriptionModal\((\d+)\)/);
-        return m ? parseInt(m[1], 10) : null;
+        const rawArgs = card.getAttribute('data-args');
+        if (!rawArgs) return null;
+
+        try {
+            const args = JSON.parse(rawArgs);
+            const id = Array.isArray(args) ? parseInt(args[0], 10) : parseInt(args, 10);
+            return Number.isFinite(id) ? id : null;
+        } catch (_) {
+            return null;
+        }
     }
 
     function buildDashboardActionsPanel(card, id) {

@@ -80,7 +80,7 @@ $nphDateDisplay = wallosFormatSubscriptionDate(date('F j', strtotime($nphFirstDa
                 ? translate('automatically_renews', $i18n)
                 : translate('manual_renewal', $i18n);
         ?>
-        <div class="nph-item" onclick="openSubscriptionModal(<?= (int) $s['id'] ?>)">
+        <div class="nph-item" data-click="openSubscriptionModal" data-args='[<?= (int) $s['id'] ?>]'>
             <div class="nph-logo <?= empty($logoSrc) ? 'empty' : '' ?>">
                 <?php if (!empty($logoSrc)): ?>
                     <img src="<?= htmlspecialchars($logoSrc) ?>" alt="">

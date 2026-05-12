@@ -396,7 +396,7 @@ if (isset($_POST['username'])) {
                 </div>
                 <div class="form-group">
                     <label for="language"><?= translate('language', $i18n) ?>:</label>
-                    <select id="language" name="language" placeholder="Language" onchange="changeLanguage(this.value)">
+                    <select id="language" name="language" placeholder="Language">
                         <?php
                         foreach ($languages as $code => $language) {
                             $selected = ($code === $lang) ? 'selected' : '';
@@ -457,8 +457,8 @@ if (isset($_POST['username'])) {
                 ?>
                 <div class="separator">
                     <input type="button" class="secondary-button" value="<?= translate('restore_database', $i18n) ?>"
-                        id="restoreDB" onClick="openRestoreDBFileSelect()" />
-                    <input type="file" name="restoreDBFile" id="restoreDBFile" style="display: none;" onChange="restoreDB()"
+                        id="restoreDB" />
+                    <input type="file" name="restoreDBFile" id="restoreDBFile" style="display: none;"
                         accept=".zip">
                 </div>
                 <?php

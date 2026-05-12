@@ -14,7 +14,7 @@ services:
       WALLOS_BACKUP_PATH: '${WALLOS_BACKUP_PATH:-/var/www/backups}'
       WALLOS_BACKUP_RETENTION_DAYS: '${WALLOS_BACKUP_RETENTION_DAYS:-30}'
       WALLOS_TRUST_PROXY_HEADERS: '${WALLOS_TRUST_PROXY_HEADERS:-false}'
-      DEMO_MODE: '${DEMO_MODE:-false}'
+     # DEMO_MODE: '${DEMO_MODE:-false}'
     # Volumes store your data between container upgrades
     volumes:
       - './db:/var/www/html/db'

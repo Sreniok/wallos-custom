@@ -476,8 +476,7 @@ if (isset($_GET['error']) && in_array($_GET['error'], ["oidc_user_not_found", "o
                 if ($registrations) {
                     ?>
                     <div class="separator">
-                        <input type="button" class="secondary-button" onclick="openRegitrationPage()"
-                            value="<?= translate('register', $i18n) ?>"></input>
+                        <a class="secondary-button" href="registration.php"><?= translate('register', $i18n) ?></a>
                     </div>
                     <?php
                 }
@@ -485,11 +484,6 @@ if (isset($_GET['error']) && in_array($_GET['error'], ["oidc_user_not_found", "o
             </form>
         </section>
     </div>
-    <script type="text/javascript">
-        function openRegitrationPage() {
-            window.location.href = "registration.php";
-        }
-    </script>
 </body>
 
 </html>

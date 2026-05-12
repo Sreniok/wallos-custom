@@ -46,7 +46,7 @@ $hasStatsRows = isset($subscriptions) && count($subscriptions) > 0;
         if (count($members) > 1) {
           ?>
           <div class="filtermenu-submenu">
-            <button type="button" class="filter-title" onClick="toggleSubMenu('member')" aria-expanded="false" aria-controls="filter-member"><?= translate("member", $i18n) ?></button>
+            <button type="button" class="filter-title" data-click="toggleSubMenu" data-args='["member"]' aria-expanded="false" aria-controls="filter-member"><?= translate("member", $i18n) ?></button>
             <div class="filtermenu-submenu-content" id="filter-member" role="group" aria-label="<?= translate("member", $i18n) ?>">
               <?php
               foreach ($members as $member) {
@@ -75,7 +75,7 @@ $hasStatsRows = isset($subscriptions) && count($subscriptions) > 0;
           });
           ?>
           <div class="filtermenu-submenu">
-            <button type="button" class="filter-title" onClick="toggleSubMenu('category')" aria-expanded="false" aria-controls="filter-category"><?= translate("category", $i18n) ?></button>
+            <button type="button" class="filter-title" data-click="toggleSubMenu" data-args='["category"]' aria-expanded="false" aria-controls="filter-category"><?= translate("category", $i18n) ?></button>
             <div class="filtermenu-submenu-content" id="filter-category" role="group" aria-label="<?= translate("category", $i18n) ?>">
               <?php
               foreach ($categories as $category) {
@@ -106,7 +106,7 @@ $hasStatsRows = isset($subscriptions) && count($subscriptions) > 0;
           });
           ?>
           <div class="filtermenu-submenu">
-            <button type="button" class="filter-title" onClick="toggleSubMenu('payment')" aria-expanded="false" aria-controls="filter-payment"><?= translate("payment_method", $i18n) ?></button>
+            <button type="button" class="filter-title" data-click="toggleSubMenu" data-args='["payment"]' aria-expanded="false" aria-controls="filter-payment"><?= translate("payment_method", $i18n) ?></button>
             <div class="filtermenu-submenu-content" id="filter-payment" role="group" aria-label="<?= translate("payment_method", $i18n) ?>">
               <?php
               foreach ($paymentMethods as $payment) {
@@ -131,7 +131,7 @@ $hasStatsRows = isset($subscriptions) && count($subscriptions) > 0;
         if (isset($_GET['member']) || isset($_GET['category']) || isset($_GET['payment'])) {
           ?>
           <div class="filtermenu-submenu">
-            <button type="button" class="filter-title filter-clear" onClick="clearFilters()">
+            <button type="button" class="filter-title filter-clear" data-click="clearFilters">
               <i class="fa-solid fa-times-circle"></i> <?= translate("clear", $i18n) ?>
             </button>
           </div>

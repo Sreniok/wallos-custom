@@ -158,6 +158,114 @@ function apiErrorMessage(error, fallback) {
   return fallback;
 }
 
+function parseDeclarativeArgs(element) {
+  const rawArgs = element.getAttribute("data-args");
+  if (!rawArgs) {
+    return [];
+  }
+
+  try {
+    const args = JSON.parse(rawArgs);
+    return Array.isArray(args) ? args : [args];
+  } catch (error) {
+    console.error("Invalid data-args value", error);
+    return [];
+  }
+}
+
+function runDeclarativeHandler(event, element, attrName) {
+  if (!element || element.disabled || element.getAttribute("aria-disabled") === "true") {
+    return;
+  }
+
+  const handlerName = element.getAttribute(attrName);
+  const handler = window[handlerName];
+  if (typeof handler !== "function") {
+    console.warn(`Declarative handler "${handlerName}" is not available.`);
+    return;
+  }
+
+  if (element.dataset.preventDefault === "true") {
+    event.preventDefault();
+  }
+
+  const args = [];
+  if (element.dataset.passEvent === "true") {
+    args.push(event);
+  }
+  if (element.dataset.passElement === "true") {
+    args.push(element);
+  }
+  if (element.dataset.valueArg === "true") {
+    args.push(element.value);
+  }
+
+  handler.apply(element, args.concat(parseDeclarativeArgs(element)));
+}
+
+function closestDeclarativeTarget(event, selector) {
+  const target = event.target && event.target.nodeType === Node.ELEMENT_NODE
+    ? event.target
+    : event.target?.parentElement;
+
+  return target ? target.closest(selector) : null;
+}
+
+function bindDeclarativeHandlers() {
+  if (document.documentElement.dataset.declarativeHandlersBound === "true") {
+    return;
+  }
+  document.documentElement.dataset.declarativeHandlersBound = "true";
+
+  const eventMap = {
+    click: "data-click",
+    change: "data-change",
+    input: "data-input",
+    keyup: "data-keyup",
+    keypress: "data-keypress",
+    paste: "data-paste",
+  };
+
+  Object.entries(eventMap).forEach(([eventName, attrName]) => {
+    document.addEventListener(eventName, function (event) {
+      const element = closestDeclarativeTarget(event, `[${attrName}]`);
+      if (!element || !document.documentElement.contains(element)) {
+        return;
+      }
+
+      runDeclarativeHandler(event, element, attrName);
+    });
+  });
+
+  document.addEventListener("keydown", function (event) {
+    const element = closestDeclarativeTarget(event, "[data-keydown]");
+    if (!element || !document.documentElement.contains(element)) {
+      return;
+    }
+
+    const allowedKeys = (element.dataset.keys || "")
+      .split(",")
+      .map(key => key === "Space" ? " " : key.trim())
+      .filter(Boolean);
+
+    if (allowedKeys.length > 0 && !allowedKeys.includes(event.key)) {
+      return;
+    }
+
+    runDeclarativeHandler(event, element, "data-keydown");
+  });
+}
+
+function navigateTo(url) {
+  window.location.href = url;
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", bindDeclarativeHandlers);
+} else {
+  bindDeclarativeHandlers();
+}
+
 function showErrorMessage(message, options = {}) {
   const toast = document.querySelector(".toast#errorToast");
   const closeIcon = document.querySelector(".close-error");

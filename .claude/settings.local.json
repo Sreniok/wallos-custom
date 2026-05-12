@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(sort -k9 -r)",
+      "Bash(xargs ls *)",
+      "Bash(ls -la /docker/Wallos/wallos-modern-mockup.html /tmp/wallos-modern-mockup.html 2>&1)",
+      "Read(//tmp/**)",
+      "Bash(cp /tmp/wallos-modern-mockup.html /docker/Wallos/wallos-modern-mockup.html && ls -la /docker/Wallos/wallos-modern-mockup.html)",
+      "Bash(grep -rn '$currencies\\\\s*=' /docker/Wallos/app/includes/)",
+      "Bash(grep -n '$currencies' /docker/Wallos/app/includes/getsettings.php /docker/Wallos/app/includes/getdbkeys.php)"
+    ],
+    "additionalDirectories": [
+      "/tmp"
+    ]
+  }
+}

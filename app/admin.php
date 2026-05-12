@@ -124,7 +124,7 @@ $loginDisabledAllowed = $userCount == 1 && $settings['registrations_open'] == 0;
             </div>
             <div class="buttons">
                 <input type="submit" class="thin mobile-grow" value="<?= translate('save', $i18n) ?>"
-                    id="saveAccountRegistrations" onClick="saveAccountRegistrationsButton()" />
+                    id="saveAccountRegistrations" data-click="saveAccountRegistrationsButton" />
             </div>
         </div>
     </section>
@@ -161,7 +161,7 @@ $loginDisabledAllowed = $userCount == 1 && $settings['registrations_open'] == 0;
                             <?php
                             if ($user['id'] != 1) {
                                 ?>
-                                <button class="image-button medium" onClick="removeUser(<?= $user['id'] ?>)"
+                                <button class="image-button medium" data-click="removeUser" data-args='[<?= $user['id'] ?>]'
                                     title="<?= translate('delete_user', $i18n) ?>">
                                     <?php include "images/siteicons/svg/delete.php"; ?>
                                 </button>
@@ -204,7 +204,7 @@ $loginDisabledAllowed = $userCount == 1 && $settings['registrations_open'] == 0;
                 <input type="password" id="newPassword" autocomplete="off"
                     placeholder="<?= translate('password', $i18n) ?>" />
                 <input type="submit" class="thin" value="<?= translate('add', $i18n) ?>" id="addUserButton"
-                    onClick="addUserButton()" />
+                    data-click="addUserButton" />
             </div>
         </section>
 
@@ -219,7 +219,7 @@ $loginDisabledAllowed = $userCount == 1 && $settings['registrations_open'] == 0;
         <div class="admin-form">
             <div class="form-group-inline">
                 <input type="checkbox" id="oidcEnabled" <?= $settings['oidc_oauth_enabled'] ? 'checked' : '' ?>
-                    onchange="toggleOidcEnabled()" />
+                    data-change="toggleOidcEnabled" />
                 <label for="oidcEnabled"><?= translate('oidc_oauth_enabled', $i18n) ?></label>
             </div>
             <div class="form-group">
@@ -277,7 +277,7 @@ $loginDisabledAllowed = $userCount == 1 && $settings['registrations_open'] == 0;
             </div>
             <div class="buttons">
                 <input type="submit" class="thin mobile-grow" value="<?= translate('save', $i18n) ?>"
-                    id="saveOidcSettingsButton" onClick="saveOidcSettingsButton()" />
+                    id="saveOidcSettingsButton" data-click="saveOidcSettingsButton" />
             </div>
         </div>
 
@@ -325,9 +325,9 @@ $loginDisabledAllowed = $userCount == 1 && $settings['registrations_open'] == 0;
             </div>
             <div class="buttons">
                 <input type="button" class="secondary-button thin mobile-grow" value="<?= translate('test', $i18n) ?>"
-                    id="testSmtpSettingsButton" onClick="testSmtpSettingsButton()" />
+                    id="testSmtpSettingsButton" data-click="testSmtpSettingsButton" />
                 <input type="submit" class="thin mobile-grow" value="<?= translate('save', $i18n) ?>"
-                    id="saveSmtpSettingsButton" onClick="saveSmtpSettingsButton()" />
+                    id="saveSmtpSettingsButton" data-click="saveSmtpSettingsButton" />
             </div>
             <div class="settings-notes">
                 <p>
@@ -352,7 +352,7 @@ $loginDisabledAllowed = $userCount == 1 && $settings['registrations_open'] == 0;
         
         <div class="buttons">
             <input type="submit" class="thin mobile-grow" value="<?= translate('save', $i18n) ?>"
-                id="saveSecuritySettingsButton" onClick="saveSecuritySettingsButton()" />
+                id="saveSecuritySettingsButton" data-click="saveSecuritySettingsButton" />
         </div>
         
         <div class="settings-notes">
@@ -476,13 +476,13 @@ $loginDisabledAllowed = $userCount == 1 && $settings['registrations_open'] == 0;
             </div>
             <div class="form-group-inline">
                 <input type="checkbox" id="updateNotification" <?= $settings['update_notification'] ? 'checked' : '' ?>
-                    onchange="toggleUpdateNotification()" />
+                    data-change="toggleUpdateNotification" />
                 <label for="updateNotification"><?= translate('show_update_notification', $i18n) ?></label>
             </div>
             <h3><?= translate('orphaned_logos', $i18n) ?></h3>
             <div class="form-group-inline">
                 <input type="button" class="button thin mobile-grow" value="<?= translate('delete', $i18n) ?>"
-                    id="deleteUnusedLogos" onClick="deleteUnusedLogos()" <?= $logosToDelete == 0 ? 'disabled' : '' ?> />
+                    id="deleteUnusedLogos" data-click="deleteUnusedLogos" <?= $logosToDelete == 0 ? 'disabled' : '' ?> />
                 <span class="number-of-logos bold"><?= $logosToDelete ?></span>
                 <?= translate('orphaned_logos', $i18n) ?>
             </div>
@@ -490,25 +490,25 @@ $loginDisabledAllowed = $userCount == 1 && $settings['registrations_open'] == 0;
             <div>
                 <div class="inline-row">
                     <input type="button" value="Run Notification Check" class="button tiny mobile-grow"
-                        onclick="runNotificationCheck()">
+                        data-click="runNotificationCheck">
                     <input type="button" value="Check for Updates" class="button tiny mobile-grow"
-                        onclick="executeCronJob('checkforupdates')">
+                        data-click="executeCronJob" data-args='["checkforupdates"]'>
                     <input type="button" value="Send Notifications" class="button tiny mobile-grow"
-                        onclick="executeCronJob('sendnotifications')">
+                        data-click="executeCronJob" data-args='["sendnotifications"]'>
                     <input type="button" value="Send Cancellation Notifications" class="button tiny mobile-grow"
-                        onclick="executeCronJob('sendcancellationnotifications')">
+                        data-click="executeCronJob" data-args='["sendcancellationnotifications"]'>
                     <input type="button" value="Send Password Reset Emails" class="button tiny mobile-grow"
-                        onclick="executeCronJob('sendresetpasswordemails')">
+                        data-click="executeCronJob" data-args='["sendresetpasswordemails"]'>
                     <input type="button" value="Send Verification Emails" class="button tiny mobile-grow"
-                        onclick="executeCronJob('sendverificationemails')">
+                        data-click="executeCronJob" data-args='["sendverificationemails"]'>
                     <input type="button" value="Update Exchange Rates" class="button tiny mobile-grow"
-                        onclick="executeCronJob('updateexchange')">
+                        data-click="executeCronJob" data-args='["updateexchange"]'>
                     <input type="button" value="Update Next Payments" class="button tiny mobile-grow"
-                        onclick="executeCronJob('updatenextpayment')">
+                        data-click="executeCronJob" data-args='["updatenextpayment"]'>
                     <input type="button" value="Store Total Yearly Cost" class="button tiny mobile-grow"
-                        onclick="executeCronJob('storetotalyearlycost')">
+                        data-click="executeCronJob" data-args='["storetotalyearlycost"]'>
                     <input type="button" value="Generate AI Recommendations" class="button tiny mobile-grow"
-                        onclick="executeCronJob('generaterecommendations')">    
+                        data-click="executeCronJob" data-args='["generaterecommendations"]'>
                 </div>
                 <div class="inline-row">
                     <textarea id="cronjobResult" class="thin" readonly></textarea>
@@ -524,10 +524,10 @@ $loginDisabledAllowed = $userCount == 1 && $settings['registrations_open'] == 0;
         </header>
         <div class="form-group-inline">
             <input type="button" class="button thin mobile-grow" value="<?= translate('backup', $i18n) ?>" id="backupDB"
-                onClick="backupDB()" />
+                data-click="backupDB" />
             <input type="button" class="secondary-button thin mobile-grow" value="<?= translate('restore', $i18n) ?>"
-                id="restoreDB" onClick="openRestoreDBFileSelect()" />
-            <input type="file" name="restoreDBFile" id="restoreDBFile" style="display: none;" onChange="restoreDB()"
+                id="restoreDB" data-click="openRestoreDBFileSelect" />
+            <input type="file" name="restoreDBFile" id="restoreDBFile" style="display: none;" data-change="restoreDB"
                 accept=".zip">
         </div>
         <div class="settings-notes">

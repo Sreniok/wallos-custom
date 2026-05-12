@@ -56,6 +56,14 @@ function translateWithFallback(key, fallback) {
         : fallback;
 }
 
+function calendarDataArgs(args) {
+    return JSON.stringify(args)
+        .replace(/&/g, '&amp;')
+        .replace(/'/g, '&#39;')
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;');
+}
+
 function openSubscriptionModal(subscriptionId) {
     const modal = document.getElementById('subscriptionModal');
     const modalContent = document.getElementById('subscriptionModalContent');
@@ -79,14 +87,14 @@ function openSubscriptionModal(subscriptionId) {
           const paymentRecordedText = translateWithFallback('payment_recorded', 'Payment recorded and next payment updated.');
           const actionButtons = `
             <div class="modal-footer">
-                <button class="button danger-button tiny" onclick="runSubscriptionModalAction('endpoints/subscription/renew.php', ${subscription.id}, '${translate('success')}')">${paymentMissingText}</button>
-                <button class="button success-button tiny" onclick="runSubscriptionModalAction('endpoints/subscription/markpaid.php', ${subscription.id}, '${paymentRecordedText}')">${alreadyPaidText}</button>
-                <button class="button secondary-button tiny" onclick="openDashboardEditModal(${subscription.id})">${editText}</button>
+                <button class="button danger-button tiny" data-click="runSubscriptionModalAction" data-args='${calendarDataArgs(['endpoints/subscription/renew.php', Number(subscription.id), translate('success')])}'>${paymentMissingText}</button>
+                <button class="button success-button tiny" data-click="runSubscriptionModalAction" data-args='${calendarDataArgs(['endpoints/subscription/markpaid.php', Number(subscription.id), paymentRecordedText])}'>${alreadyPaidText}</button>
+                <button class="button secondary-button tiny" data-click="openDashboardEditModal" data-args='${calendarDataArgs([Number(subscription.id)])}'>${editText}</button>
             </div>`;
           const html = `
             <div class="modal-header">
                 <h3>${subscription.name}</h3>
-                <span class="fa-solid fa-xmark close-modal" onclick="closeSubscriptionModal()"></span>
+                <span class="fa-solid fa-xmark close-modal" data-click="closeSubscriptionModal"></span>
             </div>
             <div class="modal-body">
                 ${subscription.logo ? `<div class="subscription-logo">

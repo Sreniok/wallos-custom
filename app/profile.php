@@ -31,8 +31,8 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
                     <div>
                         <div class="user-avatar">
                             <img src="<?= htmlspecialchars($userData['avatar'], ENT_QUOTES, 'UTF-8') ?>" alt="avatar" class="avatar" id="avatarImg"
-                                onClick="toggleAvatarSelect()" />
-                            <span class="edit-avatar" onClick="toggleAvatarSelect()" title="Change Avatar">
+                                data-click="toggleAvatarSelect" />
+                            <span class="edit-avatar" data-click="toggleAvatarSelect" title="Change Avatar">
                                 <i class="fa-solid fa-pencil"></i>
                             </span>
                         </div>
@@ -55,7 +55,7 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
                                         <img src="<?= $path ?>" alt="<?= $filename ?>"
                                             class="avatar-option" data-src="<?= $path ?>">
                                         
-                                        <div class="remove-avatar" onclick="deleteAvatar('<?= $filename ?>')"
+                                        <div class="remove-avatar" data-click="deleteAvatar" data-args='<?= htmlspecialchars(json_encode([$filename]), ENT_QUOTES, 'UTF-8') ?>'
                                             title="Delete avatar">
                                             <i class="fa-solid fa-xmark"></i>
                                         </div>
@@ -70,7 +70,7 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
                             
                             <input type="file" id="profile_pic" class="hidden-input" name="profile_pic"
                                 accept="image/jpeg, image/png, image/gif, image/webp"
-                                onChange="successfulUpload(this, '<?= addslashes(translate('file_type_error', $i18n)) ?>')" />
+                                data-change="successfulUpload" data-pass-element="true" data-args='<?= htmlspecialchars(json_encode([translate('file_type_error', $i18n)]), ENT_QUOTES, 'UTF-8') ?>' />
                         </div>
                     </div>
                     <div class="grow">
@@ -180,11 +180,11 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
                     if (!$userData['totp_enabled']) {
                         ?>
                         <input type="button" value="<?= translate('enable_two_factor_authentication', $i18n) ?>" id="enableTotp"
-                            onClick="enableTotp()" class="button thin mobile-grow"/>
+                            data-click="enableTotp" class="button thin mobile-grow"/>
                         <div class="totp-popup" id="totp-popup">
                             <header>
                                 <h3><?= translate('enable_two_factor_authentication', $i18n) ?></h3>
-                                <span class="fa-solid fa-xmark close-form" onclick="closeTotpPopup()"></span>
+                                <span class="fa-solid fa-xmark close-form" data-click="closeTotpPopup"></span>
                             </header>
                             <div class="totp-popup-content">
                                 <div class="totp-setup" id="totp-setup">
@@ -197,7 +197,7 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
                                         <input type="text" id="totp" name="totp" autocomplete="one-time-code"
                                             placeholder="<?= translate("totp_code", $i18n) ?>" />
                                         <input type="button" value="<?= translate('enable', $i18n) ?>" id="enableTotpButton"
-                                            onClick="submitTotp()" />
+                                            data-click="submitTotp" />
                                     </div>
                                 </div>
                                 <div class="totp-setup hide" id="totp-backup-codes">
@@ -206,10 +206,10 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
                                     <div class="form-group-inline wrap">
                                         <input type="button" class="button secondary-button grow"
                                             value="<?= translate('copy_to_clipboard', $i18n) ?>" id="copyBackupCodes"
-                                            onClick="copyBackupCodes()" />
+                                            data-click="copyBackupCodes" />
                                         <input type="button" class="grow"
                                             value="<?= translate('download_backup_codes', $i18n) ?>" id="downloadBackupCodes"
-                                            onClick="downloadBackupCodes()" />
+                                            data-click="downloadBackupCodes" />
                                     </div>
                                     <div class="settings-notes">
                                         <p>
@@ -225,18 +225,18 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
                         ?>
                         <input type="button" class="button secondary-button thin mobile-grow"
                             value="<?= translate('disable_two_factor_authentication', $i18n) ?>" id="disableTotp"
-                            onClick="disableTotp()" />
+                            data-click="disableTotp" />
                         <div class="totp-popup" id="totp-disable-popup">
                             <header>
                                 <h3><?= translate('disable_two_factor_authentication', $i18n) ?></h3>
-                                <span class="fa-solid fa-xmark close-form" onclick="closeTotpDisablePopup()"></span>
+                                <span class="fa-solid fa-xmark close-form" data-click="closeTotpDisablePopup"></span>
                             </header>
                             <div class="totp-popup-content">
                                 <div class="form-group-inline">
                                     <input type="text" id="totp-disable" name="totp-disable" autocomplete="one-time-code"
                                         placeholder="totp" />
                                     <input type="button" value="<?= translate('disable', $i18n) ?>" id="disableTotpButton"
-                                        onClick="submitDisableTotp()" />
+                                        data-click="submitDisableTotp" />
                                 </div>
                             </div>
                         </div>
@@ -270,7 +270,7 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
         <div class="account-api-key">
             <div class="form-group-inline">
                 <input type="text" id="apikey" name="apikey" value="<?= $userData['api_key'] ?>" placeholder="API Key" readonly>
-                <input type="submit" value="<?= translate('regenerate', $i18n) ?>" id="regenerateApiKey" onClick="regenerateApiKey()" />
+                <input type="submit" value="<?= translate('regenerate', $i18n) ?>" id="regenerateApiKey" data-click="regenerateApiKey" />
             </div>
             <div class="settings-notes">
                 <p>
@@ -288,9 +288,9 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
             <div>
                 <h3><?= translate('export_subscriptions', $i18n) ?></h3>
                 <div class="form-group-inline wrap">
-                    <input type="button" value="<?= translate('export_as_json', $i18n) ?>" onClick="exportAsJson()"
+                    <input type="button" value="<?= translate('export_as_json', $i18n) ?>" data-click="exportAsJson"
                         class="secondary-button thin mobile-grow" id="export-json" <?= $demoMode ? 'disabled title="Not available on Demo Mode"' : '' ?>>
-                    <input type="button" value="<?= translate('export_as_csv', $i18n) ?>" onClick="exportAsCsv()"
+                    <input type="button" value="<?= translate('export_as_csv', $i18n) ?>" data-click="exportAsCsv"
                         class="secondary-button thin mobile-grow" id="export-csv" <?= $demoMode ? 'disabled title="Not available on Demo Mode"' : '' ?>>
                 </div>
             </div>
@@ -302,7 +302,7 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
                 <h3><?= translate('danger_zone', $i18n) ?></h3>
                 <div class="form-group-inline">
                     <input type="button" value="<?= translate('delete_account', $i18n) ?>"
-                        onClick="deleteAccount(<?= $userId ?>)" class="warning-button thin mobile-grow" id="delete-account">
+                        data-click="deleteAccount" data-args='[<?= $userId ?>]' class="warning-button thin mobile-grow" id="delete-account">
                 </div>
                 <div class="settings-notes">
                     <p>

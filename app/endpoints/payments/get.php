@@ -35,7 +35,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
         <div class="payments-payment" data-enabled="<?= $payment['enabled']; ?>" data-in-use="<?= $inUse ? 'yes' : 'no' ?>"
             data-paymentid="<?= $payment['id'] ?>"
             title="<?= $inUse ? translate('cant_delete_payment_method_in_use', $i18n) : ($payment['enabled'] ? translate('disable', $i18n) : translate('enable', $i18n)) ?>"
-            onClick="togglePayment(<?= $payment['id'] ?>)">
+            data-click="togglePayment" data-args='[<?= $payment['id'] ?>]'>
             <img src="<?= $paymentIconFolder . $payment['icon'] ?>" alt="Logo" />
             <span class="payment-name">
                 <?= $payment['name'] ?>
@@ -44,7 +44,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
             if (!$inUse) {
                 ?>
                 <div class="delete-payment-method" title="<?= translate('delete', $i18n) ?>" data-paymentid="<?= $payment['id'] ?>"
-                    onclick="deletePaymentMethod(<?= $payment['id'] ?>)">
+                    data-click="deletePaymentMethod" data-args='[<?= $payment['id'] ?>]'>
                     x
                 </div>
                 <?php

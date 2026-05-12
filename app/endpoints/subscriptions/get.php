@@ -239,7 +239,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
       <p>
         <?= translate('no_matching_subscriptions', $i18n) ?>
       </p>
-      <button class="button" onClick="clearFilters()">
+      <button class="button" data-click="clearFilters">
         <span clasS="fa-solid fa-minus-circle"></span>
         <?= translate('clear_filters', $i18n) ?>
       </button>

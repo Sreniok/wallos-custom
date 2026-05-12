@@ -93,14 +93,16 @@ function addMemberButton(memberId) {
         const editLink = document.createElement("button");
         editLink.className = "image-button medium";
         editLink.name = "save";
-        editLink.onclick = () => editMember(newMemberId);
+        editLink.dataset.click = "editMember";
+        editLink.dataset.args = JSON.stringify([newMemberId]);
         editLink.innerHTML = editSvgContent;
         editLink.title = translate("save_member");
 
         const deleteLink = document.createElement("button");
         deleteLink.className = "image-button medium";
         deleteLink.name = "delete";
-        deleteLink.onclick = () => removeMember(newMemberId);
+        deleteLink.dataset.click = "removeMember";
+        deleteLink.dataset.args = JSON.stringify([newMemberId]);
         deleteLink.innerHTML = deleteSvgContent;
         deleteLink.title = translate("delete_member");
 
@@ -248,18 +250,16 @@ function addCategoryButton(categoryId) {
         const editLink = document.createElement("button");
         editLink.className = "image-button medium";
         editLink.name = "save";
-        editLink.onclick = function () {
-          editCategory(newCategoryId);
-        };
+        editLink.dataset.click = "editCategory";
+        editLink.dataset.args = JSON.stringify([newCategoryId]);
         editLink.innerHTML = editSvgContent;
         editLink.title = translate('save_member');
 
         const deleteLink = document.createElement("button");
         deleteLink.className = "image-button medium";
         deleteLink.name = "delete";
-        deleteLink.onclick = function () {
-          removeCategory(newCategoryId);
-        };
+        deleteLink.dataset.click = "removeCategory";
+        deleteLink.dataset.args = JSON.stringify([newCategoryId]);
         deleteLink.innerHTML = deleteSvgContent;
         deleteLink.title = translate('delete_member');
 
@@ -414,18 +414,16 @@ function addCurrencyButton(currencyId) {
         const editLink = document.createElement("button");
         editLink.className = "image-button medium";
         editLink.name = "save";
-        editLink.onclick = function () {
-          editCurrency(newCurrencyId);
-        };
+        editLink.dataset.click = "editCurrency";
+        editLink.dataset.args = JSON.stringify([newCurrencyId]);
         editLink.innerHTML = editSvgContent;
         editLink.title = translate('save_member');
 
         const deleteLink = document.createElement("button");
         deleteLink.className = "image-button medium";
         deleteLink.name = "delete";
-        deleteLink.onclick = function () {
-          removeCurrency(newCurrencyId);
-        };
+        deleteLink.dataset.click = "removeCurrency";
+        deleteLink.dataset.args = JSON.stringify([newCurrencyId]);
         deleteLink.innerHTML = deleteSvgContent;
         deleteLink.title = translate('delete_member');
 
@@ -582,7 +580,7 @@ document.body.addEventListener('click', function (e) {
     if (targetElement.classList && targetElement.classList.contains('payments-payment')) {
       let targetChild = e.target;
       do {
-        if (targetChild.classList && (targetChild.classList.contains('payment-name') || targetChild.classList.contains('drag-icon'))) {
+        if (targetChild.classList && (targetChild.classList.contains('payment-name') || targetChild.classList.contains('drag-icon') || targetChild.classList.contains('delete-payment-method'))) {
           return;
         }
         targetChild = targetChild.parentNode;
@@ -713,12 +711,12 @@ function displayImageResults(imageSources) {
   imageSources.forEach(src => {
     const img = document.createElement("img");
     img.src = src;
-    img.onclick = function () {
+    img.addEventListener("click", function () {
       selectWebIcon(src);
-    };
-    img.onerror = function () {
+    });
+    img.addEventListener("error", function () {
       this.parentNode.removeChild(this);
-    };
+    });
     iconResults.appendChild(img);
   });
 }

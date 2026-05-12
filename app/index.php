@@ -143,7 +143,7 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
                         $subscriptionCycleSuffix = wallosCycleSuffix($subscription['cycle'] ?? 0, $subscription['frequency'] ?? 1);
 
                         ?>
-                        <div class="subscription-item subscription-item-clickable" role="button" tabindex="0" onClick="openSubscriptionModal(<?= (int) $subscription['id'] ?>)" onKeyDown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openSubscriptionModal(<?= (int) $subscription['id'] ?>); }">
+                        <div class="subscription-item subscription-item-clickable" role="button" tabindex="0" data-click="openSubscriptionModal" data-keydown="openSubscriptionModal" data-keys="Enter,Space" data-prevent-default="true" data-args='[<?= (int) $subscription['id'] ?>]'>
                             <?php
                             if (empty($subscription['logo'])) {
                                 ?>
@@ -201,7 +201,7 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
                         $subscriptionCycleSuffix = wallosCycleSuffix($subscription['cycle'] ?? 0, $subscription['frequency'] ?? 1);
 
                         ?>
-                        <div class="subscription-item subscription-item-clickable" role="button" tabindex="0" onClick="openSubscriptionModal(<?= (int) $subscription['id'] ?>)" onKeyDown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openSubscriptionModal(<?= (int) $subscription['id'] ?>); }">
+                        <div class="subscription-item subscription-item-clickable" role="button" tabindex="0" data-click="openSubscriptionModal" data-keydown="openSubscriptionModal" data-keys="Enter,Space" data-prevent-default="true" data-args='[<?= (int) $subscription['id'] ?>]'>
                             <?php
                             if (empty($subscription['logo'])) {
                                 ?>
@@ -255,7 +255,7 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
                             $subscriptionCycleSuffix = wallosCycleSuffix($subscription['cycle'] ?? 0, $subscription['frequency'] ?? 1);
 
                             ?>
-                            <div class="subscription-item subscription-item-clickable" role="button" tabindex="0" onClick="openSubscriptionModal(<?= (int) $subscription['id'] ?>)" onKeyDown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openSubscriptionModal(<?= (int) $subscription['id'] ?>); }">
+                            <div class="subscription-item subscription-item-clickable" role="button" tabindex="0" data-click="openSubscriptionModal" data-keydown="openSubscriptionModal" data-keys="Enter,Space" data-prevent-default="true" data-args='[<?= (int) $subscription['id'] ?>]'>
                                 <?php
                                 if (empty($subscription['logo'])) {
                                     ?>
@@ -465,7 +465,7 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
 
 <div id="editEmbedOverlay" class="edit-embed-overlay">
     <div class="edit-embed-container">
-        <button class="edit-embed-close" onclick="closeDashboardEditModal()" title="Close">&times;</button>
+        <button class="edit-embed-close" data-click="closeDashboardEditModal" title="Close">&times;</button>
         <iframe id="editEmbedFrame" src=""></iframe>
     </div>
 </div>

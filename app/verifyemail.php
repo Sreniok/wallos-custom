@@ -125,8 +125,7 @@ if (isset($_GET['email']) && isset($_GET['token'])) {
                 ?>
             </div>
             <div class="separator"></div>
-            <input type="button" class="button" onclick="window.location.href='login.php'"
-                value="<?= translate('login', $i18n) ?>"></input>
+            <a class="button" href="login.php"><?= translate('login', $i18n) ?></a>
         </section>
     </div>
 </body>

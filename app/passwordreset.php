@@ -252,11 +252,6 @@ if (isset($_POST['password']) && $_POST['password'] != "" && isset($_POST['confi
             </form>
         </section>
     </div>
-    <script type="text/javascript">
-        function openRegitrationPage() {
-            window.location.href = "registration.php";
-        }
-    </script>
 </body>
 
 </html>
