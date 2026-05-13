@@ -152,6 +152,10 @@ $icalEnabled = !empty($userData['ical_enabled']);
     if ($rowCount == 0) {
         $notifications['days'] = 1;
     }
+    $notifications['second_notification_enabled'] = $notifications['second_notification_enabled'] ?? 0;
+    $notifications['second_notification_days'] = $notifications['second_notification_days'] ?? 0;
+    $notifications['second_notification_email'] = $notifications['second_notification_email'] ?? 1;
+    $notifications['second_notification_ntfy'] = $notifications['second_notification_ntfy'] ?? 1;
 
     // Email notifications
     $sql = "SELECT * FROM email_notifications WHERE user_id = :userId LIMIT 1";
@@ -418,6 +422,40 @@ $icalEnabled = !empty($userData['ical_enabled']);
                     </select>
                     <input type="submit" class="thin" value="<?= translate('save', $i18n) ?>" id="saveNotifications"
                         data-click="saveNotifications" />
+                </div>
+                <div class="form-group-inline">
+                    <input type="checkbox" id="secondnotificationenabled" name="secondnotificationenabled"
+                        <?= $notifications['second_notification_enabled'] ? "checked" : "" ?>>
+                    <label for="secondnotificationenabled"><?= translate('enable_second_notification', $i18n) ?></label>
+                </div>
+                <label for="secondnotificationdays"><?= translate('second_notification', $i18n) ?>:</label>
+                <div class="form-group-inline">
+                    <select name="secondnotificationdays" id="secondnotificationdays">
+                        <option value="0" <?= $notifications['second_notification_days'] == 0 ? "selected" : "" ?>>
+                            <?= translate('on_due_date', $i18n) ?>
+                        </option>
+                        <option value="1" <?= $notifications['second_notification_days'] == 1 ? "selected" : "" ?>>
+                            1 <?= translate('day_before', $i18n) ?>
+                        </option>
+                        <?php
+                        for ($i = 2; $i <= 7; $i++) {
+                            $selected = $i == $notifications['second_notification_days'] ? "selected" : "";
+                            ?>
+                            <option value="<?= $i ?>" <?= $selected ?>>
+                                <?= $i ?> <?= translate('days_before', $i18n) ?>
+                            </option>
+                            <?php
+                        }
+                        ?>
+                    </select>
+                </div>
+                <div class="form-group-inline">
+                    <input type="checkbox" id="secondnotificationemail" name="secondnotificationemail"
+                        <?= $notifications['second_notification_email'] ? "checked" : "" ?>>
+                    <label for="secondnotificationemail"><?= translate('email', $i18n) ?></label>
+                    <input type="checkbox" id="secondnotificationntfy" name="secondnotificationntfy"
+                        <?= $notifications['second_notification_ntfy'] ? "checked" : "" ?>>
+                    <label for="secondnotificationntfy">Ntfy</label>
                 </div>
             </section>
             <section class="account-notifications-section">

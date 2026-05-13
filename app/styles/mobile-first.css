@@ -240,6 +240,7 @@ body.light {
 .subscription-container .modern-swipe-actions {
   position: absolute;
   top: 0; bottom: 0; right: 0;
+  width: var(--modern-action-width, 228px);
   display: flex;
   z-index: 0;
   pointer-events: none;
@@ -247,8 +248,13 @@ body.light {
   overflow: hidden;
 }
 .subscription-container.modern-swipe-revealed .modern-swipe-actions { pointer-events: auto; }
+.subscription-container.modern-actions-ready > .mobile-actions {
+  display: none !important;
+}
 .modern-swipe-action {
-  width: 76px;
+  flex: 1 1 0;
+  width: auto;
+  min-width: 0;
   border: 0;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 4px;
@@ -259,10 +265,18 @@ body.light {
   transition: filter .15s;
 }
 .modern-swipe-action:hover { filter: brightness(1.06); }
-.modern-swipe-action svg { width: 18px; height: 18px; }
-.modern-swipe-action.edit   { background: #FFD93D; color: #2A2200; }
+.modern-swipe-action svg {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.modern-swipe-action.edit   { background: #5BC0EB; color: #043247; }
 .modern-swipe-action.delete { background: #F45A40; color: #ffffff; }
-.modern-swipe-action.clone  { background: #5BC0EB; color: #043247; }
+.modern-swipe-action.clone  { background: #FFC247; color: #3A2600; }
 /* Dashboard swipe variants */
 .modern-swipe-action.dash-missing { background: #F45A40; color: #ffffff; }
 .modern-swipe-action.dash-paid    { background: #1AA053; color: #ffffff; }
@@ -276,7 +290,7 @@ body.light {
   user-select: none;
 }
 .subscription-container.modern-swipe-dragging .subscription { transition: none !important; }
-.subscription-container.modern-swipe-revealed .subscription { transform: translateX(-228px); }
+.subscription-container.modern-swipe-revealed .subscription { transform: translateX(calc(-1 * var(--modern-action-width, 228px))); }
 
 /* Dashboard swipe-row wrapper — same structure but for .subscription-item */
 .dashboard-swipe-row {
@@ -288,6 +302,7 @@ body.light {
 .dashboard-swipe-row .modern-swipe-actions {
   position: absolute;
   top: 0; bottom: 0; right: 0;
+  width: var(--modern-action-width, 228px);
   display: flex;
   z-index: 0;
   pointer-events: none;
@@ -301,7 +316,7 @@ body.light {
   user-select: none;
 }
 .dashboard-swipe-row.modern-swipe-dragging > .subscription-item { transition: none !important; }
-.dashboard-swipe-row.modern-swipe-revealed > .subscription-item { transform: translateX(-228px); }
+.dashboard-swipe-row.modern-swipe-revealed > .subscription-item { transform: translateX(calc(-1 * var(--modern-action-width, 228px))); }
 
 /* ──────────────────────────────────────────────────────────
    FLOATING ACTION BUTTON (FAB)
@@ -1070,6 +1085,177 @@ body.fab-hidden .modern-fab {
   .dashboard-swipe-row.modern-swipe-revealed > .subscription-item,
   .dashboard-swipe-row > .subscription-item {
     transform: none !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .subscription-container {
+    overflow: hidden;
+  }
+
+  .subscription-container .modern-swipe-actions,
+  .dashboard-swipe-row .modern-swipe-actions {
+    display: flex !important;
+    pointer-events: auto;
+  }
+
+  .subscription-container.modern-swipe-revealed .subscription,
+  .dashboard-swipe-row.modern-swipe-revealed > .subscription-item {
+    transform: translateX(calc(-1 * var(--modern-action-width, 228px))) !important;
+  }
+
+  .subscription-container .subscription {
+    padding: 14px 18px !important;
+    gap: 8px;
+  }
+
+  .subscription-container .subscription-main {
+    display: grid !important;
+    grid-template-columns: 56px minmax(180px, 1.45fr) minmax(110px, .85fr) minmax(92px, .7fr) minmax(96px, .7fr) 56px;
+    grid-template-rows: auto auto;
+    gap: 4px 18px;
+    align-items: center;
+    min-height: 56px;
+  }
+
+  .subscription-container .subscription-main > .logo,
+  .subscription-container .subscription-main > .logo.hideOnMobile {
+    grid-column: 1;
+    grid-row: 1 / 3;
+    width: 48px;
+    height: 48px;
+    max-width: 48px;
+    display: flex;
+    border-radius: 10px;
+    padding: 4px;
+    background: rgba(var(--text-color-rgb), .04);
+    overflow: hidden;
+  }
+
+  .subscription-container .subscription-main > .name,
+  .subscription-container .subscription-main > .name.hideOnMobile {
+    grid-column: 2;
+    grid-row: 1;
+    display: flex !important;
+    justify-content: flex-start;
+    gap: 8px;
+    min-width: 0;
+    font-weight: 700;
+    text-align: left;
+  }
+
+  .subscription-container .subscription-main > .name .name-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .subscription-container .subscription-main > .subscription-mobile-meta {
+    grid-column: 2;
+    grid-row: 2;
+    display: flex;
+    justify-content: flex-start;
+    gap: 6px;
+    min-width: 0;
+    color: var(--mf-text-muted);
+    font-size: 13px;
+    line-height: 1.2;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  .subscription-container .subscription-main > .subscription-mobile-meta > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .subscription-container .subscription-main > .subscription-mobile-meta > span:not(:first-child)::before {
+    content: '·';
+    margin-right: 6px;
+    color: var(--mf-text-soft);
+  }
+
+  .subscription-container .subscription-main > .cycle {
+    grid-column: 3;
+    grid-row: 1;
+    justify-content: flex-start;
+    min-width: 0;
+  }
+
+  .subscription-container .subscription-main > .next {
+    grid-column: 4;
+    grid-row: 1;
+    justify-content: flex-start;
+    min-width: 0;
+  }
+
+  .subscription-container .subscription-main > .price {
+    grid-column: 5;
+    grid-row: 1 / 3;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+    min-width: 0;
+    text-align: right;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+
+  .subscription-container .subscription-main > .price > .cycle-suffix {
+    display: block;
+    color: var(--mf-text-muted);
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.2;
+  }
+
+  .subscription-container .subscription-main > .payment_method {
+    grid-column: 6;
+    grid-row: 1 / 3;
+    margin-left: 0;
+  }
+
+  .subscription-container .subscription-main > .actions-expand,
+  .subscription-container .subscription-main > .actions {
+    display: none !important;
+  }
+
+  .subscription-container .subscription-secondary {
+    display: flex !important;
+    gap: 10px 16px;
+    padding: 0 0 0 74px;
+    color: var(--mf-text-muted);
+    font-size: 13px;
+  }
+
+  .subscription-container .subscription-secondary > .name {
+    display: none !important;
+  }
+
+  .subscription-container .subscription-secondary > span {
+    flex-basis: auto;
+    flex-grow: 0;
+    gap: 6px;
+    min-width: 0;
+    justify-content: flex-start;
+  }
+
+  .subscription-container .subscription-secondary > .notification-rule,
+  .subscription-container .subscription-notes {
+    font-size: 12px;
+    color: var(--mf-text-muted);
+  }
+
+  .subscription-container .subscription-notes {
+    display: flex;
+    padding: 0 0 0 74px;
+  }
+
+  .subscription-container:not(.modern-swipe-revealed) .subscription:hover,
+  .dashboard-swipe-row:not(.modern-swipe-revealed) > .subscription-item:hover {
+    transform: translateY(-1px);
   }
 }
 

@@ -72,6 +72,15 @@ function hex2rgb($hex)
 
 $mobileNavigation = $settings['mobile_nav'] ? "mobile-navigation" : "";
 
+// find out which page is being viewed
+$page = basename($_SERVER['PHP_SELF']);
+$dashboardClass = $page === 'index.php' ? 'active' : '';
+$subscriptionsClass = $page === 'subscriptions.php' ? 'active' : '';
+$calendarClass = $page === 'calendar.php' ? 'active' : '';
+$statsClass = $page === 'stats.php' ? 'active' : '';
+$settingsClass = $page === 'settings.php' ? 'active' : '';
+$profileClass = $page === 'profile.php' ? 'active' : '';
+
 ?>
 <!DOCTYPE html>
 <html dir="<?= $languages[$lang]['dir'] ?>">
@@ -170,15 +179,33 @@ $mobileNavigation = $settings['mobile_nav'] ? "mobile-navigation" : "";
 <body class="<?= $theme ?> <?= $languages[$lang]['dir'] ?> <?= $mobileNavigation ?> <?= !empty($activeDesign) ? 'design-' . htmlspecialchars($activeDesign) : '' ?>">
   <header>
     <div class="contain">
-      <div class="logo">
-        <a href=".">
-          <div class="logo-image" title="Wallos - Subscription Tracker">
-            <?php include "images/siteicons/svg/logo.php"; ?>
-          </div>
-        </a>
-      </div>
-      <nav>
-        <div class="header-theme-switcher" role="group" aria-label="Theme mode">
+	      <div class="logo">
+	        <a href=".">
+	          <div class="logo-image" title="Wallos - Subscription Tracker">
+	            <?php include "images/siteicons/svg/logo.php"; ?>
+	          </div>
+	        </a>
+	      </div>
+	      <nav class="desktop-main-nav" aria-label="Primary navigation">
+	        <a href="." class="desktop-nav-link <?= $dashboardClass ?>" title="<?= translate('dashboard', $i18n) ?>">
+	          <?php include "images/siteicons/svg/mobile-menu/home.php"; ?>
+	          <?= translate('dashboard', $i18n) ?>
+	        </a>
+	        <a href="subscriptions.php" class="desktop-nav-link <?= $subscriptionsClass ?>" title="<?= translate('subscriptions', $i18n) ?>">
+	          <?php include "images/siteicons/svg/mobile-menu/subscriptions.php"; ?>
+	          <?= translate('subscriptions', $i18n) ?>
+	        </a>
+	        <a href="calendar.php" class="desktop-nav-link <?= $calendarClass ?>" title="<?= translate('calendar', $i18n) ?>">
+	          <?php include "images/siteicons/svg/mobile-menu/calendar.php"; ?>
+	          <?= translate('calendar', $i18n) ?>
+	        </a>
+	        <a href="stats.php" class="desktop-nav-link <?= $statsClass ?>" title="<?= translate('stats', $i18n) ?>">
+	          <?php include "images/siteicons/svg/mobile-menu/statistics.php"; ?>
+	          <?= translate('stats', $i18n) ?>
+	        </a>
+	      </nav>
+	      <nav>
+	        <div class="header-theme-switcher" role="group" aria-label="Theme mode">
           <button type="button" class="header-theme-button <?= $settings['dark_theme'] == '0' ? 'selected' : '' ?>"
             data-click="setDarkTheme" data-args='["0"]' data-theme-mode="0" title="<?= translate('light_theme', $i18n) ?>"
             aria-label="<?= translate('light_theme', $i18n) ?>">
@@ -199,23 +226,23 @@ $mobileNavigation = $settings['mobile_nav'] ? "mobile-navigation" : "";
           <button class="dropbtn" data-click="toggleDropdown">
             <img src="<?= htmlspecialchars($userData['avatar'], ENT_QUOTES, 'UTF-8') ?>" alt="me" id="avatar">
             <span id="user" class="mobileNavigationHideOnMobile"><?= $userData['username'] ?></span>
-          </button>
-          <div class="dropdown-content">
-            <a href="." class="mobileNavigationHideOnMobile">
-              <?php include "images/siteicons/svg/mobile-menu/home.php"; ?>
-              <?= translate('dashboard', $i18n) ?></a>
-            <a href="subscriptions.php" class="mobileNavigationHideOnMobile">
-              <?php include "images/siteicons/svg/mobile-menu/subscriptions.php"; ?>
-              <?= translate('subscriptions', $i18n) ?></a>  
-            <a href="calendar.php" class="mobileNavigationHideOnMobile">
-                <?php include "images/siteicons/svg/mobile-menu/calendar.php"; ?>
-                <?= translate('calendar', $i18n) ?></a>
-            <a href="stats.php" class="mobileNavigationHideOnMobile">
-              <?php include "images/siteicons/svg/mobile-menu/statistics.php"; ?>
-              <?= translate('stats', $i18n) ?></a>
-            <a href="settings.php" class="mobileNavigationHideOnMobile">
-              <?php include "images/siteicons/svg/mobile-menu/settings.php"; ?>
-              <?= translate('settings', $i18n) ?></a>
+		          </button>
+		          <div class="dropdown-content">
+		            <a href="." class="mobile-menu-only">
+		              <?php include "images/siteicons/svg/mobile-menu/home.php"; ?>
+		              <?= translate('dashboard', $i18n) ?></a>
+		            <a href="subscriptions.php" class="mobile-menu-only">
+		              <?php include "images/siteicons/svg/mobile-menu/subscriptions.php"; ?>
+		              <?= translate('subscriptions', $i18n) ?></a>
+		            <a href="calendar.php" class="mobile-menu-only">
+		              <?php include "images/siteicons/svg/mobile-menu/calendar.php"; ?>
+		              <?= translate('calendar', $i18n) ?></a>
+		            <a href="stats.php" class="mobile-menu-only">
+		              <?php include "images/siteicons/svg/mobile-menu/statistics.php"; ?>
+		              <?= translate('stats', $i18n) ?></a>
+		            <a href="settings.php" class="mobileNavigationHideOnMobile">
+		              <?php include "images/siteicons/svg/mobile-menu/settings.php"; ?>
+		              <?= translate('settings', $i18n) ?></a>
             <a href="profile.php">
               <?php include "images/siteicons/svg/mobile-menu/profile.php"; ?>
               <?= translate('profile', $i18n) ?></a>  
@@ -242,20 +269,9 @@ $mobileNavigation = $settings['mobile_nav'] ? "mobile-navigation" : "";
         </div>
       </nav>
     </div>
-  </header>
+		  </header>
 
-  <?php
-  // find out which page is being viewed
-  $page = basename($_SERVER['PHP_SELF']);
-  $dashboardClass = $page === 'index.php' ? 'active' : '';
-  $subscriptionsClass = $page === 'subscriptions.php' ? 'active' : '';
-  $calendarClass = $page === 'calendar.php' ? 'active' : '';
-  $statsClass = $page === 'stats.php' ? 'active' : '';
-  $settingsClass = $page === 'settings.php' ? 'active' : '';
-  $profileClass = $page === 'profile.php' ? 'active' : '';
-  ?>
-
-  <?php
+		  <?php
   if ($settings['mobile_nav'] == 1) {
     ?>
     <nav class="mobile-nav">

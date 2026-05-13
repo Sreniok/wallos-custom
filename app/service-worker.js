@@ -1,4 +1,5 @@
-const CACHE_VERSION = new URL(self.location.href).searchParams.get('v') || 'dev';
+const CACHE_BUILD = 'sticky-desktop-nav-20260513';
+const CACHE_VERSION = `${new URL(self.location.href).searchParams.get('v') || 'dev'}-${CACHE_BUILD}`;
 const STATIC_CACHE = `static-cache-${CACHE_VERSION}`;
 const PAGES_CACHE = `pages-cache-${CACHE_VERSION}`;
 const LOGOS_CACHE = `logos-cache-${CACHE_VERSION}`;
@@ -101,14 +102,19 @@ const staticAssets = [
     'images/siteicons/svg/edit.php',
     'images/siteicons/svg/notes.php',
     'images/siteicons/svg/payment.php',
+    'images/siteicons/svg/renew.php',
     'images/siteicons/svg/save.php',
     'images/siteicons/svg/subscription.php',
     'images/siteicons/svg/web.php',
     'images/siteicons/svg/websearch.php',
     'images/siteicons/svg/clone.php',
     'images/siteicons/svg/mobile-menu/calendar.php',
+    'images/siteicons/svg/mobile-menu/clone.php',
+    'images/siteicons/svg/mobile-menu/delete.php',
+    'images/siteicons/svg/mobile-menu/edit.php',
     'images/siteicons/svg/mobile-menu/home.php',
     'images/siteicons/svg/mobile-menu/profile.php',
+    'images/siteicons/svg/mobile-menu/renew.php',
     'images/siteicons/svg/mobile-menu/settings.php',
     'images/siteicons/svg/mobile-menu/statistics.php',
     'images/siteicons/svg/mobile-menu/subscriptions.php',

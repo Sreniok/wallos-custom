@@ -8,7 +8,8 @@
 (function () {
     'use strict';
 
-    const REVEAL_PX = 228; // 3 buttons × 76px
+    const ACTION_PX = 92;
+    const REVEAL_PX = 3 * ACTION_PX;
     const TRIGGER_PX = 60;
 
     function isModernActive() {
@@ -26,6 +27,52 @@
        SWIPE-TO-REVEAL ACTIONS
        ────────────────────────────── */
 
+    function subscriptionActionClass(action) {
+        return {
+            'edit-subscription': 'edit',
+            'delete-subscription': 'delete',
+            'clone-subscription': 'clone',
+            'mark-paid': 'dash-paid',
+            'renew-subscription': 'dash-missing'
+        }[action] || 'edit';
+    }
+
+    function escapeAttr(value) {
+        return String(value)
+            .replace(/&/g, '&amp;')
+            .replace(/"/g, '&quot;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+    }
+
+    function sortSubscriptionActions(actions) {
+        const order = {
+            'clone-subscription': 10,
+            'delete-subscription': 20,
+            'mark-paid': 30,
+            'renew-subscription': 40,
+            'edit-subscription': 50
+        };
+
+        return actions.sort((a, b) => {
+            const aOrder = order[a.dataset.action] || 100;
+            const bOrder = order[b.dataset.action] || 100;
+            return aOrder - bOrder;
+        });
+    }
+
+    function modernActionIcon(action) {
+        const icons = {
+            'clone-subscription': '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="11" height="11" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1"></path></svg>',
+            'delete-subscription': '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>',
+            'edit-subscription': '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>',
+            'mark-paid': '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>',
+            'renew-subscription': '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 0 1 15.2-6.5L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-15.2 6.5L3 16"></path><path d="M3 21v-5h5"></path></svg>'
+        };
+
+        return icons[action] || icons['edit-subscription'];
+    }
+
     function buildActionsPanel(container) {
         if (container.querySelector('.modern-swipe-actions')) return;
 
@@ -36,20 +83,19 @@
 
         const panel = document.createElement('div');
         panel.className = 'modern-swipe-actions';
-        panel.innerHTML = `
-            <button class="modern-swipe-action edit" data-action="edit" data-id="${id}" aria-label="Edit">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
-                Edit
-            </button>
-            <button class="modern-swipe-action delete" data-action="delete" data-id="${id}" aria-label="Delete">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
-                Delete
-            </button>
-            <button class="modern-swipe-action clone" data-action="clone" data-id="${id}" aria-label="Clone">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H4a2 2 0 0 0-2 2v14h2V3h12V1zm3 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H8V7h11v14z"/></svg>
-                Clone
-            </button>
-        `;
+        const actions = sortSubscriptionActions(Array.from(sub.querySelectorAll('.actions > li[data-action]')));
+        container.style.setProperty('--modern-action-width', `${actions.length * ACTION_PX}px`);
+        container.classList.add('modern-actions-ready');
+        panel.innerHTML = actions.map((item) => {
+            const action = item.dataset.action;
+            const label = item.getAttribute('title') || item.getAttribute('aria-label') || item.textContent.trim();
+            return `
+                <button class="modern-swipe-action ${subscriptionActionClass(action)}" data-modern-action="${action}" data-id="${id}" aria-label="${escapeAttr(label)}">
+                    ${modernActionIcon(action)}
+                    ${label}
+                </button>
+            `;
+        }).join('');
         // Insert as first child so the .subscription overlays it
         container.insertBefore(panel, container.firstChild);
     }
@@ -73,6 +119,7 @@
         let dragging = false;
         let axis = null;
         let suppressClick = false;
+        const revealWidth = () => parseFloat(container.style.getPropertyValue('--modern-action-width')) || REVEAL_PX;
 
         const onDown = (e) => {
             if (!mobileFirstActive()) return;
@@ -80,7 +127,7 @@
             if (e.target.closest('.actions, .actions-expand')) return;
             startX = e.clientX;
             startY = e.clientY;
-            baseX = container.classList.contains('modern-swipe-revealed') ? -REVEAL_PX : 0;
+            baseX = container.classList.contains('modern-swipe-revealed') ? -revealWidth() : 0;
             dragging = true;
             axis = null;
             suppressClick = false;
@@ -103,8 +150,9 @@
                 closeAllExcept(container);
             }
             let next = baseX + dx;
+            const maxReveal = revealWidth();
             if (next > 0) next = 0;
-            if (next < -REVEAL_PX) next = -REVEAL_PX - (Math.abs(next + REVEAL_PX) * 0.2);
+            if (next < -maxReveal) next = -maxReveal - (Math.abs(next + maxReveal) * 0.2);
             sub.style.transform = `translateX(${next}px)`;
             if (Math.abs(dx) > 8) suppressClick = true;
         };
@@ -116,7 +164,8 @@
             try { sub.releasePointerCapture(e.pointerId); } catch (_) { }
             const dx = e.clientX - startX;
             const finalX = baseX + dx;
-            const shouldOpen = (baseX === 0 && dx < -TRIGGER_PX) || (baseX === -REVEAL_PX && finalX < -REVEAL_PX + TRIGGER_PX);
+            const maxReveal = revealWidth();
+            const shouldOpen = (baseX === 0 && dx < -TRIGGER_PX) || (baseX === -maxReveal && finalX < -maxReveal + TRIGGER_PX);
             sub.style.transform = '';
             container.classList.toggle('modern-swipe-revealed', shouldOpen);
             // If we suppressed a click, eat the next click on the subscription
@@ -142,11 +191,11 @@
         document.body.dataset.modernActionsBound = '1';
 
         document.addEventListener('click', (e) => {
-            const btn = e.target.closest('.modern-swipe-action');
+            const btn = e.target.closest('.modern-swipe-action[data-modern-action]');
             if (!btn) return;
             e.stopPropagation();
             e.preventDefault();
-            const action = btn.dataset.action;
+            const action = btn.dataset.modernAction;
             const id = parseInt(btn.dataset.id, 10);
             if (!id) return;
 
@@ -155,12 +204,16 @@
             if (container) container.classList.remove('modern-swipe-revealed');
 
             // Delegate to existing global handlers
-            if (action === 'edit' && typeof openEditSubscription === 'function') {
+            if (action === 'edit-subscription' && typeof openEditSubscription === 'function') {
                 openEditSubscription(e, id);
-            } else if (action === 'delete' && typeof deleteSubscription === 'function') {
+            } else if (action === 'delete-subscription' && typeof deleteSubscription === 'function') {
                 deleteSubscription(e, id);
-            } else if (action === 'clone' && typeof cloneSubscription === 'function') {
+            } else if (action === 'clone-subscription' && typeof cloneSubscription === 'function') {
                 cloneSubscription(e, id);
+            } else if (action === 'mark-paid' && typeof markSubscriptionPaid === 'function') {
+                markSubscriptionPaid(e, id);
+            } else if (action === 'renew-subscription' && typeof renewSubscription === 'function') {
+                renewSubscription(e, id);
             }
         }, true);
 
@@ -171,13 +224,55 @@
         });
     }
 
+    function toggleDesktopReveal(target, event) {
+        if (mobileFirstActive()) return false;
+        const container = target.closest('.subscription-container, .dashboard-swipe-row');
+        if (!container || event.target.closest('button, a, input, select, textarea, .actions, .actions-expand, .modern-swipe-actions')) {
+            return false;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+
+        if (container.classList.contains('subscription-container')) {
+            closeAllExcept(container);
+        } else {
+            document.querySelectorAll('.dashboard-swipe-row.modern-swipe-revealed').forEach(row => {
+                if (row !== container) row.classList.remove('modern-swipe-revealed');
+            });
+            closeAllExcept(null);
+        }
+
+        container.classList.toggle('modern-swipe-revealed');
+        return true;
+    }
+
+    function wireDesktopRevealClicks() {
+        if (document.body.dataset.modernDesktopRevealBound) return;
+        document.body.dataset.modernDesktopRevealBound = '1';
+
+        document.addEventListener('click', (e) => {
+            const card = e.target.closest('.subscription-container > .subscription, .dashboard-swipe-row > .subscription-item');
+            if (card) toggleDesktopReveal(card, e);
+        }, true);
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key !== 'Enter' && e.key !== ' ') return;
+            const card = e.target.closest('.subscription-container > .subscription, .dashboard-swipe-row > .subscription-item');
+            if (card && toggleDesktopReveal(card, e)) {
+                card.focus();
+            }
+        }, true);
+    }
+
     function initSwipe() {
-        if (!mobileFirstActive()) return;
         document.querySelectorAll('.subscription-container').forEach(container => {
             buildActionsPanel(container);
             attachSwipe(container);
         });
         wireActionClicks();
+        wireDesktopRevealClicks();
     }
 
     /* ──────────────────────────────
@@ -303,17 +398,18 @@
         wrapper.className = 'dashboard-swipe-row';
         const actions = document.createElement('div');
         actions.className = 'modern-swipe-actions';
+        wrapper.style.setProperty('--modern-action-width', `${3 * ACTION_PX}px`);
         actions.innerHTML = `
             <button class="modern-swipe-action dash-missing" data-dashboard-action="missing" data-id="${id}" aria-label="Payment Missing">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L1 21h22L12 2zm1 16h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9v4"></path><path d="M12 17h.01"></path><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"></path></svg>
                 Missing
             </button>
             <button class="modern-swipe-action dash-paid" data-dashboard-action="paid" data-id="${id}" aria-label="Already Paid">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>
                 Paid
             </button>
             <button class="modern-swipe-action dash-edit" data-dashboard-action="edit" data-id="${id}" aria-label="Edit">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
                 Edit
             </button>
         `;
@@ -428,7 +524,6 @@
     }
 
     function initDashboardSwipe() {
-        if (!mobileFirstActive()) return;
         // Only wrap upcoming/overdue/paid cards — not budget/active/savings tiles
         const selectors = [
             '.upcoming-subscriptions .subscription-item.subscription-item-clickable',
@@ -442,6 +537,7 @@
             if (wrapper) attachDashboardSwipe(wrapper);
         });
         wireDashboardActionClicks();
+        wireDesktopRevealClicks();
     }
 
     /* ──────────────────────────────
@@ -474,13 +570,13 @@
     // Re-init swipe when the subscription list is replaced (some Wallos pages
     // re-render via fetch, e.g., after applying filters)
     const obs = new MutationObserver(() => {
-        if (!mobileFirstActive()) return;
         document.querySelectorAll('.subscription-container').forEach(container => {
             if (!container.querySelector('.modern-swipe-actions')) {
                 buildActionsPanel(container);
                 attachSwipe(container);
             }
         });
+        initDashboardSwipe();
     });
     if (document.body) {
         obs.observe(document.body, { childList: true, subtree: true });

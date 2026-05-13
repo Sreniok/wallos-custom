@@ -6,7 +6,16 @@ require_once '../../includes/validate_endpoint.php';
 $postData = file_get_contents("php://input");
 $data = json_decode($postData, true);
 
-if (!isset($data["days"]) || $data['days'] === '' || !is_numeric($data['days']) || (int) $data['days'] < 0) {
+$secondNotificationEnabled = !empty($data['second_notification_enabled']) ? 1 : 0;
+$secondNotificationDays = isset($data['second_notification_days']) ? $data['second_notification_days'] : 0;
+$secondNotificationEmail = !empty($data['second_notification_email']) ? 1 : 0;
+$secondNotificationNtfy = !empty($data['second_notification_ntfy']) ? 1 : 0;
+
+if (
+    !isset($data["days"]) || $data['days'] === '' || !is_numeric($data['days']) || (int) $data['days'] < 0 ||
+    $secondNotificationDays === '' || !is_numeric($secondNotificationDays) || (int) $secondNotificationDays < 0 ||
+    ($secondNotificationEnabled && !$secondNotificationEmail && !$secondNotificationNtfy)
+) {
     $response = [
         "success" => false,
         "message" => translate('fill_mandatory_fields', $i18n)
@@ -29,14 +38,29 @@ if (!isset($data["days"]) || $data['days'] === '' || !is_numeric($data['days']) 
         $row = $result->fetchArray();
         $count = $row[0];
         if ($count == 0) {
-            $query = "INSERT INTO notification_settings (days, user_id)
-                              VALUES (:days, :userId)";
+            $query = "INSERT INTO notification_settings (
+                          days, second_notification_enabled, second_notification_days,
+                          second_notification_email, second_notification_ntfy, user_id
+                      ) VALUES (
+                          :days, :secondNotificationEnabled, :secondNotificationDays,
+                          :secondNotificationEmail, :secondNotificationNtfy, :userId
+                      )";
         } else {
-            $query = "UPDATE notification_settings SET days = :days WHERE user_id = :userId";
+            $query = "UPDATE notification_settings
+                      SET days = :days,
+                          second_notification_enabled = :secondNotificationEnabled,
+                          second_notification_days = :secondNotificationDays,
+                          second_notification_email = :secondNotificationEmail,
+                          second_notification_ntfy = :secondNotificationNtfy
+                      WHERE user_id = :userId";
         }
 
         $stmt = $db->prepare($query);
         $stmt->bindValue(':days', $days, SQLITE3_INTEGER);
+        $stmt->bindValue(':secondNotificationEnabled', $secondNotificationEnabled, SQLITE3_INTEGER);
+        $stmt->bindValue(':secondNotificationDays', (int) $secondNotificationDays, SQLITE3_INTEGER);
+        $stmt->bindValue(':secondNotificationEmail', $secondNotificationEmail, SQLITE3_INTEGER);
+        $stmt->bindValue(':secondNotificationNtfy', $secondNotificationNtfy, SQLITE3_INTEGER);
         $stmt->bindValue(':userId', $userId, SQLITE3_INTEGER);
 
         if ($stmt->execute()) {

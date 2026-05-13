@@ -48,9 +48,19 @@ function saveNotifications() {
     const button = document.getElementById("saveNotifications");
     button.disabled = true;
     const days = document.querySelector('#days').value;
+    const secondNotificationEnabled = document.getElementById("secondnotificationenabled").checked ? 1 : 0;
+    const secondNotificationDays = document.getElementById("secondnotificationdays").value;
+    const secondNotificationEmail = document.getElementById("secondnotificationemail").checked ? 1 : 0;
+    const secondNotificationNtfy = document.getElementById("secondnotificationntfy").checked ? 1 : 0;
 
     const url = 'endpoints/notifications/savenotificationsettings.php';
-    const data = { days: days };
+    const data = {
+        days: days,
+        second_notification_enabled: secondNotificationEnabled,
+        second_notification_days: secondNotificationDays,
+        second_notification_email: secondNotificationEmail,
+        second_notification_ntfy: secondNotificationNtfy
+    };
 
     makeFetchCall(url, data, button);
 }

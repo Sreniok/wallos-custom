@@ -154,6 +154,16 @@ function smokeRunFreshDatabaseBootstrap(string $appRoot): void
         smokeAssert(in_array($column, $userColumns, true), "Fresh user table is missing column: $column");
     }
 
+    $notificationSettingColumns = smokeColumns($db, 'notification_settings');
+    foreach ([
+        'second_notification_enabled',
+        'second_notification_days',
+        'second_notification_email',
+        'second_notification_ntfy',
+    ] as $column) {
+        smokeAssert(in_array($column, $notificationSettingColumns, true), "Fresh notification_settings table is missing column: $column");
+    }
+
     $db->exec("INSERT INTO subscriptions (name, price, adjust_to_working_day) VALUES ('Migration 48 probe', 1, 0)");
     require $appRoot . '/migrations/000048.php';
     $adjustToWorkingDay = (int) $db->querySingle("SELECT adjust_to_working_day FROM subscriptions WHERE name = 'Migration 48 probe'");
@@ -168,7 +178,7 @@ function smokeRunFreshDatabaseBootstrap(string $appRoot): void
     $sortedMigrationRows = $migrationRows;
     sort($sortedMigrationRows, SORT_STRING);
     smokeAssert($migrationRows === $sortedMigrationRows, 'Migrations were not recorded in deterministic sorted order');
-    smokeAssert(in_array('migrations/000051.php', $migrationRows, true), 'Latest migration was not applied on a fresh database');
+    smokeAssert(in_array('migrations/000052.php', $migrationRows, true), 'Latest migration was not applied on a fresh database');
 
     $db->close();
     smokeRemoveTree($tmpDir);

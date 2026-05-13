@@ -45,6 +45,28 @@ function getDaysText($days)
     }
 }
 
+function mergeNotificationSets(...$sets)
+{
+    $merged = [];
+    foreach ($sets as $set) {
+        foreach ($set as $payerId => $subscriptions) {
+            if (!isset($merged[$payerId])) {
+                $merged[$payerId] = [];
+            }
+            foreach ($subscriptions as $subscription) {
+                $subscriptionKey = $subscription['id'] ?? count($merged[$payerId]);
+                $merged[$payerId][$subscriptionKey] = $subscription;
+            }
+        }
+    }
+
+    foreach ($merged as $payerId => $subscriptions) {
+        $merged[$payerId] = array_values($subscriptions);
+    }
+
+    return $merged;
+}
+
 while ($userToNotify = $usersToNotify->fetchArray(SQLITE3_ASSOC)) {
     $userId = $userToNotify['id'];
     if (php_sapi_name() !== 'cli') {
@@ -62,6 +84,10 @@ while ($userToNotify = $usersToNotify->fetchArray(SQLITE3_ASSOC)) {
     $discordNotificationsEnabled = false;
     $ntfyNotificationsEnabled = false;
     $serverchanNotificationsEnabled = false;
+    $secondNotificationEnabled = false;
+    $secondNotificationDays = 0;
+    $secondNotificationEmail = true;
+    $secondNotificationNtfy = true;
 
     // Get global adjust_to_working_day setting for this user
     $globalAdjust = false;
@@ -73,13 +99,17 @@ while ($userToNotify = $usersToNotify->fetchArray(SQLITE3_ASSOC)) {
     }
 
     // Get notification settings (how many days before the subscription ends should the notification be sent)
-    $query = "SELECT days FROM notification_settings WHERE user_id = :userId";
+    $query = "SELECT * FROM notification_settings WHERE user_id = :userId";
     $stmt = $db->prepare($query);
     $stmt->bindValue(':userId', $userId, SQLITE3_INTEGER);
     $result = $stmt->execute();
 
     if ($row = $result->fetchArray(SQLITE3_ASSOC)) {
         $days = $row['days'];
+        $secondNotificationEnabled = !empty($row['second_notification_enabled']);
+        $secondNotificationDays = isset($row['second_notification_days']) ? (int) $row['second_notification_days'] : 0;
+        $secondNotificationEmail = !isset($row['second_notification_email']) || !empty($row['second_notification_email']);
+        $secondNotificationNtfy = !isset($row['second_notification_ntfy']) || !empty($row['second_notification_ntfy']);
     }
 
     // Check if email notifications are enabled and get the settings
@@ -264,70 +294,96 @@ while ($userToNotify = $usersToNotify->fetchArray(SQLITE3_ASSOC)) {
         $stmt->bindValue(':inactive', 0, SQLITE3_INTEGER);
         $resultSubscriptions = $stmt->execute();
 
-        $notify = [];
+        $notifyByRule = [
+            'primary' => [],
+            'second' => [],
+        ];
         $i = 0;
         $currentDate = new DateTime('now');
         while ($rowSubscription = $resultSubscriptions->fetchArray(SQLITE3_ASSOC)) {
-            if ($rowSubscription['notify_days_before'] !== -1) {
-                $daysToCompare = $rowSubscription['notify_days_before'];
-            } else {
-                $daysToCompare = $days;
-            }
             $upcomingPayment = getUpcomingSubscriptionPaymentDate($rowSubscription, $currentDate) ?? $rowSubscription['next_payment'];
-            $nextPaymentDate = new DateTime($upcomingPayment);
+            $notificationRules = [
+                [
+                    'key' => 'primary',
+                    'days' => ($rowSubscription['notify_days_before'] !== -1) ? (int) $rowSubscription['notify_days_before'] : (int) $days,
+                ],
+            ];
 
-            $difference = $currentDate->diff($nextPaymentDate)->days;
-            if ($nextPaymentDate > $currentDate) {
-                $difference += 1;
+            if ($secondNotificationEnabled) {
+                $notificationRules[] = [
+                    'key' => 'second',
+                    'days' => $secondNotificationDays,
+                ];
             }
 
-            $shouldNotify = ($difference === $daysToCompare && $nextPaymentDate->format('Y-m-d') >= $currentDate->format('Y-m-d'));
-            $displayDate = $upcomingPayment;
+            foreach ($notificationRules as $notificationRule) {
+                $daysToCompare = $notificationRule['days'];
+                $nextPaymentDate = new DateTime($upcomingPayment);
 
-            if ($globalAdjust && !empty($rowSubscription['adjust_to_working_day'])) {
-                $adjustedPayment = getAdjustedPaymentDate($rowSubscription, $currentDate, true);
-                if ($adjustedPayment !== null && $adjustedPayment !== $upcomingPayment) {
-                    $adjustedDate = new DateTime($adjustedPayment);
-                    $adjDiff = $currentDate->diff($adjustedDate)->days;
-                    if ($adjustedDate > $currentDate) {
-                        $adjDiff += 1;
+                $difference = $currentDate->diff($nextPaymentDate)->days;
+                if ($nextPaymentDate > $currentDate) {
+                    $difference += 1;
+                }
+
+                $shouldNotify = ($difference === $daysToCompare && $nextPaymentDate->format('Y-m-d') >= $currentDate->format('Y-m-d'));
+                $displayDate = $upcomingPayment;
+
+                if ($globalAdjust && !empty($rowSubscription['adjust_to_working_day'])) {
+                    $adjustedPayment = getAdjustedPaymentDate($rowSubscription, $currentDate, true);
+                    if ($adjustedPayment !== null && $adjustedPayment !== $upcomingPayment) {
+                        $adjustedDate = new DateTime($adjustedPayment);
+                        $adjDiff = $currentDate->diff($adjustedDate)->days;
+                        if ($adjustedDate > $currentDate) {
+                            $adjDiff += 1;
+                        }
+                        if ($adjDiff === $daysToCompare && $adjustedDate->format('Y-m-d') >= $currentDate->format('Y-m-d')) {
+                            $shouldNotify = true;
+                        }
                     }
-                    if ($adjDiff === $daysToCompare && $adjustedDate->format('Y-m-d') >= $currentDate->format('Y-m-d')) {
-                        $shouldNotify = true;
+                    if ($shouldNotify) {
+                        $displayDate = getAdjustedPaymentDate($rowSubscription, $currentDate, true) ?? $upcomingPayment;
                     }
                 }
+
                 if ($shouldNotify) {
-                    $displayDate = getAdjustedPaymentDate($rowSubscription, $currentDate, true) ?? $upcomingPayment;
+                    echo "Subscription: " . $rowSubscription['name'] . "<br />";
+                    echo "Next payment date: " . $nextPaymentDate->format('Y-m-d') . "<br />";
+                    echo "Current date: " . $currentDate->format('Y-m-d') . "<br />";
+                    echo "Difference: " . $difference . "<br /><br />";
+                    $notifyByRule[$notificationRule['key']][$rowSubscription['payer_user_id']][$i]['id'] = $rowSubscription['id'];
+                    $notifyByRule[$notificationRule['key']][$rowSubscription['payer_user_id']][$i]['name'] = html_entity_decode($rowSubscription['name'], ENT_QUOTES, 'UTF-8');
+                    $notifyByRule[$notificationRule['key']][$rowSubscription['payer_user_id']][$i]['price'] = $rowSubscription['price'] . $currencies[$rowSubscription['currency_id']]['symbol'];
+                    $notifyByRule[$notificationRule['key']][$rowSubscription['payer_user_id']][$i]['currency'] = $currencies[$rowSubscription['currency_id']]['name'];
+                    $notifyByRule[$notificationRule['key']][$rowSubscription['payer_user_id']][$i]['currency_symbol'] = $currencies[$rowSubscription['currency_id']]['symbol'];
+                    $notifyByRule[$notificationRule['key']][$rowSubscription['payer_user_id']][$i]['formatted_price'] = formatPrice($rowSubscription['price'], $currencies[$rowSubscription['currency_id']]['code'], $currencies[$rowSubscription['currency_id']]['symbol']);
+                    $notifyByRule[$notificationRule['key']][$rowSubscription['payer_user_id']][$i]['category'] = $categories[$rowSubscription['category_id']]['name'];
+                    $notifyByRule[$notificationRule['key']][$rowSubscription['payer_user_id']][$i]['payer'] = $household[$rowSubscription['payer_user_id']]['name'];
+                    $notifyByRule[$notificationRule['key']][$rowSubscription['payer_user_id']][$i]['date'] = $displayDate;
+                    $notifyByRule[$notificationRule['key']][$rowSubscription['payer_user_id']][$i]['days'] = $daysToCompare;
+                    $notifyByRule[$notificationRule['key']][$rowSubscription['payer_user_id']][$i]['badge'] = getDaysText($daysToCompare);
+                    $notifyByRule[$notificationRule['key']][$rowSubscription['payer_user_id']][$i]['price'] = $notifyByRule[$notificationRule['key']][$rowSubscription['payer_user_id']][$i]['formatted_price'];
+                    $notifyByRule[$notificationRule['key']][$rowSubscription['payer_user_id']][$i]['logo'] = $rowSubscription['logo'];
+                    $notifyByRule[$notificationRule['key']][$rowSubscription['payer_user_id']][$i]['url'] = $rowSubscription['url'];
+                    $notifyByRule[$notificationRule['key']][$rowSubscription['payer_user_id']][$i]['notes'] = $rowSubscription['notes'];
+                    $i++;
                 }
-            }
-
-            if ($shouldNotify) {
-                echo "Subscription: " . $rowSubscription['name'] . "<br />";
-                echo "Next payment date: " . $nextPaymentDate->format('Y-m-d') . "<br />";
-                echo "Current date: " . $currentDate->format('Y-m-d') . "<br />";
-                echo "Difference: " . $difference . "<br /><br />";
-                $notify[$rowSubscription['payer_user_id']][$i]['name'] = html_entity_decode($rowSubscription['name'], ENT_QUOTES, 'UTF-8');
-                $notify[$rowSubscription['payer_user_id']][$i]['price'] = $rowSubscription['price'] . $currencies[$rowSubscription['currency_id']]['symbol'];
-                $notify[$rowSubscription['payer_user_id']][$i]['currency'] = $currencies[$rowSubscription['currency_id']]['name'];
-                $notify[$rowSubscription['payer_user_id']][$i]['currency_symbol'] = $currencies[$rowSubscription['currency_id']]['symbol'];
-                $notify[$rowSubscription['payer_user_id']][$i]['formatted_price'] = formatPrice($rowSubscription['price'], $currencies[$rowSubscription['currency_id']]['code'], $currencies[$rowSubscription['currency_id']]['symbol']);
-                $notify[$rowSubscription['payer_user_id']][$i]['category'] = $categories[$rowSubscription['category_id']]['name'];
-                $notify[$rowSubscription['payer_user_id']][$i]['payer'] = $household[$rowSubscription['payer_user_id']]['name'];
-                $notify[$rowSubscription['payer_user_id']][$i]['date'] = $displayDate;
-                $notify[$rowSubscription['payer_user_id']][$i]['days'] = $daysToCompare;
-                $notify[$rowSubscription['payer_user_id']][$i]['badge'] = getDaysText($daysToCompare);
-                $notify[$rowSubscription['payer_user_id']][$i]['price'] = $notify[$rowSubscription['payer_user_id']][$i]['formatted_price'];
-                $notify[$rowSubscription['payer_user_id']][$i]['logo'] = $rowSubscription['logo'];
-                $notify[$rowSubscription['payer_user_id']][$i]['url'] = $rowSubscription['url'];
-                $notify[$rowSubscription['payer_user_id']][$i]['notes'] = $rowSubscription['notes'];
-                $i++;
             }
         }
 
-        if (!empty($notify)) {
+        $notify = $notifyByRule['primary'];
+        $emailNotify = mergeNotificationSets(
+            $notifyByRule['primary'],
+            ($secondNotificationEnabled && $secondNotificationEmail) ? $notifyByRule['second'] : []
+        );
+        $ntfyNotify = mergeNotificationSets(
+            $notifyByRule['primary'],
+            ($secondNotificationEnabled && $secondNotificationNtfy) ? $notifyByRule['second'] : []
+        );
+
+        if (!empty($notify) || !empty($notifyByRule['second'])) {
 
             // Email notifications if enabled
-            if ($emailNotificationsEnabled) {
+            if ($emailNotificationsEnabled && !empty($emailNotify)) {
                 $serverUrl = '';
                 $adminResult = $db->query("SELECT server_url FROM admin LIMIT 1");
                 if ($adminResult !== false) {
@@ -344,7 +400,7 @@ while ($userToNotify = $usersToNotify->fetchArray(SQLITE3_ASSOC)) {
                 $defaultEmail = $defaultUser['email'];
                 $defaultName = $defaultUser['username'];
 
-                foreach ($notify as $userId => $perUser) {
+                foreach ($emailNotify as $userId => $perUser) {
                     $message = "The following subscriptions are up for renewal:";
 
                     $smtpAuth = (isset($email["smtpUsername"]) && $email["smtpUsername"] != "") || (isset($email["smtpPassword"]) && $email["smtpPassword"] != "");
@@ -761,12 +817,12 @@ while ($userToNotify = $usersToNotify->fetchArray(SQLITE3_ASSOC)) {
             }
 
             // Ntfy notifications if enabled
-            if ($ntfyNotificationsEnabled) {
+            if ($ntfyNotificationsEnabled && !empty($ntfyNotify)) {
                 $ssrf = is_url_safe_for_ssrf($ntfy['host'], $db);
                 if (!$ssrf) {
                     echo "SSRF attempt detected for Ntfy host URL. Notifications not sent.<br />";
                 } else {
-                    foreach ($notify as $userId => $perUser) {
+                    foreach ($ntfyNotify as $userId => $perUser) {
                         // Get name of user from household table
                         $stmt = $db->prepare('SELECT * FROM household WHERE id = :userId');
                         $stmt->bindValue(':userId', $userId, SQLITE3_INTEGER);
