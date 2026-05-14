@@ -927,7 +927,9 @@ button.mobile-action-paid {
 .account-section header h2.second-header {
   margin-top: 34px;
 }
-
+hr {
+  margin: 25px 0px !important;
+}
 .account-section+.account-section {
   margin-top: 34px;
 }
@@ -1119,6 +1121,23 @@ header #avatar {
 }
 
 .user-form .buttons,
+.household-member-row {
+  align-items: flex-end;
+}
+
+.member-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.member-field-group label {
+  font-size: 12px;
+  color: var(--modern-text-muted, #98A1AE);
+  margin-bottom: 0;
+}
+
 .account-members .buttons,
 .account-currencies .buttons,
 .account-fixer .buttons,
@@ -1138,12 +1157,14 @@ header #avatar {
 }
 
 .admin-form hr {
-  margin: 20px 0px;
+  margin: 35px 0px;
   color: var(--main-color);
   border-color: var(--main-color);
   background-color: var(--main-color);
 }
-
+.account-notifications {
+  margin-top: 20px;
+}
 .account-notifications-section {
   border: 1px solid #ccc;
   border-radius: 8px;
@@ -1443,6 +1464,26 @@ label {
   cursor: pointer;
 }
 
+.input-prefix-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.input-prefix-wrapper .input-prefix {
+  position: absolute;
+  left: 4px;
+  color: #86888c;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.input-prefix-wrapper input {
+  padding-left: 34px;
+  width: 100%;
+}
+
 label.split-label {
   display: flex;
   flex-direction: row;
@@ -1698,7 +1739,7 @@ textarea.thin {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  margin-bottom: 10px;
+  margin-bottom: 20px;
 }
 
 .icon-search>header>span {
@@ -1810,8 +1851,9 @@ button.dark-theme-button i {
 .subscription-form h3,
 .subscription-modal h3 {
   border-bottom: 1px solid var(--main-color);
-  padding-bottom: 15px;
+  padding-bottom: 20px;
   margin-top: 0px;
+  margin-bottom: 20px;
 }
 
 .subscription-form .buttons {
@@ -2247,7 +2289,7 @@ button.dark-theme-button i {
 /* Settings sort category */
 
 .sortable-list {
-  margin: 0px;
+  margin: 20px 0 0 0;
   padding: 0px;
   -webkit-touch-callout: none;
   -webkit-user-select: none;

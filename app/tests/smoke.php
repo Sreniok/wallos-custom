@@ -178,7 +178,7 @@ function smokeRunFreshDatabaseBootstrap(string $appRoot): void
     $sortedMigrationRows = $migrationRows;
     sort($sortedMigrationRows, SORT_STRING);
     smokeAssert($migrationRows === $sortedMigrationRows, 'Migrations were not recorded in deterministic sorted order');
-    smokeAssert(in_array('migrations/000052.php', $migrationRows, true), 'Latest migration was not applied on a fresh database');
+    smokeAssert(in_array('migrations/000055.php', $migrationRows, true), 'Latest migration was not applied on a fresh database');
 
     $db->close();
     smokeRemoveTree($tmpDir);

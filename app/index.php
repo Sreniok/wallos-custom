@@ -159,9 +159,9 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
                             <p class="subscription-item-name"><?= $subscriptionName ?></p>
                             <p class="subscription-item-meta">
                                 <span class="rel-time overdue"><?= htmlspecialchars(wallosRelativeDayLabel($subscriptionNextPayment)) ?></span>
-                                <span class="meta-sep">·</span>
+                                <span class="meta-sep">&middot;</span>
                                 <span class="rel-date"><?= htmlspecialchars(formatDate($subscriptionDisplayNextPayment, $lang)) ?></span>
-                                <span class="meta-sep">·</span>
+                                <span class="meta-sep">&middot;</span>
                                 <span class="renew-label"><?= ((int) $subscription['auto_renew'] === 1) ? 'auto-renew' : 'manual' ?></span>
                             </p>
                             <div class="subscription-item-info">
@@ -217,9 +217,9 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
                             <p class="subscription-item-name"><?= $subscriptionName ?></p>
                             <p class="subscription-item-meta">
                                 <span class="rel-time"><?= htmlspecialchars(wallosRelativeDayLabel($subscriptionNextPayment)) ?></span>
-                                <span class="meta-sep">·</span>
+                                <span class="meta-sep">&middot;</span>
                                 <span class="rel-date"><?= htmlspecialchars(formatDate($subscriptionDisplayNextPayment, $lang)) ?></span>
-                                <span class="meta-sep">·</span>
+                                <span class="meta-sep">&middot;</span>
                                 <span class="renew-label"><?= ((int) $subscription['auto_renew'] === 1) ? 'auto-renew' : 'manual' ?></span>
                             </p>
                             <div class="subscription-item-info">
@@ -271,7 +271,7 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
                                 <p class="subscription-item-name"><?= $subscriptionName ?></p>
                                 <p class="subscription-item-meta">
                                     <span class="rel-time"><?= htmlspecialchars(formatDate(date('F j', strtotime($subscriptionPaymentDate)), $lang)) ?></span>
-                                    <span class="meta-sep">·</span>
+                                    <span class="meta-sep">&middot;</span>
                                     <span class="paid-badge">&#10003; paid</span>
                                 </p>
                                 <div class="subscription-item-info">

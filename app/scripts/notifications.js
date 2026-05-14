@@ -1,3 +1,22 @@
+// Restore scroll position after a smooth reload
+(function () {
+    const savedScroll = sessionStorage.getItem('wallos-scroll-pos');
+    if (savedScroll !== null) {
+        sessionStorage.removeItem('wallos-scroll-pos');
+        const restore = () => window.scrollTo(0, parseInt(savedScroll, 10));
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', restore);
+        } else {
+            restore();
+        }
+    }
+}());
+
+function smoothReload() {
+    sessionStorage.setItem('wallos-scroll-pos', window.scrollY);
+    window.location.reload();
+}
+
 function openNotificationsSettings(type) {
     // Get all .account-notification-section-settings elements
     var sections = document.querySelectorAll('.account-notification-section-settings');
@@ -19,7 +38,7 @@ function openNotificationsSettings(type) {
     }
 }
 
-function makeFetchCall(url, data, button) {
+function makeFetchCall(url, data, button, onSuccess) {
     return fetch(url, {
         method: 'POST',
         headers: {
@@ -29,13 +48,18 @@ function makeFetchCall(url, data, button) {
         body: JSON.stringify(data),
     })
     .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showSuccessMessage(data.message);
+    .then(result => {
+        if (result.success) {
+            if (onSuccess) {
+                onSuccess();
+            } else {
+                showSuccessMessage(result.message);
+                button.disabled = false;
+            }
         } else {
-            showErrorMessage(data.message);
+            showErrorMessage(result.message);
+            button.disabled = false;
         }
-        button.disabled = false;
     })
     .catch((error) => {
         showErrorMessage(error);
@@ -44,25 +68,43 @@ function makeFetchCall(url, data, button) {
 
 }
 
+function toggleFirstNotification(enabled) {
+    const settings = document.getElementById('first-notification-settings');
+    if (settings) settings.style.display = enabled ? '' : 'none';
+}
+
+function toggleSecondNotification(enabled) {
+    const settings = document.getElementById('second-notification-settings');
+    if (settings) settings.style.display = enabled ? '' : 'none';
+}
+
 function saveNotifications() {
     const button = document.getElementById("saveNotifications");
     button.disabled = true;
     const days = document.querySelector('#days').value;
+    const firstNotificationEnabled = document.getElementById("firstnotificationenabled").checked ? 1 : 0;
     const secondNotificationEnabled = document.getElementById("secondnotificationenabled").checked ? 1 : 0;
     const secondNotificationDays = document.getElementById("secondnotificationdays").value;
-    const secondNotificationEmail = document.getElementById("secondnotificationemail").checked ? 1 : 0;
-    const secondNotificationNtfy = document.getElementById("secondnotificationntfy").checked ? 1 : 0;
 
-    const url = 'endpoints/notifications/savenotificationsettings.php';
     const data = {
         days: days,
+        first_notification_enabled: firstNotificationEnabled,
         second_notification_enabled: secondNotificationEnabled,
         second_notification_days: secondNotificationDays,
-        second_notification_email: secondNotificationEmail,
-        second_notification_ntfy: secondNotificationNtfy
     };
 
-    makeFetchCall(url, data, button);
+    document.querySelectorAll('#first-notification-channels input[type=checkbox]').forEach(cb => {
+        const channel = cb.id.replace('firstnotification', '');
+        data['first_notification_' + channel] = cb.checked ? 1 : 0;
+    });
+
+    document.querySelectorAll('#second-notification-channels input[type=checkbox]').forEach(cb => {
+        const channel = cb.id.replace('secondnotification', '');
+        data['second_notification_' + channel] = cb.checked ? 1 : 0;
+    });
+
+    const url = 'endpoints/notifications/savenotificationsettings.php';
+    makeFetchCall(url, data, button, smoothReload);
 }
 
 function saveNotificationsEmailButton() {
@@ -89,7 +131,7 @@ function saveNotificationsEmailButton() {
       otheremails: otherEmails
     };
 
-    makeFetchCall('endpoints/notifications/saveemailnotifications.php', data, button);
+    makeFetchCall('endpoints/notifications/saveemailnotifications.php', data, button, smoothReload);
 }
   
 function testNotificationEmailButton()  {
@@ -135,7 +177,7 @@ function saveNotificationsWebhookButton() {
       ignore_ssl: ignore_ssl
     };
 
-    makeFetchCall('endpoints/notifications/savewebhooknotifications.php', data, button);
+    makeFetchCall('endpoints/notifications/savewebhooknotifications.php', data, button, smoothReload);
 }
 
 function testNotificationsWebhookButton() {
@@ -177,7 +219,7 @@ function saveNotificationsTelegramButton() {
       bot_token: bot_token
     };
 
-    makeFetchCall('endpoints/notifications/savetelegramnotifications.php', data, button);
+    makeFetchCall('endpoints/notifications/savetelegramnotifications.php', data, button, smoothReload);
 }
 
 function testNotificationsTelegramButton() {
@@ -224,7 +266,7 @@ function saveNotificationsPushPlusButton() {
       token: token
     };
 
-    makeFetchCall('endpoints/notifications/savepushplusnotifications.php', data, button);
+    makeFetchCall('endpoints/notifications/savepushplusnotifications.php', data, button, smoothReload);
 }
 
 function testNotificationsMattermostButton() {
@@ -262,7 +304,7 @@ function saveNotificationsMattermostButton() {
       bot_icon_emoji: bot_icon_emoji
     };
 
-    makeFetchCall('endpoints/notifications/savemattermostnotifications.php', data, button);
+    makeFetchCall('endpoints/notifications/savemattermostnotifications.php', data, button, smoothReload);
 }
 
 function saveNotificationsGotifyButton() {
@@ -281,7 +323,7 @@ function saveNotificationsGotifyButton() {
       ignore_ssl: ignore_ssl
     };
 
-    makeFetchCall('endpoints/notifications/savegotifynotifications.php', data, button);
+    makeFetchCall('endpoints/notifications/savegotifynotifications.php', data, button, smoothReload);
 }
 
 
@@ -318,7 +360,7 @@ function saveNotificationsPushoverButton() {
     token: token
   };
 
-  makeFetchCall('endpoints/notifications/savepushovernotifications.php', data, button);
+  makeFetchCall('endpoints/notifications/savepushovernotifications.php', data, button, smoothReload);
 }
 
 function testNotificationsPushoverButton() {
@@ -354,7 +396,7 @@ function saveNotificationsDiscordButton() {
     bot_avatar: bot_avatar
   };
 
-  makeFetchCall('endpoints/notifications/savediscordnotifications.php', data, button);
+  makeFetchCall('endpoints/notifications/savediscordnotifications.php', data, button, smoothReload);
 }
 
 function testNotificationsDiscordButton() {
@@ -413,7 +455,7 @@ function saveNotificationsNtfyButton() {
     ignore_ssl: ignore_ssl
   };
 
-  makeFetchCall('endpoints/notifications/saventfynotifications.php', data, button);
+  makeFetchCall('endpoints/notifications/saventfynotifications.php', data, button, smoothReload);
 }
 
 function testNotificationsServerchanButton() {
@@ -443,5 +485,5 @@ function saveNotificationsServerchanButton() {
     sendkey: sendkey
   };
 
-  makeFetchCall('endpoints/notifications/saveserverchannotifications.php', data, button);
+  makeFetchCall('endpoints/notifications/saveserverchannotifications.php', data, button, smoothReload);
 }

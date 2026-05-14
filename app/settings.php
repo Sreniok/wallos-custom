@@ -51,9 +51,11 @@ $icalEnabled = !empty($userData['ical_enabled']);
         </header>
         <div class="account-budget">
             <div class="form-group-inline">
-                <label for="budget"><?= $userData['currency_symbol'] ?></label>
-                <input type="number" id="budget" name="budget" autocomplete="off" value="<?= $userData['budget'] ?>"
-                    placeholder="Budget">
+                <div class="input-prefix-wrapper">
+                    <span class="input-prefix"><?= $userData['currency_symbol'] ?></span>
+                    <input type="number" id="budget" name="budget" autocomplete="off" value="<?= $userData['budget'] ?>"
+                        placeholder="Budget">
+                </div>
                 <input type="submit" value="<?= translate('save', $i18n) ?>" id="saveBudget" data-click="saveBudget" />
             </div>
             <div class="settings-notes">
@@ -87,14 +89,20 @@ $icalEnabled = !empty($userData['ical_enabled']);
                 <?php
                 foreach ($household as $index => $member) {
                     ?>
-                    <div class="form-group-inline" data-memberid="<?= $member['id'] ?>">
-                        <input type="text" name="member" autocomplete="off" value="<?= $member['name'] ?>"
-                            placeholder="Member">
+                    <div class="form-group-inline household-member-row" data-memberid="<?= $member['id'] ?>">
+                        <div class="member-field-group">
+                            <label>Member</label>
+                            <input type="text" name="member" autocomplete="off" value="<?= $member['name'] ?>"
+                                placeholder="Member">
+                        </div>
                         <?php
                         if ($index !== 0) {
                             ?>
-                            <input type="text" name="email" autocomplete="off" value="<?= $member['email'] ?? "" ?>"
-                                placeholder="<?= translate("email", $i18n) ?>">
+                            <div class="member-field-group">
+                                <label><?= translate('email', $i18n) ?></label>
+                                <input type="text" name="email" autocomplete="off" value="<?= $member['email'] ?? "" ?>"
+                                    placeholder="<?= translate("email", $i18n) ?>">
+                            </div>
                             <?php
                         }
                         ?>
@@ -152,10 +160,29 @@ $icalEnabled = !empty($userData['ical_enabled']);
     if ($rowCount == 0) {
         $notifications['days'] = 1;
     }
-    $notifications['second_notification_enabled'] = $notifications['second_notification_enabled'] ?? 0;
-    $notifications['second_notification_days'] = $notifications['second_notification_days'] ?? 0;
-    $notifications['second_notification_email'] = $notifications['second_notification_email'] ?? 1;
-    $notifications['second_notification_ntfy'] = $notifications['second_notification_ntfy'] ?? 1;
+    $notifications['second_notification_enabled']    = $notifications['second_notification_enabled'] ?? 0;
+    $notifications['second_notification_days']       = $notifications['second_notification_days'] ?? 0;
+    $notifications['second_notification_email']      = $notifications['second_notification_email'] ?? 1;
+    $notifications['second_notification_ntfy']       = $notifications['second_notification_ntfy'] ?? 1;
+    $notifications['second_notification_webhook']    = $notifications['second_notification_webhook'] ?? 1;
+    $notifications['second_notification_discord']    = $notifications['second_notification_discord'] ?? 1;
+    $notifications['second_notification_telegram']   = $notifications['second_notification_telegram'] ?? 1;
+    $notifications['second_notification_gotify']     = $notifications['second_notification_gotify'] ?? 1;
+    $notifications['second_notification_pushover']   = $notifications['second_notification_pushover'] ?? 1;
+    $notifications['second_notification_pushplus']   = $notifications['second_notification_pushplus'] ?? 1;
+    $notifications['second_notification_mattermost'] = $notifications['second_notification_mattermost'] ?? 1;
+    $notifications['second_notification_serverchan'] = $notifications['second_notification_serverchan'] ?? 1;
+    $notifications['first_notification_enabled']    = $notifications['first_notification_enabled'] ?? 1;
+    $notifications['first_notification_email']      = $notifications['first_notification_email'] ?? 1;
+    $notifications['first_notification_ntfy']       = $notifications['first_notification_ntfy'] ?? 1;
+    $notifications['first_notification_webhook']    = $notifications['first_notification_webhook'] ?? 1;
+    $notifications['first_notification_discord']    = $notifications['first_notification_discord'] ?? 1;
+    $notifications['first_notification_telegram']   = $notifications['first_notification_telegram'] ?? 1;
+    $notifications['first_notification_gotify']     = $notifications['first_notification_gotify'] ?? 1;
+    $notifications['first_notification_pushover']   = $notifications['first_notification_pushover'] ?? 1;
+    $notifications['first_notification_pushplus']   = $notifications['first_notification_pushplus'] ?? 1;
+    $notifications['first_notification_mattermost'] = $notifications['first_notification_mattermost'] ?? 1;
+    $notifications['first_notification_serverchan'] = $notifications['first_notification_serverchan'] ?? 1;
 
     // Email notifications
     $sql = "SELECT * FROM email_notifications WHERE user_id = :userId LIMIT 1";
@@ -392,6 +419,20 @@ $icalEnabled = !empty($userData['ical_enabled']);
         $notificationsGotify['ignore_ssl'] = 0;
     }
 
+    $notifChannelDefs = [
+        ['id' => 'email',      'label' => translate('email', $i18n), 'enabled' => $notificationsEmail['enabled'],      'first_db_key' => 'first_notification_email',      'second_db_key' => 'second_notification_email'],
+        ['id' => 'webhook',    'label' => 'Webhook',                  'enabled' => $notificationsWebhook['enabled'],    'first_db_key' => 'first_notification_webhook',    'second_db_key' => 'second_notification_webhook'],
+        ['id' => 'discord',    'label' => 'Discord',                  'enabled' => $notificationsDiscord['enabled'],    'first_db_key' => 'first_notification_discord',    'second_db_key' => 'second_notification_discord'],
+        ['id' => 'telegram',   'label' => 'Telegram',                 'enabled' => $notificationsTelegram['enabled'],   'first_db_key' => 'first_notification_telegram',   'second_db_key' => 'second_notification_telegram'],
+        ['id' => 'gotify',     'label' => 'Gotify',                   'enabled' => $notificationsGotify['enabled'],     'first_db_key' => 'first_notification_gotify',     'second_db_key' => 'second_notification_gotify'],
+        ['id' => 'pushover',   'label' => 'Pushover',                 'enabled' => $notificationsPushover['enabled'],   'first_db_key' => 'first_notification_pushover',   'second_db_key' => 'second_notification_pushover'],
+        ['id' => 'pushplus',   'label' => 'PushPlus',                 'enabled' => $notificationsPushPlus['enabled'],   'first_db_key' => 'first_notification_pushplus',   'second_db_key' => 'second_notification_pushplus'],
+        ['id' => 'mattermost', 'label' => 'Mattermost',               'enabled' => $notificationsMattermost['enabled'], 'first_db_key' => 'first_notification_mattermost', 'second_db_key' => 'second_notification_mattermost'],
+        ['id' => 'ntfy',       'label' => 'Ntfy',                     'enabled' => $notificationsNtfy['enabled'],       'first_db_key' => 'first_notification_ntfy',       'second_db_key' => 'second_notification_ntfy'],
+        ['id' => 'serverchan', 'label' => 'ServerChan',               'enabled' => $notificationsServerchan['enabled'], 'first_db_key' => 'first_notification_serverchan', 'second_db_key' => 'second_notification_serverchan'],
+    ];
+    $enabledNotifChannels = array_values(array_filter($notifChannelDefs, fn($c) => !empty($c['enabled'])));
+
     ?>
 
     <section class="account-section" data-settings-tab="notifications">
@@ -400,62 +441,86 @@ $icalEnabled = !empty($userData['ical_enabled']);
         </header>
         <div class="account-notifications">
             <section>
-                <label for="days"><?= translate('notify_me', $i18n) ?>:</label>
                 <div class="form-group-inline">
-                    <select name="days" id="days">
-                        <option value="0" <?= $notifications['days'] == 0 ? "selected" : "" ?>>
-                            <?= translate('on_due_date', $i18n) ?>
-                        </option>
-                        <option value="1" <?= $notifications['days'] == 1 ? "selected" : "" ?>>
-                            1 <?= translate('day_before', $i18n) ?>
-                        </option>
-                        <?php
-                        for ($i = 2; $i <= 7; $i++) {
-                            $selected = $i == $notifications['days'] ? "selected" : "";
-                            ?>
-                            <option value="<?= $i ?>" <?= $selected ?>>
-                                <?= $i ?>     <?= translate('day_before', $i18n) ?>
+                    <input type="checkbox" id="firstnotificationenabled" name="firstnotificationenabled"
+                        <?= $notifications['first_notification_enabled'] ? "checked" : "" ?>
+                        onchange="toggleFirstNotification(this.checked)">
+                    <label for="firstnotificationenabled"><?= translate('notify_me', $i18n) ?></label>
+                </div>
+                <div id="first-notification-settings" <?= !$notifications['first_notification_enabled'] ? 'style="display:none"' : '' ?>>
+                    <div class="form-group-inline">
+                        <select name="days" id="days">
+                            <option value="0" <?= $notifications['days'] == 0 ? "selected" : "" ?>>
+                                <?= translate('on_due_date', $i18n) ?>
+                            </option>
+                            <option value="1" <?= $notifications['days'] == 1 ? "selected" : "" ?>>
+                                1 <?= translate('day_before', $i18n) ?>
                             </option>
                             <?php
-                        }
-                        ?>
-                    </select>
-                    <input type="submit" class="thin" value="<?= translate('save', $i18n) ?>" id="saveNotifications"
-                        data-click="saveNotifications" />
+                            for ($i = 2; $i <= 7; $i++) {
+                                $selected = $i == $notifications['days'] ? "selected" : "";
+                                ?>
+                                <option value="<?= $i ?>" <?= $selected ?>>
+                                    <?= $i ?>     <?= translate('day_before', $i18n) ?>
+                                </option>
+                                <?php
+                            }
+                            ?>
+                        </select>
+                    </div>
+                    <?php if (!empty($enabledNotifChannels)): ?>
+                    <div class="form-group-inline" id="first-notification-channels">
+                        <?php foreach ($enabledNotifChannels as $channel): ?>
+                        <input type="checkbox" id="firstnotification<?= $channel['id'] ?>"
+                            name="firstnotification<?= $channel['id'] ?>"
+                            <?= !empty($notifications[$channel['first_db_key']]) ? "checked" : "" ?>>
+                        <label for="firstnotification<?= $channel['id'] ?>"><?= $channel['label'] ?></label>
+                        <?php endforeach; ?>
+                    </div>
+                    <?php endif; ?>
                 </div>
+                <hr style="border:none;border-top:1px solid rgba(255,255,255,0.08);margin:0.75rem 0">
                 <div class="form-group-inline">
                     <input type="checkbox" id="secondnotificationenabled" name="secondnotificationenabled"
-                        <?= $notifications['second_notification_enabled'] ? "checked" : "" ?>>
+                        <?= $notifications['second_notification_enabled'] ? "checked" : "" ?>
+                        onchange="toggleSecondNotification(this.checked)">
                     <label for="secondnotificationenabled"><?= translate('enable_second_notification', $i18n) ?></label>
                 </div>
-                <label for="secondnotificationdays"><?= translate('second_notification', $i18n) ?>:</label>
-                <div class="form-group-inline">
-                    <select name="secondnotificationdays" id="secondnotificationdays">
-                        <option value="0" <?= $notifications['second_notification_days'] == 0 ? "selected" : "" ?>>
-                            <?= translate('on_due_date', $i18n) ?>
-                        </option>
-                        <option value="1" <?= $notifications['second_notification_days'] == 1 ? "selected" : "" ?>>
-                            1 <?= translate('day_before', $i18n) ?>
-                        </option>
-                        <?php
-                        for ($i = 2; $i <= 7; $i++) {
-                            $selected = $i == $notifications['second_notification_days'] ? "selected" : "";
-                            ?>
-                            <option value="<?= $i ?>" <?= $selected ?>>
-                                <?= $i ?> <?= translate('days_before', $i18n) ?>
+                <div id="second-notification-settings" <?= !$notifications['second_notification_enabled'] ? 'style="display:none"' : '' ?>>
+                    <div class="form-group-inline">
+                        <select name="secondnotificationdays" id="secondnotificationdays">
+                            <option value="0" <?= $notifications['second_notification_days'] == 0 ? "selected" : "" ?>>
+                                <?= translate('on_due_date', $i18n) ?>
+                            </option>
+                            <option value="1" <?= $notifications['second_notification_days'] == 1 ? "selected" : "" ?>>
+                                1 <?= translate('day_before', $i18n) ?>
                             </option>
                             <?php
-                        }
-                        ?>
-                    </select>
+                            for ($i = 2; $i <= 7; $i++) {
+                                $selected = $i == $notifications['second_notification_days'] ? "selected" : "";
+                                ?>
+                                <option value="<?= $i ?>" <?= $selected ?>>
+                                    <?= $i ?> <?= translate('days_before', $i18n) ?>
+                                </option>
+                                <?php
+                            }
+                            ?>
+                        </select>
+                    </div>
+                    <?php if (!empty($enabledNotifChannels)): ?>
+                    <div class="form-group-inline" id="second-notification-channels">
+                        <?php foreach ($enabledNotifChannels as $channel): ?>
+                        <input type="checkbox" id="secondnotification<?= $channel['id'] ?>"
+                            name="secondnotification<?= $channel['id'] ?>"
+                            <?= !empty($notifications[$channel['second_db_key']]) ? "checked" : "" ?>>
+                        <label for="secondnotification<?= $channel['id'] ?>"><?= $channel['label'] ?></label>
+                        <?php endforeach; ?>
+                    </div>
+                    <?php endif; ?>
                 </div>
                 <div class="form-group-inline">
-                    <input type="checkbox" id="secondnotificationemail" name="secondnotificationemail"
-                        <?= $notifications['second_notification_email'] ? "checked" : "" ?>>
-                    <label for="secondnotificationemail"><?= translate('email', $i18n) ?></label>
-                    <input type="checkbox" id="secondnotificationntfy" name="secondnotificationntfy"
-                        <?= $notifications['second_notification_ntfy'] ? "checked" : "" ?>>
-                    <label for="secondnotificationntfy">Ntfy</label>
+                    <input type="submit" class="thin" value="<?= translate('save', $i18n) ?>" id="saveNotifications"
+                        data-click="saveNotifications" />
                 </div>
             </section>
             <section class="account-notifications-section">

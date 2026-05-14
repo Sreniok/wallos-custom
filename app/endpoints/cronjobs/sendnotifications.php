@@ -84,10 +84,29 @@ while ($userToNotify = $usersToNotify->fetchArray(SQLITE3_ASSOC)) {
     $discordNotificationsEnabled = false;
     $ntfyNotificationsEnabled = false;
     $serverchanNotificationsEnabled = false;
+    $firstNotificationEnabled = true;
     $secondNotificationEnabled = false;
     $secondNotificationDays = 0;
+    $firstNotificationEmail = true;
+    $firstNotificationNtfy = true;
+    $firstNotificationWebhook = true;
+    $firstNotificationDiscord = true;
+    $firstNotificationTelegram = true;
+    $firstNotificationGotify = true;
+    $firstNotificationPushover = true;
+    $firstNotificationPushplus = true;
+    $firstNotificationMattermost = true;
+    $firstNotificationServerchan = true;
     $secondNotificationEmail = true;
     $secondNotificationNtfy = true;
+    $secondNotificationWebhook = true;
+    $secondNotificationDiscord = true;
+    $secondNotificationTelegram = true;
+    $secondNotificationGotify = true;
+    $secondNotificationPushover = true;
+    $secondNotificationPushplus = true;
+    $secondNotificationMattermost = true;
+    $secondNotificationServerchan = true;
 
     // Get global adjust_to_working_day setting for this user
     $globalAdjust = false;
@@ -108,8 +127,27 @@ while ($userToNotify = $usersToNotify->fetchArray(SQLITE3_ASSOC)) {
         $days = $row['days'];
         $secondNotificationEnabled = !empty($row['second_notification_enabled']);
         $secondNotificationDays = isset($row['second_notification_days']) ? (int) $row['second_notification_days'] : 0;
-        $secondNotificationEmail = !isset($row['second_notification_email']) || !empty($row['second_notification_email']);
-        $secondNotificationNtfy = !isset($row['second_notification_ntfy']) || !empty($row['second_notification_ntfy']);
+        $firstNotificationEnabled     = !isset($row['first_notification_enabled'])     || !empty($row['first_notification_enabled']);
+        $firstNotificationEmail       = !isset($row['first_notification_email'])       || !empty($row['first_notification_email']);
+        $firstNotificationNtfy        = !isset($row['first_notification_ntfy'])        || !empty($row['first_notification_ntfy']);
+        $firstNotificationWebhook     = !isset($row['first_notification_webhook'])     || !empty($row['first_notification_webhook']);
+        $firstNotificationDiscord     = !isset($row['first_notification_discord'])     || !empty($row['first_notification_discord']);
+        $firstNotificationTelegram    = !isset($row['first_notification_telegram'])    || !empty($row['first_notification_telegram']);
+        $firstNotificationGotify      = !isset($row['first_notification_gotify'])      || !empty($row['first_notification_gotify']);
+        $firstNotificationPushover    = !isset($row['first_notification_pushover'])    || !empty($row['first_notification_pushover']);
+        $firstNotificationPushplus    = !isset($row['first_notification_pushplus'])    || !empty($row['first_notification_pushplus']);
+        $firstNotificationMattermost  = !isset($row['first_notification_mattermost'])  || !empty($row['first_notification_mattermost']);
+        $firstNotificationServerchan  = !isset($row['first_notification_serverchan'])  || !empty($row['first_notification_serverchan']);
+        $secondNotificationEmail      = !isset($row['second_notification_email'])      || !empty($row['second_notification_email']);
+        $secondNotificationNtfy       = !isset($row['second_notification_ntfy'])       || !empty($row['second_notification_ntfy']);
+        $secondNotificationWebhook    = !isset($row['second_notification_webhook'])    || !empty($row['second_notification_webhook']);
+        $secondNotificationDiscord    = !isset($row['second_notification_discord'])    || !empty($row['second_notification_discord']);
+        $secondNotificationTelegram   = !isset($row['second_notification_telegram'])   || !empty($row['second_notification_telegram']);
+        $secondNotificationGotify     = !isset($row['second_notification_gotify'])     || !empty($row['second_notification_gotify']);
+        $secondNotificationPushover   = !isset($row['second_notification_pushover'])   || !empty($row['second_notification_pushover']);
+        $secondNotificationPushplus   = !isset($row['second_notification_pushplus'])   || !empty($row['second_notification_pushplus']);
+        $secondNotificationMattermost = !isset($row['second_notification_mattermost']) || !empty($row['second_notification_mattermost']);
+        $secondNotificationServerchan = !isset($row['second_notification_serverchan']) || !empty($row['second_notification_serverchan']);
     }
 
     // Check if email notifications are enabled and get the settings
@@ -371,13 +409,46 @@ while ($userToNotify = $usersToNotify->fetchArray(SQLITE3_ASSOC)) {
         }
 
         $notify = $notifyByRule['primary'];
+        $primary = $firstNotificationEnabled ? $notifyByRule['primary'] : [];
         $emailNotify = mergeNotificationSets(
-            $notifyByRule['primary'],
-            ($secondNotificationEnabled && $secondNotificationEmail) ? $notifyByRule['second'] : []
+            ($firstNotificationEmail)      ? $primary : [],
+            ($secondNotificationEnabled && $secondNotificationEmail)      ? $notifyByRule['second'] : []
         );
         $ntfyNotify = mergeNotificationSets(
-            $notifyByRule['primary'],
-            ($secondNotificationEnabled && $secondNotificationNtfy) ? $notifyByRule['second'] : []
+            ($firstNotificationNtfy)       ? $primary : [],
+            ($secondNotificationEnabled && $secondNotificationNtfy)       ? $notifyByRule['second'] : []
+        );
+        $webhookNotify = mergeNotificationSets(
+            ($firstNotificationWebhook)    ? $primary : [],
+            ($secondNotificationEnabled && $secondNotificationWebhook)    ? $notifyByRule['second'] : []
+        );
+        $discordNotify = mergeNotificationSets(
+            ($firstNotificationDiscord)    ? $primary : [],
+            ($secondNotificationEnabled && $secondNotificationDiscord)    ? $notifyByRule['second'] : []
+        );
+        $telegramNotify = mergeNotificationSets(
+            ($firstNotificationTelegram)   ? $primary : [],
+            ($secondNotificationEnabled && $secondNotificationTelegram)   ? $notifyByRule['second'] : []
+        );
+        $gotifyNotify = mergeNotificationSets(
+            ($firstNotificationGotify)     ? $primary : [],
+            ($secondNotificationEnabled && $secondNotificationGotify)     ? $notifyByRule['second'] : []
+        );
+        $pushoverNotify = mergeNotificationSets(
+            ($firstNotificationPushover)   ? $primary : [],
+            ($secondNotificationEnabled && $secondNotificationPushover)   ? $notifyByRule['second'] : []
+        );
+        $pushplusNotify = mergeNotificationSets(
+            ($firstNotificationPushplus)   ? $primary : [],
+            ($secondNotificationEnabled && $secondNotificationPushplus)   ? $notifyByRule['second'] : []
+        );
+        $mattermostNotify = mergeNotificationSets(
+            ($firstNotificationMattermost) ? $primary : [],
+            ($secondNotificationEnabled && $secondNotificationMattermost) ? $notifyByRule['second'] : []
+        );
+        $serverchanNotify = mergeNotificationSets(
+            ($firstNotificationServerchan) ? $primary : [],
+            ($secondNotificationEnabled && $secondNotificationServerchan) ? $notifyByRule['second'] : []
         );
 
         if (!empty($notify) || !empty($notifyByRule['second'])) {
@@ -475,12 +546,12 @@ while ($userToNotify = $usersToNotify->fetchArray(SQLITE3_ASSOC)) {
             }
 
             // Discord notifications if enabled
-            if ($discordNotificationsEnabled) {
+            if ($discordNotificationsEnabled && !empty($discordNotify)) {
                 $ssrf = is_url_safe_for_ssrf($discord['webhook_url'], $db);
                 if (!$ssrf) {
                     echo "SSRF attempt detected for Discord webhook URL. Notifications not sent.<br />";
                 } else {
-                    foreach ($notify as $userId => $perUser) {
+                    foreach ($discordNotify as $userId => $perUser) {
                         // Get name of user from household table
                         $stmt = $db->prepare('SELECT * FROM household WHERE id = :userId');
                         $stmt->bindValue(':userId', $userId, SQLITE3_INTEGER);
@@ -536,12 +607,12 @@ while ($userToNotify = $usersToNotify->fetchArray(SQLITE3_ASSOC)) {
             }
 
             // Gotify notifications if enabled
-            if ($gotifyNotificationsEnabled) {
+            if ($gotifyNotificationsEnabled && !empty($gotifyNotify)) {
                 $ssrf = is_url_safe_for_ssrf($gotify['serverUrl'], $db);
                 if (!$ssrf) {
                     echo "SSRF attempt detected for Gotify server URL. Notifications not sent.<br />";
                 } else {
-                    foreach ($notify as $userId => $perUser) {
+                    foreach ($gotifyNotify as $userId => $perUser) {
                         // Get name of user from household table
                         $stmt = $db->prepare('SELECT * FROM household WHERE id = :userId');
                         $stmt->bindValue(':userId', $userId, SQLITE3_INTEGER);
@@ -595,8 +666,8 @@ while ($userToNotify = $usersToNotify->fetchArray(SQLITE3_ASSOC)) {
             }
 
             // Telegram notifications if enabled
-            if ($telegramNotificationsEnabled) {
-                foreach ($notify as $userId => $perUser) {
+            if ($telegramNotificationsEnabled && !empty($telegramNotify)) {
+                foreach ($telegramNotify as $userId => $perUser) {
                     // Get name of user from household table
                     $stmt = $db->prepare('SELECT * FROM household WHERE id = :userId');
                     $stmt->bindValue(':userId', $userId, SQLITE3_INTEGER);
@@ -645,8 +716,8 @@ while ($userToNotify = $usersToNotify->fetchArray(SQLITE3_ASSOC)) {
 
 
             // PushPlus notifications if enabled
-            if ($pushplusNotificationsEnabled) {
-                foreach ($notify as $userId => $perUser) {
+            if ($pushplusNotificationsEnabled && !empty($pushplusNotify)) {
+                foreach ($pushplusNotify as $userId => $perUser) {
                     // Get name of user from household table
                     $stmt = $db->prepare('SELECT * FROM household WHERE id = :userId');
                     $stmt->bindValue(':userId', $userId, SQLITE3_INTEGER);
@@ -707,12 +778,12 @@ while ($userToNotify = $usersToNotify->fetchArray(SQLITE3_ASSOC)) {
             }
 
             // Mattermost notifications if enabled
-            if ($mattermostNotificationsEnabled) {
+            if ($mattermostNotificationsEnabled && !empty($mattermostNotify)) {
                 $ssrf = is_url_safe_for_ssrf($mattermost['webhook_url'], $db);
                 if (!$ssrf) {
                     echo "SSRF attempt detected for Mattermost webhook URL. Notifications not sent.<br />";
                 } else {
-                    foreach ($notify as $userId => $perUser) {
+                    foreach ($mattermostNotify as $userId => $perUser) {
                         // Get name of user from household table
                         $stmt = $db->prepare('SELECT * FROM household WHERE id = :userId');
                         $stmt->bindValue(':userId', $userId, SQLITE3_INTEGER);
@@ -775,8 +846,8 @@ while ($userToNotify = $usersToNotify->fetchArray(SQLITE3_ASSOC)) {
             }
 
             // Pushover notifications if enabled
-            if ($pushoverNotificationsEnabled) {
-                foreach ($notify as $userId => $perUser) {
+            if ($pushoverNotificationsEnabled && !empty($pushoverNotify)) {
+                foreach ($pushoverNotify as $userId => $perUser) {
                     // Get name of user from household table
                     $stmt = $db->prepare('SELECT * FROM household WHERE id = :userId');
                     $stmt->bindValue(':userId', $userId, SQLITE3_INTEGER);
@@ -879,12 +950,12 @@ while ($userToNotify = $usersToNotify->fetchArray(SQLITE3_ASSOC)) {
             }
 
             // Webhook notifications if enabled
-            if ($webhookNotificationsEnabled) {
+            if ($webhookNotificationsEnabled && !empty($webhookNotify)) {
                 $ssrf = is_url_safe_for_ssrf($webhook['url'], $db);
                 if (!$ssrf) {
-                    echo "SSRF attempt detected for webhook URL. Notifications not sent.<br />";;
+                    echo "SSRF attempt detected for webhook URL. Notifications not sent.<br />";
                 } else {
-                    foreach ($notify as $userId => $perUser) {
+                    foreach ($webhookNotify as $userId => $perUser) {
                         // Get name of user from household table
                         $stmt = $db->prepare('SELECT * FROM household WHERE id = :userId');
                         $stmt->bindValue(':userId', $userId, SQLITE3_INTEGER);
@@ -950,8 +1021,8 @@ while ($userToNotify = $usersToNotify->fetchArray(SQLITE3_ASSOC)) {
             }
 
             // Serverchan notifications if enabled
-            if ($serverchanNotificationsEnabled) {
-                foreach ($notify as $userId => $perUser) {
+            if ($serverchanNotificationsEnabled && !empty($serverchanNotify)) {
+                foreach ($serverchanNotify as $userId => $perUser) {
                     // Get name of user from household table
                     $stmt = $db->prepare('SELECT * FROM household WHERE id = :userId');
                     $stmt->bindValue(':userId', $userId, SQLITE3_INTEGER);
