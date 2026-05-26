@@ -234,6 +234,31 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
             </div>
         </div>
 
+        <?php if (isset($fuelThisPeriod) && ($fuelThisPeriod > 0 || $fuelThisYear > 0)) { ?>
+            <div class="petrol-upcoming-card">
+                <h2><?= translate('petrol', $i18n) ?></h2>
+                <div class="dashboard-subscriptions-container">
+                    <div class="dashboard-subscriptions-list">
+                        <div class="subscription-item subscription-item-clickable petrol-subscription-card" role="button" tabindex="0" data-click="openPetrolExpenseModal" data-keydown="openPetrolExpenseModal" data-keys="Enter,Space" data-prevent-default="true">
+                            <span class="subscription-item-logo petrol-card-logo" aria-hidden="true">
+                                <i class="fa-solid fa-gas-pump"></i>
+                            </span>
+                            <p class="subscription-item-name"><?= translate('petrol', $i18n) ?></p>
+                            <p class="subscription-item-meta">
+                                <span class="rel-time"><?= htmlspecialchars($fuelPeriodLabel) ?></span>
+                                <span class="meta-sep">&middot;</span>
+                                <span class="renew-label"><?= translate('petrol_yearly_cost', $i18n) ?> <?= formatPrice($fuelThisYear, $currencies[$userData['main_currency']]['code'], $currencies) ?></span>
+                            </p>
+                            <div class="subscription-item-info">
+                                <p class="subscription-item-date"><?= htmlspecialchars($fuelPeriodLabel) ?></p>
+                                <p class="subscription-item-price"><span class="price-amount"><?= formatPrice($fuelThisPeriod, $currencies[$userData['main_currency']]['code'], $currencies) ?></span><span class="price-cycle">/<?= htmlspecialchars(strtolower($fuelPeriodLabel)) ?></span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        <?php } ?>
+
         <div class="paid-this-month-subscriptions">
             <h2><?= translate('paid_this_month', $i18n) ?></h2>
             <div class="dashboard-subscriptions-container">
@@ -380,6 +405,35 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
             </div>
         <?php } ?>
     </div>
+
+    <?php if (isset($fuelThisPeriod) && ($fuelThisPeriod > 0 || $fuelThisYear > 0)) { ?>
+        <div class="petrol-dashboard-subscriptions">
+            <h2><?= translate('petrol', $i18n) ?></h2>
+            <div class="dashboard-subscriptions-container">
+                <div class="dashboard-subscriptions-list">
+                    <div class="subscription-item thin">
+                        <p class="subscription-item-title"><?= translate('petrol_cost_this_period', $i18n) ?></p>
+                        <div class="subscription-item-info">
+                            <p class="subscription-item-value">
+                                <?= formatPrice($fuelThisPeriod, $currencies[$userData['main_currency']]['code'], $currencies) ?>
+                            </p>
+                        </div>
+                        <p class="subscription-item-date"><?= htmlspecialchars($fuelPeriodLabel) ?></p>
+                    </div>
+
+                    <div class="subscription-item thin">
+                        <p class="subscription-item-title"><?= translate('petrol_yearly_cost', $i18n) ?></p>
+                        <div class="subscription-item-info">
+                            <p class="subscription-item-value">
+                                <?= formatPrice($fuelThisYear, $currencies[$userData['main_currency']]['code'], $currencies) ?>
+                            </p>
+                        </div>
+                        <p class="subscription-item-date"><?= date('Y') ?></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <?php } ?>
 
     <?php if (isset($activeSubscriptions) && $activeSubscriptions > 0) { ?>
         <div class="current-subscriptions">

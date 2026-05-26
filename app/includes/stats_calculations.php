@@ -1,6 +1,8 @@
 <?php
 
 require_once __DIR__ . '/formatting_helpers.php';
+require_once __DIR__ . '/subscription_dates.php';
+require_once __DIR__ . '/budget_cycles.php';
 
 // Get categories
 $categories = array();
@@ -56,7 +58,7 @@ $totalSavingsPerMonth = 0;
 $totalCostsInReplacementsPerMonth = 0;
 
 $statsSubtitleParts = [];
-$query = "SELECT name, price, logo, frequency, cycle, currency_id, next_payment, payer_user_id, category_id, payment_method_id, inactive, replacement_subscription_id, auto_renew FROM subscriptions";
+$query = "SELECT name, price, logo, frequency, cycle, currency_id, start_date, next_payment, last_payment_date, payer_user_id, category_id, payment_method_id, inactive, replacement_subscription_id, auto_renew FROM subscriptions";
 $conditions = [];
 $params = [];
 
@@ -204,14 +206,132 @@ if ($result) {
 
 $showVsBudgetGraph = false;
 $vsBudgetDataPoints = [];
+$fuelThisMonth = 0;
+$fuelThisPeriod = 0;
+$fuelThisYear = 0;
+$fuelAverageMonthly = 0;
+$fuelLastFill = null;
+$fuelMonthlyTotals = [];
+$fuelMonthlyUnitPrices = [];
+$fuelCostDataPoints = [];
+$fuelPriceDataPoints = [];
+$fuelUnitSystem = $settings['fuelUnitSystem'] ?? 'eu';
+$fuelUnitLabel = $fuelUnitSystem === 'us' ? 'gal' : 'L';
+$fuelPeriodLabel = wallosUsesPayrollBudgetCycle($userData) ? translate('payroll_month', $i18n) : translate('calendar_month', $i18n);
+$fuelDashboardPeriod = wallosUsesPayrollBudgetCycle($userData)
+    ? wallosGetPayrollPeriod($userData)
+    : [
+        'start' => new DateTimeImmutable('first day of this month'),
+        'end' => new DateTimeImmutable('last day of this month'),
+    ];
+
+$expenseStmt = $db->prepare("SELECT amount, currency_id, expense_date, quantity, unit, unit_price
+    FROM expenses
+    WHERE user_id = :userId AND category = 'fuel'
+    ORDER BY expense_date ASC");
+$expenseStmt->bindValue(':userId', $userId, SQLITE3_INTEGER);
+$expenseResult = $expenseStmt->execute();
+$currentMonthKey = date('Y-m');
+$currentYear = date('Y');
+
+while ($expense = $expenseResult->fetchArray(SQLITE3_ASSOC)) {
+    $expenseDate = $expense['expense_date'];
+    $monthKey = substr($expenseDate, 0, 7);
+    $yearKey = substr($expenseDate, 0, 4);
+    $amount = getPriceConverted($expense['amount'], $expense['currency_id'], $db, $userId);
+
+    $fuelMonthlyTotals[$monthKey] = ($fuelMonthlyTotals[$monthKey] ?? 0) + $amount;
+
+    if (!empty($expense['quantity']) && $expense['quantity'] > 0) {
+        $quantity = (float) $expense['quantity'];
+        if ($fuelUnitSystem === 'us' && ($expense['unit'] ?? 'l') === 'l') {
+            $quantity = $quantity / 3.785411784;
+        } elseif ($fuelUnitSystem !== 'us' && ($expense['unit'] ?? 'l') === 'gal_us') {
+            $quantity = $quantity * 3.785411784;
+        }
+
+        if (!isset($fuelMonthlyUnitPrices[$monthKey])) {
+            $fuelMonthlyUnitPrices[$monthKey] = ['amount' => 0, 'quantity' => 0];
+        }
+        $fuelMonthlyUnitPrices[$monthKey]['amount'] += $amount;
+        $fuelMonthlyUnitPrices[$monthKey]['quantity'] += $quantity;
+    }
+
+    if ($monthKey === $currentMonthKey) {
+        $fuelThisMonth += $amount;
+    }
+
+    $expenseDateObject = new DateTimeImmutable($expenseDate);
+    if ($expenseDateObject >= $fuelDashboardPeriod['start'] && $expenseDateObject <= $fuelDashboardPeriod['end']) {
+        $fuelThisPeriod += $amount;
+    }
+
+    if ($yearKey === $currentYear) {
+        $fuelThisYear += $amount;
+    }
+
+    $fuelLastFill = $expenseDate;
+}
+
+if (count($fuelMonthlyTotals) > 0) {
+    $fuelAverageMonthly = array_sum($fuelMonthlyTotals) / count($fuelMonthlyTotals);
+}
+
+foreach ($fuelMonthlyTotals as $month => $amount) {
+    $fuelCostDataPoints[] = [
+        'label' => date('M Y', strtotime($month . '-01')),
+        'y' => round($amount, 2),
+    ];
+}
+
+foreach ($fuelMonthlyUnitPrices as $month => $unitData) {
+    if ($unitData['quantity'] > 0) {
+        $fuelPriceDataPoints[] = [
+            'label' => date('M Y', strtotime($month . '-01')),
+            'y' => round($unitData['amount'] / $unitData['quantity'], 3),
+        ];
+    }
+}
+
+$showFuelCostGraph = count($fuelCostDataPoints) > 1;
+$showFuelPriceGraph = count($fuelPriceDataPoints) > 1;
+
 if (isset($userData['budget']) && $userData['budget'] > 0) {
     $budget = $userData['budget'];
-    $budgetLeft = $budget - $totalCostPerMonth;
+    $budgetComparisonCost = $totalCostPerMonth;
+
+    if (wallosUsesPayrollBudgetCycle($userData)) {
+        $payrollPeriod = wallosGetPayrollPeriod($userData);
+        $budgetComparisonCost = 0;
+
+        foreach ($subscriptions ?? [] as $subscription) {
+            if (!empty($subscription['inactive'])) {
+                continue;
+            }
+
+            $occurrences = getSubscriptionOccurrencesInRange($subscription, $payrollPeriod['start'], $payrollPeriod['end']);
+            $budgetComparisonCost += count($occurrences) * getPriceConverted($subscription['price'], $subscription['currency_id'], $db, $userId);
+        }
+
+        $budgetExpenseStmt = $db->prepare("SELECT amount, currency_id FROM expenses
+            WHERE user_id = :userId AND expense_date >= :startDate AND expense_date <= :endDate");
+        $budgetExpenseStmt->bindValue(':userId', $userId, SQLITE3_INTEGER);
+        $budgetExpenseStmt->bindValue(':startDate', $payrollPeriod['start']->format('Y-m-d'), SQLITE3_TEXT);
+        $budgetExpenseStmt->bindValue(':endDate', $payrollPeriod['end']->format('Y-m-d'), SQLITE3_TEXT);
+        $budgetExpenseResult = $budgetExpenseStmt->execute();
+        while ($expense = $budgetExpenseResult->fetchArray(SQLITE3_ASSOC)) {
+            $budgetComparisonCost += getPriceConverted($expense['amount'], $expense['currency_id'], $db, $userId);
+        }
+    } else {
+        $budgetComparisonCost += $fuelThisMonth;
+    }
+
+    $budgetLeft = $budget - $budgetComparisonCost;
     $budgetLeft = $budgetLeft < 0 ? 0 : $budgetLeft;
-    $budgetUsed = ($totalCostPerMonth / $budget) * 100;
+    $budgetUsed = ($budgetComparisonCost / $budget) * 100;
     $budgetUsed = $budgetUsed > 100 ? 100 : $budgetUsed;
-    if ($totalCostPerMonth > $budget) {
-        $overBudgetAmount = $totalCostPerMonth - $budget;
+    if ($budgetComparisonCost > $budget) {
+        $overBudgetAmount = $budgetComparisonCost - $budget;
     }
     $showVsBudgetGraph = true;
     $vsBudgetDataPoints = [
@@ -221,7 +341,7 @@ if (isset($userData['budget']) && $userData['budget'] > 0) {
         ],
         [
             "label" => translate('total_cost', $i18n),
-            "y" => $totalCostPerMonth,
+            "y" => $budgetComparisonCost,
         ],
     ];
 }

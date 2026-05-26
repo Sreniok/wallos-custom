@@ -22,7 +22,16 @@ function saveBudget() {
   const button = document.getElementById("saveBudget");
   button.disabled = true;
 
-  const budget = document.getElementById("budget").value;
+  const budgetData = {
+    budget: document.getElementById("budget").value,
+    budget_cycle: document.getElementById("budgetCycle")?.value || "calendar_month",
+    payroll_schedule_type: document.getElementById("payrollScheduleType")?.value || "monthly_weekday_rule",
+    payroll_fixed_day: document.getElementById("payrollFixedDay")?.value || 1,
+    payroll_fixed_day_2: document.getElementById("payrollFixedDay2")?.value || 15,
+    payroll_weekday: document.getElementById("payrollWeekday")?.value || 4,
+    payroll_ordinal: document.getElementById("payrollOrdinal")?.value || "second_last",
+    payroll_anchor_date: document.getElementById("payrollAnchorDate")?.value || "",
+  };
 
   fetch('endpoints/user/budget.php', {
     method: 'POST',
@@ -30,7 +39,7 @@ function saveBudget() {
       'Content-Type': 'application/json',
       'X-CSRF-Token': window.csrfToken,
     },
-    body: JSON.stringify({budget: budget}),
+    body: JSON.stringify(budgetData),
   })
     .then(response => response.json())
     .then(data => {
@@ -43,6 +52,56 @@ function saveBudget() {
     .catch(error => {
       console.error(error);
       showErrorMessage(translate('unknown_error'));
+    })
+    .finally(() => {
+      button.disabled = false;
+    });
+}
+
+function togglePayrollBudgetFields() {
+  const cycle = document.getElementById("budgetCycle")?.value || "calendar_month";
+  const type = document.getElementById("payrollScheduleType")?.value || "monthly_weekday_rule";
+  const showPayroll = cycle === "payroll";
+  const setHidden = (selector, hidden) => {
+    document.querySelectorAll(selector).forEach((field) => {
+      field.classList.toggle("hide", hidden);
+      field.hidden = hidden;
+    });
+  };
+
+  setHidden(".payroll-budget-field", !showPayroll);
+  setHidden(".payroll-weekday-rule-fields", !showPayroll || type !== "monthly_weekday_rule");
+  setHidden(".payroll-day-fields", !showPayroll || !["monthly_fixed_day", "semi_monthly"].includes(type));
+  setHidden(".payroll-semi-monthly-fields", !showPayroll || type !== "semi_monthly");
+  setHidden(".payroll-biweekly-fields", !showPayroll || type !== "biweekly");
+}
+
+document.addEventListener("DOMContentLoaded", togglePayrollBudgetFields);
+
+function saveFuelUnitSystem() {
+  const button = document.getElementById("saveFuelUnitSystem");
+  const fuelUnitSystem = document.getElementById("fuelUnitSystem")?.value || "eu";
+  button.disabled = true;
+
+  safeFetch("endpoints/settings/fuel_unit_system.php", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      "X-CSRF-Token": window.csrfToken,
+    },
+    body: new URLSearchParams({ fuel_unit_system: fuelUnitSystem }),
+  })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        showSuccessMessage(data.message);
+      } else {
+        showErrorMessage(data.message);
+      }
+    })
+    .catch(error => {
+      console.error(error);
+      showErrorMessage(translate("unknown_error"));
     })
     .finally(() => {
       button.disabled = false;

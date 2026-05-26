@@ -203,25 +203,14 @@ $profileClass = $page === 'profile.php' ? 'active' : '';
 	          <?php include "images/siteicons/svg/mobile-menu/statistics.php"; ?>
 	          <?= translate('stats', $i18n) ?>
 	        </a>
+	        <button type="button" class="desktop-quick-add quick-add-trigger" data-click="toggleQuickAddMenu"
+            data-pass-element="true" title="<?= translate('quick_add', $i18n) ?>"
+            aria-label="<?= translate('quick_add', $i18n) ?>">
+            <i class="fa-solid fa-plus"></i>
+            <?= translate('add', $i18n) ?>
+          </button>
 	      </nav>
 	      <nav>
-	        <div class="header-theme-switcher" role="group" aria-label="Theme mode">
-          <button type="button" class="header-theme-button <?= $settings['dark_theme'] == '0' ? 'selected' : '' ?>"
-            data-click="setDarkTheme" data-args='["0"]' data-theme-mode="0" title="<?= translate('light_theme', $i18n) ?>"
-            aria-label="<?= translate('light_theme', $i18n) ?>">
-            <i class="fa-solid fa-sun"></i>
-          </button>
-          <button type="button" class="header-theme-button <?= $settings['dark_theme'] == '1' ? 'selected' : '' ?>"
-            data-click="setDarkTheme" data-args='["1"]' data-theme-mode="1" title="<?= translate('dark_theme', $i18n) ?>"
-            aria-label="<?= translate('dark_theme', $i18n) ?>">
-            <i class="fa-solid fa-moon"></i>
-          </button>
-          <button type="button" class="header-theme-button <?= $settings['dark_theme'] == '2' ? 'selected' : '' ?>"
-            data-click="setDarkTheme" data-args='["2"]' data-theme-mode="2" title="<?= translate('automatic', $i18n) ?>"
-            aria-label="<?= translate('automatic', $i18n) ?>">
-            <i class="fa-solid fa-circle-half-stroke"></i>
-          </button>
-        </div>
         <div class="dropdown">
           <button class="dropbtn" data-click="toggleDropdown">
             <img src="<?= htmlspecialchars($userData['avatar'], ENT_QUOTES, 'UTF-8') ?>" alt="me" id="avatar">

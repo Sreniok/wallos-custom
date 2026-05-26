@@ -736,6 +736,13 @@ function closeSubMenus() {
 }
 
 function setSwipeElements() {
+  // modern.js (loaded for every theme) owns swipe-to-reveal for
+  // .subscription-container via its shared bindSwipe core — the same system
+  // the dashboard uses. Running this legacy touch handler on top of it makes
+  // the two fight over .subscription's transform (and, since the legacy
+  // .mobile-actions buttons are now hidden, pins every row at 0). Bail so the
+  // subscriptions list behaves exactly like the dashboard.
+  if (window.__modernThemeInit) return;
   if (window.mobileNavigation) {
     const swipeElements = document.querySelectorAll('.subscription');
 
@@ -973,6 +980,9 @@ function expandActions(event, subscriptionId) {
 }
 
 function swipeHintAnimation() {
+  // See setSwipeElements(): when modern.js owns the gesture, this legacy hint
+  // would write a competing translateX on the first row. Skip it.
+  if (window.__modernThemeInit) return;
   if (window.mobileNavigation && window.matchMedia('(max-width: 768px)').matches) {
     const maxAnimations = 3;
     const cookieName = 'swipeHintCount';

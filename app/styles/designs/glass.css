@@ -1,124 +1,188 @@
-/* ── GLASSMORPHISM – Dark Navy + Blue/Teal (Apple-inspired) ── */
+/* ════════════════════════════════════════════════════════════════════════
+   LIQUID GLASS  —  Apple-inspired frosted design (iOS 18 / macOS Tahoe)
+
+   Principles applied:
+   • Frosted surfaces use a subtle top→bottom translucency gradient, not a
+     flat fill, so light appears to fall across the glass.
+   • A hairline specular highlight on the top edge + a soft, layered drop
+     shadow give depth — cards "float" rather than sit in a box.
+   • Backdrop blur is strong but saturation is restrained (~135-150%) so
+     the content behind tints the glass gently instead of turning it muddy.
+   • Generous, consistent corner radii.
+   • Colour is used sparingly — accents on text, price, focus and progress
+     only; surfaces stay neutral.
+   ════════════════════════════════════════════════════════════════════════ */
 
 /* ── DARK MODE (default) ── */
 :root {
-  --background-color: #060d1f;
-  --background-color-rgb: 6, 13, 31;
+  --background-color: #070c17;
+  --background-color-rgb: 7, 12, 23;
   --box-background-color: rgba(255,255,255,0.06);
-  --box-border-color: rgba(255,255,255,0.14);
-  --header-background-color: rgba(6,13,31,0.72);
-  --text-color: #f1f8ff;
-  --text-color-rgb: 241, 248, 255;
-  --text-color-inverted: #060d1f;
-  --input-background-color: rgba(255,255,255,0.10);
-  --input-border-color: rgba(255,255,255,0.22);
-  --input-disabled-background-color: rgba(255,255,255,0.04);
-  --input-disabled-border-color: rgba(255,255,255,0.08);
-  --box-shadow: 0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.12);
-  --negative-box-shadow: 0 -8px 32px rgba(0,0,0,0.5);
+  --box-border-color: rgba(255,255,255,0.12);
+  --header-background-color: rgba(7,12,23,0.70);
+  --text-color: #f1f6fc;
+  --text-color-rgb: 241, 246, 252;
+  --text-color-inverted: #070c17;
+  --input-background-color: rgba(255,255,255,0.07);
+  --input-border-color: rgba(255,255,255,0.16);
+  --input-disabled-background-color: rgba(255,255,255,0.03);
+  --input-disabled-border-color: rgba(255,255,255,0.07);
+  --box-shadow: 0 1px 2px rgba(0,0,0,0.35), 0 12px 32px rgba(0,0,0,0.40);
+  --negative-box-shadow: 0 -8px 28px rgba(0,0,0,0.45);
   --main-color: #38bdf8;
   --main-color-rgb: 56, 189, 248;
   --accent-color: #22d3ee;
   --accent-color-rgb: 34, 211, 238;
   --hover-color: #0ea5e9;
   --hover-color-rgb: 14, 165, 233;
-  /* Apple-style frosted surface for dark popovers/menus/modals */
-  --glass-pop-bg: rgba(18,28,48,0.78);
-  --glass-pop-border: rgba(255,255,255,0.16);
-  --glass-pop-shadow: 0 16px 48px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.10);
-  --glass-blur: blur(30px) saturate(180%);
-  --glass-blur-strong: blur(40px) saturate(200%);
+
+  /* ── Liquid Glass surface tokens ── */
+  --glass-surface: linear-gradient(180deg, rgba(255,255,255,0.085) 0%, rgba(255,255,255,0.040) 100%);
+  --glass-border: rgba(255,255,255,0.12);
+  --glass-highlight: inset 0 1px 0 rgba(255,255,255,0.16);
+  --glass-shadow: 0 1px 2px rgba(0,0,0,0.35), 0 14px 36px rgba(0,0,0,0.40);
+  --glass-shadow-hover: 0 2px 4px rgba(0,0,0,0.35), 0 22px 48px rgba(0,0,0,0.48);
+  --glass-radius: 22px;
+  --glass-radius-lg: 26px;
+  --glass-radius-sm: 14px;
+  /* Nested layers (pills, rows inside a glass card) */
+  --glass-fill-soft: rgba(255,255,255,0.07);
+  --glass-fill-hover: rgba(255,255,255,0.12);
+  /* Solid-enough frosted surface for popovers / menus / modals */
+  --glass-pop-bg: rgba(20,28,46,0.72);
+  --glass-pop-border: rgba(255,255,255,0.14);
+  --glass-pop-shadow: 0 20px 52px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.10);
+  --glass-blur: blur(24px) saturate(140%);
+  --glass-blur-strong: blur(36px) saturate(150%);
 }
 
 body {
-  background: linear-gradient(135deg, #060d1f 0%, #0b1932 40%, #061426 100%) !important;
+  background: linear-gradient(160deg, #070c17 0%, #0a1428 45%, #081020 100%) !important;
   min-height: 100vh;
 }
+/* Calm, low-intensity ambient light — kept faint so the restrained
+   backdrop saturation never picks up a colour cast. */
 body::before, body::after {
   content: '';
   position: fixed;
   border-radius: 50%;
   pointer-events: none;
   z-index: 0;
+  filter: blur(40px);
 }
 body::before {
-  width: 600px; height: 600px;
-  background: radial-gradient(circle, rgba(56,189,248,0.10) 0%, transparent 70%);
-  top: -200px; left: -200px;
+  width: 620px; height: 620px;
+  background: radial-gradient(circle, rgba(56,189,248,0.07) 0%, transparent 70%);
+  top: -240px; left: -200px;
 }
 body::after {
-  width: 500px; height: 500px;
-  background: radial-gradient(circle, rgba(34,211,238,0.08) 0%, transparent 70%);
-  bottom: -150px; right: -100px;
+  width: 520px; height: 520px;
+  background: radial-gradient(circle, rgba(34,211,238,0.05) 0%, transparent 70%);
+  bottom: -180px; right: -120px;
 }
 
-nav, body > header, .contain > .logo {
-  background: rgba(6,13,31,0.72) !important;
+/* Only the header BAR is frosted glass. Every element inside it — the
+   logo wrapper, both inner <nav>s, the theme toggle and the avatar —
+   sits transparently on that bar (like the modern design), so there
+   are no stacked opaque plates. */
+body > header {
+  background: var(--header-background-color) !important;
   backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
-  border-bottom: 1px solid rgba(56,189,248,0.18) !important;
+  border-bottom: 1px solid var(--glass-border) !important;
+  position: relative;
+  z-index: 1000;
 }
-.dropbtn, .dropdown-content a { color: #e6f3ff !important; }
-body > header { position: relative; z-index: 1000; }
+.contain > .logo,
+.logo-image,
+body > header nav {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+/* theme.css hard-codes the logo lettering to #202020; recolour it to the
+   theme text colour so it stays readable on the glass bar in both modes
+   — no white plate needed. */
+.logo-image svg .text-color { fill: var(--text-color) !important; }
 
-/* User nav dropdown (top-right) — Apple-style frosted panel */
+/* Theme toggle — frosted glass pill that blends into the bar */
+.header-theme-switcher {
+  background: var(--glass-fill-soft) !important;
+  backdrop-filter: blur(14px) saturate(140%) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(140%) !important;
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: var(--glass-highlight) !important;
+}
+.header-theme-button { color: rgba(var(--text-color-rgb), 0.72) !important; }
+.header-theme-button.selected {
+  background: var(--main-color) !important;
+  color: #fff !important;
+  box-shadow: 0 4px 14px rgba(var(--main-color-rgb), 0.40) !important;
+}
+
+/* Avatar / dropdown trigger — transparent, just a soft ring on the photo */
+.dropbtn { background: transparent !important; }
+.dropbtn, .dropdown-content a { color: #e6f3ff !important; }
+header #avatar {
+  border-radius: 50% !important;
+  border: 1px solid var(--glass-border) !important;
+}
+
+/* User nav dropdown (top-right) — frosted panel */
 .dropdown-content {
   background: var(--glass-pop-bg) !important;
   backdrop-filter: var(--glass-blur-strong) !important;
   -webkit-backdrop-filter: var(--glass-blur-strong) !important;
   border: 1px solid var(--glass-pop-border) !important;
-  border-radius: 14px !important;
+  border-radius: var(--glass-radius-sm) !important;
   box-shadow: var(--glass-pop-shadow) !important;
   z-index: 1001 !important;
   overflow: hidden;
 }
 .dropdown-content a:hover { background: rgba(56,189,248,0.16) !important; }
 
+/* ── Core frosted card surface ── */
 .subscription, .subscription-container, .subscription-item,
 .account-section, .subscription-form, .subscription-modal,
 .budget-subscriptions .subscription-item {
-  background: rgba(255,255,255,0.06) !important;
+  background: var(--glass-surface) !important;
   backdrop-filter: var(--glass-blur) !important; -webkit-backdrop-filter: var(--glass-blur) !important;
-  border: 1px solid rgba(255,255,255,0.10) !important;
-  border-radius: 20px !important;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.10) !important;
-  transition: border-color 0.3s, box-shadow 0.3s, transform 0.2s !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: var(--glass-radius) !important;
+  box-shadow: var(--glass-shadow), var(--glass-highlight) !important;
+  transition: border-color 0.25s, box-shadow 0.25s, transform 0.25s cubic-bezier(.2,.8,.2,1) !important;
 }
 .subscription { position: relative; z-index: 1; }
 .subscription:has(.actions.is-open) { z-index: 100 !important; }
 .subscription:hover, .subscription-item:hover {
-  border-color: rgba(56,189,248,0.45) !important;
-  box-shadow: 0 12px 40px rgba(56,189,248,0.18), inset 0 1px 0 rgba(255,255,255,0.14) !important;
+  border-color: rgba(56,189,248,0.35) !important;
+  box-shadow: var(--glass-shadow-hover), var(--glass-highlight) !important;
   transform: translateY(-2px) !important;
 }
 .subscription.inactive {
-  background: rgba(255,255,255,0.03) !important;
+  background: rgba(255,255,255,0.025) !important;
   border-color: rgba(255,255,255,0.06) !important;
+  box-shadow: none !important;
 }
-.account-section header { border-bottom: 1px solid rgba(56,189,248,0.22) !important; }
+.account-section header { border-bottom: 1px solid var(--glass-border) !important; }
 .account-section header h2 { color: #7dd3fc !important; }
 
-/* Sort/filter popup — was using transparent --box-background-color so subscriptions
-   bled through. Use a fully frosted Apple-style panel. */
+/* Sort / filter popup — fully frosted so cards don't bleed through */
 .sort-options {
   background: var(--glass-pop-bg) !important;
   backdrop-filter: var(--glass-blur-strong) !important;
   -webkit-backdrop-filter: var(--glass-blur-strong) !important;
   border: 1px solid var(--glass-pop-border) !important;
-  border-radius: 14px !important;
+  border-radius: var(--glass-radius-sm) !important;
   box-shadow: var(--glass-pop-shadow) !important;
-  color: #f1f8ff !important;
+  color: var(--text-color) !important;
   z-index: 50 !important;
   overflow: hidden;
 }
-.sort-options > ul > li {
-  border-bottom-color: rgba(255,255,255,0.08) !important;
-}
-.sort-options > ul > li:hover {
-  background: rgba(56,189,248,0.16) !important;
-}
-.sort-options > ul > li.selected {
-  color: #7dd3fc !important;
-}
+.sort-options > ul > li { border-bottom-color: rgba(255,255,255,0.08) !important; }
+.sort-options > ul > li:hover { background: rgba(56,189,248,0.16) !important; }
+.sort-options > ul > li.selected { color: #7dd3fc !important; }
 
 /* Subscription row "actions" popout — same frosted-panel treatment */
 .subscription-main .actions {
@@ -126,38 +190,52 @@ body > header { position: relative; z-index: 1000; }
   backdrop-filter: var(--glass-blur-strong) !important;
   -webkit-backdrop-filter: var(--glass-blur-strong) !important;
   border: 1px solid var(--glass-pop-border) !important;
-  border-radius: 14px !important;
+  border-radius: var(--glass-radius-sm) !important;
   box-shadow: var(--glass-pop-shadow) !important;
-  color: #f1f8ff !important;
+  color: var(--text-color) !important;
   overflow: hidden;
 }
-.subscription-main .actions > li {
-  border-bottom-color: rgba(255,255,255,0.08) !important;
-}
-.subscription-main .actions > li:hover {
-  background: rgba(56,189,248,0.16) !important;
-}
+.subscription-main .actions > li { border-bottom-color: rgba(255,255,255,0.08) !important; }
+.subscription-main .actions > li:hover { background: rgba(56,189,248,0.16) !important; }
 
 input[type="text"], input[type="email"], input[type="password"],
 input[type="date"], input[type="number"], input[type="url"],
 textarea, select {
-  background: rgba(255,255,255,0.08) !important;
-  border: 1px solid rgba(255,255,255,0.18) !important;
-  border-radius: 12px !important; color: #f1f8ff !important;
-  backdrop-filter: blur(10px) saturate(160%);
-  -webkit-backdrop-filter: blur(10px) saturate(160%);
+  background: rgba(255,255,255,0.06) !important;
+  border: 1px solid var(--input-border-color) !important;
+  border-radius: 12px !important; color: var(--text-color) !important;
+  backdrop-filter: blur(12px) saturate(130%);
+  -webkit-backdrop-filter: blur(12px) saturate(130%);
   transition: border-color 0.2s, box-shadow 0.2s !important;
 }
 input:focus, select:focus, textarea:focus {
-  border-color: rgba(56,189,248,0.65) !important;
-  box-shadow: 0 0 0 3px rgba(56,189,248,0.18) !important; outline: none !important;
+  border-color: rgba(56,189,248,0.6) !important;
+  box-shadow: 0 0 0 3px rgba(56,189,248,0.16) !important; outline: none !important;
 }
-input::placeholder, textarea::placeholder { color: rgba(200,225,255,0.55) !important; }
-.button, button.button { border-radius: 12px !important; transition: transform 0.2s, box-shadow 0.2s !important; }
-.button:hover { transform: translateY(-2px) !important; }
+input::placeholder, textarea::placeholder { color: rgba(200,225,255,0.50) !important; }
+
+/* Buttons — pill glass; secondary (filter / sort) become frosted circles */
+.button, button.button {
+  border-radius: 12px !important;
+  transition: transform 0.2s, box-shadow 0.2s, background 0.2s !important;
+}
+.button:hover { transform: translateY(-1px) !important; }
+.button.secondary-button {
+  background: var(--glass-surface) !important;
+  backdrop-filter: var(--glass-blur) !important;
+  -webkit-backdrop-filter: var(--glass-blur) !important;
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: var(--glass-shadow), var(--glass-highlight) !important;
+  color: var(--main-color) !important;
+}
+.button.secondary-button:hover {
+  border-color: rgba(56,189,248,0.40) !important;
+  color: var(--accent-color) !important;
+}
+
 input[type="checkbox"]+label::before {
-  background: rgba(255,255,255,0.10) !important;
-  border: 1px solid rgba(255,255,255,0.24) !important;
+  background: rgba(255,255,255,0.08) !important;
+  border: 1px solid rgba(255,255,255,0.22) !important;
 }
 input[type="checkbox"]:checked+label::before {
   background: var(--main-color) !important;
@@ -168,15 +246,15 @@ input[type="checkbox"]:checked+label::before {
   color: #7dd3fc !important;
 }
 .mobile-nav {
-  background: rgba(6,13,31,0.85) !important;
+  background: rgba(7,12,23,0.80) !important;
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
-  border-top: 1px solid rgba(56,189,248,0.18) !important;
+  border-top: 1px solid var(--glass-border) !important;
 }
-.mobile-nav > a { color: rgba(200,220,255,0.65) !important; }
+.mobile-nav > a { color: rgba(200,220,255,0.62) !important; }
 .mobile-nav > a.active { color: #7dd3fc !important; }
 .subscription-form h3, .subscription-modal h3 {
-  border-bottom: 1px solid rgba(56,189,248,0.32) !important; color: #f1f8ff !important;
+  border-bottom: 1px solid rgba(56,189,248,0.30) !important; color: var(--text-color) !important;
 }
 .subscription-progress-bar-fill {
   background: linear-gradient(90deg, #38bdf8, #22d3ee) !important;
@@ -196,104 +274,193 @@ input[type="checkbox"]:checked+label::before {
   box-shadow: var(--glass-pop-shadow) !important;
 }
 
-/* ── LIGHT MODE ── */
+/* ════════════════════════════════════════════════════════════════════════
+   NEXT-PAYMENT HERO  →  frosted glass card
+
+   mobile-first.css renders this as a bold coloured block (white text on a
+   theme-gradient). It loads AFTER this file, so every override here needs
+   !important to win. We turn it into the same Liquid Glass surface as the
+   other cards and let colour live only on the date / price / pill.
+   ════════════════════════════════════════════════════════════════════════ */
+.next-payment-hero {
+  background: var(--glass-surface) !important;
+  backdrop-filter: var(--glass-blur) !important;
+  -webkit-backdrop-filter: var(--glass-blur) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: var(--glass-radius-lg) !important;
+  box-shadow: var(--glass-shadow), var(--glass-highlight) !important;
+  color: var(--text-color) !important;
+}
+/* Soften the strong white radial into a faint top sheen */
+.next-payment-hero::after {
+  background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, transparent 40%) !important;
+}
+.next-payment-hero .nph-label {
+  color: var(--main-color) !important;
+  opacity: 1 !important;
+}
+.next-payment-hero .nph-when {
+  background: var(--glass-fill-soft) !important;
+  border: 1px solid var(--glass-border) !important;
+  color: var(--accent-color) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+}
+.next-payment-hero .nph-date { color: var(--text-color) !important; }
+.next-payment-hero .nph-item {
+  background: var(--glass-fill-soft) !important;
+  border: 1px solid var(--glass-border) !important;
+}
+.next-payment-hero .nph-item:hover {
+  background: var(--glass-fill-hover) !important;
+}
+/* Single-payment variant keeps the row chrome-free */
+.next-payment-hero.single .nph-item {
+  background: transparent !important;
+  border-color: transparent !important;
+}
+.next-payment-hero.single .nph-item:hover { background: transparent !important; }
+.next-payment-hero .nph-logo {
+  background: rgba(255,255,255,0.92) !important;
+  border: 1px solid rgba(255,255,255,0.14) !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.30) !important;
+}
+.next-payment-hero .nph-logo.empty {
+  background: var(--glass-fill-hover) !important;
+  color: var(--main-color) !important;
+}
+.next-payment-hero .nph-name { color: var(--text-color) !important; }
+.next-payment-hero .nph-meta { color: rgba(var(--text-color-rgb), 0.60) !important; opacity: 1 !important; }
+.next-payment-hero .nph-price { color: var(--accent-color) !important; }
+.next-payment-hero .nph-total {
+  border-top: 1px solid var(--glass-border) !important;
+  color: rgba(var(--text-color-rgb), 0.70) !important;
+}
+.next-payment-hero .nph-total .nph-total-amt { color: var(--accent-color) !important; }
+
+/* ════════════════════════════════════════════════════════════════════════
+   LIGHT MODE
+   ════════════════════════════════════════════════════════════════════════ */
 body.light {
-  --background-color: #dbeafe;
-  --box-background-color: rgba(255,255,255,0.65);
-  --box-border-color: rgba(14,165,233,0.22);
-  --text-color: #0c4a6e;
-  --input-background-color: rgba(14,165,233,0.07);
-  --input-border-color: rgba(14,165,233,0.25);
+  --background-color: #eef3fb;
+  --background-color-rgb: 238, 243, 251;
+  --box-background-color: rgba(255,255,255,0.62);
+  --box-border-color: rgba(255,255,255,0.65);
+  --header-background-color: rgba(255,255,255,0.62);
+  --text-color: #102a43;
+  --text-color-rgb: 16, 42, 67;
+  --input-background-color: rgba(255,255,255,0.55);
+  --input-border-color: rgba(15,23,42,0.10);
   --main-color: #0284c7;
   --main-color-rgb: 2, 132, 199;
   --accent-color: #0ea5e9;
+  --accent-color-rgb: 14, 165, 233;
   --hover-color: #0369a1;
-  /* Light frosted surface for popovers — opaque enough that content beneath blurs cleanly */
-  --glass-pop-bg: rgba(255,255,255,0.78);
-  --glass-pop-border: rgba(14,165,233,0.28);
-  --glass-pop-shadow: 0 16px 48px rgba(14,165,233,0.18), inset 0 1px 0 rgba(255,255,255,0.95);
+  --hover-color-rgb: 3, 105, 161;
+
+  --glass-surface: linear-gradient(180deg, rgba(255,255,255,0.72) 0%, rgba(255,255,255,0.50) 100%);
+  --glass-border: rgba(255,255,255,0.70);
+  --glass-highlight: inset 0 1px 0 rgba(255,255,255,0.95);
+  /* faint containment ring + soft layered drop so edges read on the
+     lightest part of the background without a hard border */
+  --glass-shadow: 0 0 0 1px rgba(15,23,42,0.035), 0 1px 2px rgba(15,23,42,0.04), 0 14px 34px rgba(15,23,42,0.09);
+  --glass-shadow-hover: 0 0 0 1px rgba(2,132,199,0.10), 0 2px 6px rgba(15,23,42,0.06), 0 22px 46px rgba(15,23,42,0.13);
+  --glass-fill-soft: rgba(255,255,255,0.55);
+  --glass-fill-hover: rgba(255,255,255,0.80);
+  --glass-pop-bg: rgba(255,255,255,0.80);
+  --glass-pop-border: rgba(255,255,255,0.75);
+  --glass-pop-shadow: 0 20px 52px rgba(15,23,42,0.14), inset 0 1px 0 rgba(255,255,255,0.95);
 }
 body.light {
-  background: linear-gradient(135deg, #dbeafe 0%, #e0f2fe 60%, #ccfbf1 100%) !important;
+  background: linear-gradient(160deg, #eef3fb 0%, #e7f0fa 55%, #eaf4f1 100%) !important;
 }
 body.light::before {
-  background: radial-gradient(circle, rgba(14,165,233,0.14) 0%, transparent 70%) !important;
+  background: radial-gradient(circle, rgba(14,165,233,0.10) 0%, transparent 70%) !important;
 }
 body.light::after {
-  background: radial-gradient(circle, rgba(20,184,166,0.12) 0%, transparent 70%) !important;
+  background: radial-gradient(circle, rgba(45,212,191,0.07) 0%, transparent 70%) !important;
 }
-body.light nav, body.light body > header, body.light .contain > .logo {
-  background: rgba(219,234,254,0.72) !important;
-  border-bottom-color: rgba(14,165,233,0.22) !important;
+body.light > header {
+  background: rgba(255,255,255,0.62) !important;
+  border-bottom-color: var(--glass-border) !important;
 }
 body.light .dropbtn, body.light .dropdown-content a { color: #1e40af !important; }
 body.light .dropdown-content {
-  background: rgba(255,255,255,0.86) !important;
-  border-color: rgba(14,165,233,0.3) !important;
+  background: rgba(255,255,255,0.84) !important;
+  border-color: var(--glass-pop-border) !important;
 }
 body.light .dropdown-content a:hover { background: rgba(14,165,233,0.10) !important; }
-body.light .subscription, body.light .subscription-container,
-body.light .subscription-item, body.light .account-section,
-body.light .subscription-form, body.light .subscription-modal {
-  background: rgba(255,255,255,0.7) !important;
-  border-color: rgba(14,165,233,0.22) !important;
-  box-shadow: 0 8px 32px rgba(14,165,233,0.10), inset 0 1px 0 rgba(255,255,255,0.95) !important;
+body.light .subscription.inactive {
+  background: rgba(255,255,255,0.40) !important;
+  border-color: rgba(15,23,42,0.06) !important;
 }
-body.light .subscription:hover, body.light .subscription-item:hover {
-  border-color: rgba(2,132,199,0.5) !important;
-  box-shadow: 0 12px 40px rgba(2,132,199,0.18), inset 0 1px 0 rgba(255,255,255,0.95) !important;
-}
-body.light .account-section header { border-bottom-color: rgba(14,165,233,0.22) !important; }
+body.light .account-section header { border-bottom-color: var(--glass-border) !important; }
 body.light .account-section header h2 { color: #0284c7 !important; }
 body.light input[type="text"], body.light input[type="email"], body.light input[type="password"],
 body.light input[type="date"], body.light input[type="number"], body.light input[type="url"],
 body.light textarea, body.light select {
-  background: rgba(255,255,255,0.6) !important;
-  border-color: rgba(14,165,233,0.3) !important;
-  color: #0c4a6e !important;
+  background: rgba(255,255,255,0.60) !important;
+  border-color: rgba(15,23,42,0.10) !important;
+  color: #102a43 !important;
 }
-body.light input::placeholder, body.light textarea::placeholder { color: rgba(12,74,110,0.45) !important; }
+body.light input:focus, body.light select:focus, body.light textarea:focus {
+  border-color: rgba(2,132,199,0.55) !important;
+  box-shadow: 0 0 0 3px rgba(2,132,199,0.14) !important;
+}
+body.light input::placeholder, body.light textarea::placeholder { color: rgba(16,42,67,0.42) !important; }
+body.light .button.secondary-button { color: #0284c7 !important; }
+body.light .button.secondary-button:hover { color: #0369a1 !important; border-color: rgba(2,132,199,0.35) !important; }
 body.light .dashboard h2, body.light .upcoming-subscriptions h2,
 body.light .overdue-subscriptions h2, body.light .budget-subscriptions h2 { color: #0284c7 !important; }
 body.light .mobile-nav {
-  background: rgba(219,234,254,0.92) !important;
-  border-top-color: rgba(14,165,233,0.22) !important;
+  background: rgba(255,255,255,0.78) !important;
+  border-top-color: var(--glass-border) !important;
 }
 body.light .mobile-nav > a { color: rgba(2,132,199,0.55) !important; }
 body.light .mobile-nav > a.active { color: #0284c7 !important; }
 body.light .subscription-form h3, body.light .subscription-modal h3 {
-  border-bottom-color: rgba(14,165,233,0.32) !important;
-  color: #0c4a6e !important;
+  border-bottom-color: rgba(14,165,233,0.30) !important;
+  color: #102a43 !important;
 }
 body.light .toast,
 body.light .totp-popup {
-  background: rgba(255,255,255,0.86) !important;
-  border-color: rgba(14,165,233,0.3) !important;
+  background: rgba(255,255,255,0.84) !important;
+  border-color: var(--glass-pop-border) !important;
   box-shadow: var(--glass-pop-shadow) !important;
 }
 body.light input[type="checkbox"]+label::before {
   background: rgba(255,255,255,0.55) !important;
-  border-color: rgba(14,165,233,0.3) !important;
+  border-color: rgba(15,23,42,0.18) !important;
 }
-body.light .calendar .calendar-body .calendar-cell { border-color: rgba(14,165,233,0.18) !important; }
+body.light .calendar .calendar-body .calendar-cell { border-color: rgba(15,23,42,0.08) !important; }
 body.light .calendar .calendar-body .calendar-cell .calendar-cell-header { background: rgba(255,255,255,0.45) !important; }
 
-/* Light-mode popovers — frosted but solid enough that cards underneath don't bleed text through */
+/* Light-mode popovers — frosted but solid enough that cards underneath
+   don't bleed through */
 body.light .sort-options,
 body.light .subscription-main .actions {
-  background: rgba(255,255,255,0.86) !important;
-  border-color: rgba(14,165,233,0.3) !important;
+  background: rgba(255,255,255,0.84) !important;
+  border-color: var(--glass-pop-border) !important;
   box-shadow: var(--glass-pop-shadow) !important;
-  color: #0c4a6e !important;
+  color: #102a43 !important;
 }
 body.light .sort-options > ul > li,
 body.light .subscription-main .actions > li {
-  border-bottom-color: rgba(14,165,233,0.14) !important;
+  border-bottom-color: rgba(15,23,42,0.08) !important;
 }
 body.light .sort-options > ul > li:hover,
 body.light .subscription-main .actions > li:hover {
   background: rgba(14,165,233,0.10) !important;
 }
-body.light .sort-options > ul > li.selected {
-  color: #0369a1 !important;
+body.light .sort-options > ul > li.selected { color: #0369a1 !important; }
+
+/* Light-mode hero: white logo tile needs a faint edge to separate from
+   the frosted card */
+body.light .next-payment-hero .nph-logo {
+  background: #ffffff !important;
+  border: 1px solid rgba(15,23,42,0.07) !important;
+  box-shadow: 0 2px 8px rgba(15,23,42,0.10) !important;
+}
+body.light .next-payment-hero::after {
+  background: linear-gradient(180deg, rgba(255,255,255,0.45) 0%, transparent 40%) !important;
 }

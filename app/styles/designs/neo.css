@@ -25,11 +25,36 @@
 }
 
 body { background: #1a2035 !important; }
-nav, body > header, .contain > .logo {
+body > header {
   background: #1a2035 !important;
   border-bottom: none !important;
   box-shadow: 0 4px 12px #111827 !important;
 }
+/* Header internals sit flush on the bar — no stacked opaque plates */
+.contain > .logo,
+.logo-image,
+body > header nav {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+/* theme.css hard-codes the logo lettering dark; recolour so it stays
+   readable on the bar without a white plate */
+.logo-image svg .text-color { fill: var(--text-color) !important; }
+/* Soft neomorphic pill for the theme toggle */
+.header-theme-switcher {
+  background: #1a2035 !important;
+  border: 0 !important;
+  box-shadow: inset 3px 3px 7px #141929, inset -3px -3px 7px #243050 !important;
+}
+.header-theme-button { color: rgba(var(--text-color-rgb), 0.65) !important; }
+.header-theme-button.selected {
+  background: var(--main-color) !important;
+  color: #fff !important;
+  box-shadow: 3px 3px 7px #141929, -3px -3px 7px #243050 !important;
+}
+.dropbtn { background: transparent !important; box-shadow: none !important; }
+header #avatar { border-radius: 50% !important; }
 .dropbtn, .dropdown-content a { color: #a8c0e0 !important; }
 .dropdown-content {
   background: #1a2035 !important; border: none !important;
@@ -130,9 +155,16 @@ body.light {
   --hover-color: #0284c7;
 }
 body.light { background: #e0e8f4 !important; }
-body.light nav, body.light body > header, body.light .contain > .logo {
+body.light > header {
   background: #e0e8f4 !important; border-bottom: none !important;
   box-shadow: 0 4px 12px #c2cfde !important;
+}
+body.light .header-theme-switcher {
+  background: #e0e8f4 !important;
+  box-shadow: inset 3px 3px 7px #c2cfde, inset -3px -3px 7px #ffffff !important;
+}
+body.light .header-theme-button.selected {
+  box-shadow: 3px 3px 7px #c2cfde, -3px -3px 7px #ffffff !important;
 }
 body.light .dropbtn, body.light .dropdown-content a { color: #2d3e50 !important; }
 body.light .dropdown-content {

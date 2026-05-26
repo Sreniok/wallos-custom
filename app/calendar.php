@@ -1,14 +1,16 @@
 <?php
 require_once 'includes/header.php';
 require_once 'includes/subscription_dates.php';
+require_once 'includes/budget_cycles.php';
 
 // Get budget from user table
-$query = "SELECT budget FROM user WHERE id = :userId";
+$query = "SELECT budget, budget_cycle, payroll_schedule_type, payroll_fixed_day, payroll_fixed_day_2, payroll_weekday, payroll_ordinal, payroll_anchor_date FROM user WHERE id = :userId";
 $stmt = $db->prepare($query);
 $stmt->bindValue(':userId', $userId, SQLITE3_INTEGER);
 $result = $stmt->execute();
 $row = $result->fetchArray(SQLITE3_ASSOC);
 $budget = $row['budget'] ?? 0;
+$budgetData = array_merge($userData, $row ?: []);
 
 $currentMonth = date('m');
 $currentYear = date('Y');
@@ -260,8 +262,37 @@ $yearsToLoad = $calendarYear - $currentYear + 1;
     ?>
 
     <?php
-      if ($budget > 0 && $totalCostThisMonth > $budget) {
-        $overBudgetAmount = $totalCostThisMonth - $budget;
+      $budgetComparisonCost = $totalCostThisMonth;
+      if ($budget > 0 && wallosUsesPayrollBudgetCycle($budgetData) && $sameAsCurrent) {
+        $payrollPeriod = wallosGetPayrollPeriod($budgetData);
+        $budgetComparisonCost = 0;
+        foreach ($subscriptions as $subscription) {
+          $occurrences = getSubscriptionOccurrencesInRange($subscription, $payrollPeriod['start'], $payrollPeriod['end']);
+          $budgetComparisonCost += count($occurrences) * getPriceConverted($subscription['price'], $subscription['currency_id'], $db, $userId);
+        }
+        $expenseStmt = $db->prepare("SELECT amount, currency_id FROM expenses WHERE user_id = :userId AND expense_date >= :startDate AND expense_date <= :endDate");
+        $expenseStmt->bindValue(':userId', $userId, SQLITE3_INTEGER);
+        $expenseStmt->bindValue(':startDate', $payrollPeriod['start']->format('Y-m-d'), SQLITE3_TEXT);
+        $expenseStmt->bindValue(':endDate', $payrollPeriod['end']->format('Y-m-d'), SQLITE3_TEXT);
+        $expenseResult = $expenseStmt->execute();
+        while ($expense = $expenseResult->fetchArray(SQLITE3_ASSOC)) {
+          $budgetComparisonCost += getPriceConverted($expense['amount'], $expense['currency_id'], $db, $userId);
+        }
+      } elseif ($budget > 0) {
+        $expenseStart = $calendarYear . '-' . str_pad($calendarMonth, 2, '0', STR_PAD_LEFT) . '-01';
+        $expenseEnd = (new DateTimeImmutable($expenseStart))->modify('last day of this month')->format('Y-m-d');
+        $expenseStmt = $db->prepare("SELECT amount, currency_id FROM expenses WHERE user_id = :userId AND expense_date >= :startDate AND expense_date <= :endDate");
+        $expenseStmt->bindValue(':userId', $userId, SQLITE3_INTEGER);
+        $expenseStmt->bindValue(':startDate', $expenseStart, SQLITE3_TEXT);
+        $expenseStmt->bindValue(':endDate', $expenseEnd, SQLITE3_TEXT);
+        $expenseResult = $expenseStmt->execute();
+        while ($expense = $expenseResult->fetchArray(SQLITE3_ASSOC)) {
+          $budgetComparisonCost += getPriceConverted($expense['amount'], $expense['currency_id'], $db, $userId);
+        }
+      }
+
+      if ($budget > 0 && $budgetComparisonCost > $budget) {
+        $overBudgetAmount = $budgetComparisonCost - $budget;
         $overBudgetAmount = CurrencyFormatter::format($overBudgetAmount, $code);
         ?>
           <div class="over-budget">

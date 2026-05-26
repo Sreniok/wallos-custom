@@ -31,6 +31,7 @@ if ($settings !== false) {
     $settings['showSubscriptionProgress'] = $settings['show_subscription_progress'] ? 'true': 'false';
     $settings['adjustToWorkingDay'] = $settings['adjust_to_working_day'] ? 'true' : 'false';
     $settings['designTheme'] = $settings['design_theme'] ?? '';
+    $settings['fuelUnitSystem'] = $settings['fuel_unit_system'] ?? 'eu';
 }
 
 $query = "SELECT * FROM custom_colors WHERE user_id = :userId";

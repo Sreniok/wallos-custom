@@ -12,6 +12,26 @@
     const REVEAL_PX = 3 * ACTION_PX;
     const TRIGGER_PX = 60;
 
+    /* After a swipe, iOS often synthesises a `click` at the release point.
+       Because the row slid sideways, that point can land on the revealed
+       action panel — and the action/close/toggle handlers (registered as
+       document-capture listeners at init) would fire before any per-row
+       listener could stop it, snapping the row shut. This timestamp lets
+       the earliest-registered guard swallow exactly that one stray click. */
+    let swipeClickBlockUntil = 0;
+
+    function wireSwipeClickGuard() {
+        if (document.documentElement.dataset.modernSwipeGuard) return;
+        document.documentElement.dataset.modernSwipeGuard = '1';
+        document.addEventListener('click', (e) => {
+            if (!swipeClickBlockUntil) return;
+            if (Date.now() >= swipeClickBlockUntil) { swipeClickBlockUntil = 0; return; }
+            swipeClickBlockUntil = 0;          // consume only this one click
+            e.stopImmediatePropagation();
+            e.preventDefault();
+        }, true);
+    }
+
     function isModernActive() {
         return document.body.classList.contains('design-modern');
     }
@@ -33,7 +53,11 @@
             'delete-subscription': 'delete',
             'clone-subscription': 'clone',
             'mark-paid': 'dash-paid',
-            'renew-subscription': 'dash-missing'
+            'renew-subscription': 'dash-missing',
+            'fuel-nfc': 'clone',
+            'fuel-history': 'dash-paid',
+            'fuel-edit': 'edit',
+            'fuel-delete': 'delete'
         }[action] || 'edit';
     }
 
@@ -48,10 +72,14 @@
     function sortSubscriptionActions(actions) {
         const order = {
             'clone-subscription': 10,
+            'fuel-nfc': 10,
             'delete-subscription': 20,
+            'fuel-history': 20,
+            'fuel-delete': 30,
             'mark-paid': 30,
             'renew-subscription': 40,
-            'edit-subscription': 50
+            'edit-subscription': 50,
+            'fuel-edit': 50
         };
 
         return actions.sort((a, b) => {
@@ -65,7 +93,11 @@
         const icons = {
             'clone-subscription': '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="11" height="11" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1"></path></svg>',
             'delete-subscription': '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>',
+            'fuel-delete': '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>',
             'edit-subscription': '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>',
+            'fuel-edit': '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>',
+            'fuel-history': '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 3v6h6"></path><path d="M12 7v5l3 2"></path></svg>',
+            'fuel-nfc': '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8c2 2.6 2 5.4 0 8"></path><path d="M10 5c3.8 4.6 3.8 9.4 0 14"></path><path d="M14 8c2 2.6 2 5.4 0 8"></path><path d="M18 5c3.8 4.6 3.8 9.4 0 14"></path></svg>',
             'mark-paid': '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>',
             'renew-subscription': '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 0 1 15.2-6.5L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-15.2 6.5L3 16"></path><path d="M3 21v-5h5"></path></svg>'
         };
@@ -84,13 +116,22 @@
         const panel = document.createElement('div');
         panel.className = 'modern-swipe-actions';
         const actions = sortSubscriptionActions(Array.from(sub.querySelectorAll('.actions > li[data-action]')));
-        container.style.setProperty('--modern-action-width', `${actions.length * ACTION_PX}px`);
+        // Cap the reveal at the dashboard's fixed width. A manual subscription
+        // has 5 actions (edit/delete/clone/paid/renew) → 460px, which on a
+        // phone slides the whole row off-screen and clips the panel (this is
+        // why the dashboard worked and the list didn't). The buttons use
+        // flex:1, so they share the capped width gracefully.
+        const revealPx = Math.min(actions.length * ACTION_PX, REVEAL_PX);
+        container.style.setProperty('--modern-action-width', `${revealPx}px`);
         container.classList.add('modern-actions-ready');
         panel.innerHTML = actions.map((item) => {
             const action = item.dataset.action;
-            const label = item.getAttribute('title') || item.getAttribute('aria-label') || item.textContent.trim();
+            const label = action === 'fuel-nfc'
+                ? item.textContent.trim()
+                : item.getAttribute('aria-label') || item.getAttribute('title') || item.textContent.trim();
+            const nfcUrl = item.dataset.nfcUrl ? ` data-nfc-url="${escapeAttr(item.dataset.nfcUrl)}"` : '';
             return `
-                <button class="modern-swipe-action ${subscriptionActionClass(action)}" data-modern-action="${action}" data-id="${id}" aria-label="${escapeAttr(label)}">
+                <button class="modern-swipe-action ${subscriptionActionClass(action)}" data-modern-action="${action}" data-id="${id}"${nfcUrl} aria-label="${escapeAttr(label)}">
                     ${modernActionIcon(action)}
                     ${label}
                 </button>
@@ -110,29 +151,60 @@
         });
     }
 
-    function attachSwipe(container) {
-        const sub = container.querySelector('.subscription');
-        if (!sub || sub.dataset.modernSwipeBound) return;
-        sub.dataset.modernSwipeBound = '1';
+    function revealWidthOf(host, fallback) {
+        return parseFloat(host.style.getPropertyValue('--modern-action-width')) || fallback;
+    }
 
-        let startX = 0, startY = 0, baseX = 0;
-        let dragging = false;
-        let axis = null;
-        let suppressClick = false;
-        const revealWidth = () => parseFloat(container.style.getPropertyValue('--modern-action-width')) || REVEAL_PX;
+    /* Unified swipe-to-reveal core, shared by subscription rows, dashboard
+       cards and the next-payment hero so the gesture feels identical and the
+       iOS smoothing lives in one place:
+         · translate3d + a JS-managed will-change → the row gets its own GPU
+           layer, so Safari doesn't repaint the card on every move frame;
+         · pointermove writes are coalesced into one rAF tick (iOS fires them
+           far faster than 60fps and per-event style writes stutter);
+         · on release the *inline* transform is animated to the snapped
+           target, then handed back to the CSS class only once the transition
+           ends — this removes the inline→class swap flash iOS showed on
+           release (and the dashboard's old 228px-drag → 276px-rest jump). */
+    function bindSwipe(host, drag, opts) {
+        opts = opts || {};
+        if (drag.dataset.modernSwipeBound) return;
+        drag.dataset.modernSwipeBound = '1';
+
+        const fallbackWidth = opts.fallbackWidth || REVEAL_PX;
+        let startX = 0, startY = 0, baseX = 0, lastX = 0;
+        let dragging = false, axis = null, suppressClick = false;
+        let rafId = 0, pendingX = 0, settleTimer = 0;
+
+        const width = () => revealWidthOf(host, fallbackWidth);
+        const paint = () => { rafId = 0; drag.style.transform = `translate3d(${pendingX}px,0,0)`; };
+        const queue = (x) => { pendingX = x; if (!rafId) rafId = requestAnimationFrame(paint); };
+
+        const settle = () => {
+            if (settleTimer) { clearTimeout(settleTimer); settleTimer = 0; }
+            drag.removeEventListener('transitionend', onEnd);
+            if (dragging) return;            // a fresh drag took over — leave it
+            drag.style.transform = '';       // hand the resting state to CSS
+            drag.style.willChange = '';
+        };
+        const onEnd = (e) => { if (e.propertyName === 'transform') settle(); };
 
         const onDown = (e) => {
             if (!mobileFirstActive()) return;
-            // Don't start swipe from the actions menu trigger
-            if (e.target.closest('.actions, .actions-expand')) return;
+            if (opts.guard && opts.guard(e)) return;
+            if (dragging) return;            // ignore a re-entrant/2nd pointer
+            if (settleTimer) { clearTimeout(settleTimer); settleTimer = 0; }
+            drag.removeEventListener('transitionend', onEnd);
             startX = e.clientX;
             startY = e.clientY;
-            baseX = container.classList.contains('modern-swipe-revealed') ? -revealWidth() : 0;
+            baseX = host.classList.contains('modern-swipe-revealed') ? -width() : 0;
+            lastX = baseX;
             dragging = true;
             axis = null;
             suppressClick = false;
-            container.classList.add('modern-swipe-dragging');
-            try { sub.setPointerCapture(e.pointerId); } catch (_) { }
+            host.classList.add('modern-swipe-dragging');
+            drag.style.willChange = 'transform';
+            try { drag.setPointerCapture(e.pointerId); } catch (_) { }
         };
 
         const onMove = (e) => {
@@ -140,49 +212,62 @@
             const dx = e.clientX - startX;
             const dy = e.clientY - startY;
             if (!axis) {
-                if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+                if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
                 axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
                 if (axis === 'y') {
                     dragging = false;
-                    container.classList.remove('modern-swipe-dragging');
+                    host.classList.remove('modern-swipe-dragging');
+                    drag.style.willChange = '';
                     return;
                 }
-                closeAllExcept(container);
+                if (opts.onOpenStart) opts.onOpenStart();
             }
             let next = baseX + dx;
-            const maxReveal = revealWidth();
+            const w = width();
             if (next > 0) next = 0;
-            if (next < -maxReveal) next = -maxReveal - (Math.abs(next + maxReveal) * 0.2);
-            sub.style.transform = `translateX(${next}px)`;
+            if (next < -w) next = -w - (Math.abs(next + w) * 0.2);
+            lastX = next;          // remember the real rendered offset
+            queue(next);
             if (Math.abs(dx) > 8) suppressClick = true;
         };
 
         const onUp = (e) => {
-            container.classList.remove('modern-swipe-dragging');
-            if (!dragging) return;
+            if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
+            host.classList.remove('modern-swipe-dragging');
+            if (!dragging) { drag.style.willChange = ''; return; }
             dragging = false;
-            try { sub.releasePointerCapture(e.pointerId); } catch (_) { }
-            const dx = e.clientX - startX;
-            const finalX = baseX + dx;
-            const maxReveal = revealWidth();
-            const shouldOpen = (baseX === 0 && dx < -TRIGGER_PX) || (baseX === -maxReveal && finalX < -maxReveal + TRIGGER_PX);
-            sub.style.transform = '';
-            container.classList.toggle('modern-swipe-revealed', shouldOpen);
-            // If we suppressed a click, eat the next click on the subscription
-            if (suppressClick) {
-                const eat = (ev) => {
-                    ev.stopPropagation();
-                    ev.preventDefault();
-                    sub.removeEventListener('click', eat, true);
-                };
-                sub.addEventListener('click', eat, true);
-            }
+            try { drag.releasePointerCapture(e.pointerId); } catch (_) { }
+            // Decide from the last offset we actually rendered during the
+            // drag — iOS frequently delivers pointerup/pointercancel with
+            // zeroed/NaN coordinates, which made `e.clientX - startX` snap
+            // the row shut on release.
+            const w = width();
+            const shouldOpen = (baseX === 0)
+                ? lastX <= -TRIGGER_PX
+                : lastX <= -w + TRIGGER_PX;
+            drag.style.transform = `translate3d(${shouldOpen ? -w : 0}px,0,0)`;
+            host.classList.toggle('modern-swipe-revealed', shouldOpen);
+            drag.addEventListener('transitionend', onEnd);
+            settleTimer = setTimeout(settle, 360);
+            // We actually dragged → swallow the stray click iOS fires next,
+            // wherever it lands (the row has slid out from under the finger).
+            if (suppressClick) swipeClickBlockUntil = Date.now() + 450;
         };
 
-        sub.addEventListener('pointerdown', onDown);
-        sub.addEventListener('pointermove', onMove);
-        sub.addEventListener('pointerup', onUp);
-        sub.addEventListener('pointercancel', onUp);
+        drag.addEventListener('pointerdown', onDown);
+        drag.addEventListener('pointermove', onMove);
+        drag.addEventListener('pointerup', onUp);
+        drag.addEventListener('pointercancel', onUp);
+    }
+
+    function attachSwipe(container) {
+        const sub = container.querySelector('.subscription');
+        if (!sub) return;
+        bindSwipe(container, sub, {
+            // Don't start a swipe from the actions menu trigger
+            guard: (e) => !!e.target.closest('.actions, .actions-expand'),
+            onOpenStart: () => closeAllExcept(container)
+        });
     }
 
     function wireActionClicks() {
@@ -214,6 +299,14 @@
                 markSubscriptionPaid(e, id);
             } else if (action === 'renew-subscription' && typeof renewSubscription === 'function') {
                 renewSubscription(e, id);
+            } else if (action === 'fuel-history' && typeof openFuelVehicleHistory === 'function') {
+                openFuelVehicleHistory(id, 0);
+            } else if (action === 'fuel-edit' && typeof openEditFuelVehicle === 'function') {
+                openEditFuelVehicle(e, id);
+            } else if (action === 'fuel-delete' && typeof deleteFuelVehicle === 'function') {
+                deleteFuelVehicle(e, id);
+            } else if (action === 'fuel-nfc' && typeof copyFuelVehicleNfcLink === 'function') {
+                copyFuelVehicleNfcLink(btn);
             }
         }, true);
 
@@ -226,7 +319,7 @@
 
     function toggleDesktopReveal(target, event) {
         if (mobileFirstActive()) return false;
-        const container = target.closest('.subscription-container, .dashboard-swipe-row');
+        const container = target.closest('.subscription-container, .dashboard-swipe-row, .nph-swipe');
         if (!container || event.target.closest('button, a, input, select, textarea, .actions, .actions-expand, .modern-swipe-actions')) {
             return false;
         }
@@ -238,9 +331,9 @@
         if (container.classList.contains('subscription-container')) {
             closeAllExcept(container);
         } else {
-            document.querySelectorAll('.dashboard-swipe-row.modern-swipe-revealed').forEach(row => {
-                if (row !== container) row.classList.remove('modern-swipe-revealed');
-            });
+            // Dashboard "upcoming" rows and the single-hero share one
+            // open-at-a-time group so they reveal identically on desktop.
+            closeDashboardLike(container);
             closeAllExcept(null);
         }
 
@@ -252,14 +345,16 @@
         if (document.body.dataset.modernDesktopRevealBound) return;
         document.body.dataset.modernDesktopRevealBound = '1';
 
+        const revealSelector = '.subscription-container > .subscription, .dashboard-swipe-row > .subscription-item, .nph-swipe > .nph-item';
+
         document.addEventListener('click', (e) => {
-            const card = e.target.closest('.subscription-container > .subscription, .dashboard-swipe-row > .subscription-item');
+            const card = e.target.closest(revealSelector);
             if (card) toggleDesktopReveal(card, e);
         }, true);
 
         document.addEventListener('keydown', (e) => {
             if (e.key !== 'Enter' && e.key !== ' ') return;
-            const card = e.target.closest('.subscription-container > .subscription, .dashboard-swipe-row > .subscription-item');
+            const card = e.target.closest(revealSelector);
             if (card && toggleDesktopReveal(card, e)) {
                 card.focus();
             }
@@ -286,6 +381,10 @@
         // to subscriptions.php?add=1 — that file already auto-opens the form on
         // load when ?add is present (see subscriptions.php line ~552).
         const trigger = () => {
+            if (typeof toggleQuickAddMenu === 'function') {
+                toggleQuickAddMenu(fab);
+                return;
+            }
             if (typeof addSubscription === 'function') {
                 try { addSubscription(); return; } catch (_) { /* fall through */ }
             }
@@ -337,7 +436,8 @@
         const sections = settings.querySelectorAll('.account-section[data-settings-tab]');
         if (!sections.length) return;
 
-        function activate(tabKey) {
+        function activate(tabKey, opts) {
+            const scroll = !!(opts && opts.scroll);
             tabsNav.querySelectorAll('.settings-tab').forEach(t => {
                 t.classList.toggle('active', t.dataset.tab === tabKey);
             });
@@ -348,15 +448,31 @@
                 localStorage.setItem('wallosSettingsTab', tabKey);
                 if (history.replaceState) history.replaceState(null, '', '#' + tabKey);
             } catch (_) { }
-            // Scroll settings into view (top of section)
-            window.scrollTo({ top: settings.offsetTop - 12, behavior: 'instant' });
+            if (scroll) {
+                window.scrollTo({ top: settings.offsetTop - 12, behavior: 'instant' });
+            }
         }
 
         tabsNav.addEventListener('click', (e) => {
             const tab = e.target.closest('.settings-tab');
             if (!tab) return;
             activate(tab.dataset.tab);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         });
+
+        // "Stuck" state — collapses padding once the sticky nav reaches the top.
+        const sentinel = document.createElement('div');
+        sentinel.className = 'settings-tabs-sentinel';
+        sentinel.setAttribute('aria-hidden', 'true');
+        tabsNav.parentNode.insertBefore(sentinel, tabsNav);
+        if ('IntersectionObserver' in window) {
+            const headerEl = document.querySelector('body > header');
+            const headerH = headerEl ? Math.round(headerEl.getBoundingClientRect().height) : 70;
+            const io = new IntersectionObserver((entries) => {
+                tabsNav.classList.toggle('is-stuck', !entries[0].isIntersecting);
+            }, { rootMargin: `-${headerH + 1}px 0px 0px 0px`, threshold: 0 });
+            io.observe(sentinel);
+        }
 
         // Initial tab — from URL hash, localStorage, or first
         const fromHash = (location.hash || '').replace('#', '');
@@ -365,7 +481,7 @@
         const initial = validTabs.includes(fromHash) ? fromHash
                       : validTabs.includes(fromStore) ? fromStore
                       : validTabs[0];
-        if (initial) activate(initial);
+        if (initial) activate(initial, { scroll: false });
     }
 
     /* ──────────────────────────────
@@ -420,72 +536,66 @@
         return wrapper;
     }
 
+    /* Collapse any open dashboard card or hero (except `keep`). */
+    function closeDashboardLike(keep) {
+        document.querySelectorAll('.dashboard-swipe-row.modern-swipe-revealed, .nph-swipe.modern-swipe-revealed').forEach(h => {
+            if (h === keep) return;
+            h.classList.remove('modern-swipe-revealed');
+            const d = h.querySelector(':scope > .subscription-item, :scope > .nph-item');
+            if (d) d.style.transform = '';
+        });
+    }
+
     function attachDashboardSwipe(wrapper) {
         const card = wrapper.querySelector(':scope > .subscription-item');
-        if (!card || card.dataset.modernDashSwipeBound) return;
-        card.dataset.modernDashSwipeBound = '1';
+        if (!card) return;
+        bindSwipe(wrapper, card, {
+            fallbackWidth: 3 * ACTION_PX,
+            onOpenStart: () => { closeDashboardLike(wrapper); closeAllExcept(null); }
+        });
+    }
 
-        let startX = 0, startY = 0, baseX = 0;
-        let dragging = false, axis = null, suppressClick = false;
+    /* Next-payment hero (single subscription) — wrap the .nph-item with the
+       same Missing / Paid / Edit panel the dashboard cards use so it gets the
+       identical swipe-to-reveal gesture. */
+    function initHeroSwipe() {
+        const hero = document.querySelector('.next-payment-hero.single');
+        if (!hero) return;
+        const item = hero.querySelector('.nph-list > .nph-item');
+        if (!item) return;
+        const id = extractDashboardId(item);
+        if (!id) return;
 
-        const onDown = (e) => {
-            if (!mobileFirstActive()) return;
-            startX = e.clientX;
-            startY = e.clientY;
-            baseX = wrapper.classList.contains('modern-swipe-revealed') ? -228 : 0;
-            dragging = true;
-            axis = null;
-            suppressClick = false;
-            wrapper.classList.add('modern-swipe-dragging');
-            try { card.setPointerCapture(e.pointerId); } catch (_) { }
-        };
-        const onMove = (e) => {
-            if (!dragging) return;
-            const dx = e.clientX - startX;
-            const dy = e.clientY - startY;
-            if (!axis) {
-                if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
-                axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
-                if (axis === 'y') { dragging = false; wrapper.classList.remove('modern-swipe-dragging'); return; }
-                document.querySelectorAll('.dashboard-swipe-row.modern-swipe-revealed').forEach(r => {
-                    if (r !== wrapper) {
-                        r.classList.remove('modern-swipe-revealed');
-                        const c = r.querySelector(':scope > .subscription-item');
-                        if (c) c.style.transform = '';
-                    }
-                });
-                closeAllExcept(null);
-            }
-            let next = baseX + dx;
-            if (next > 0) next = 0;
-            if (next < -228) next = -228 - (Math.abs(next + 228) * 0.2);
-            card.style.transform = `translateX(${next}px)`;
-            if (Math.abs(dx) > 8) suppressClick = true;
-        };
-        const onUp = (e) => {
-            wrapper.classList.remove('modern-swipe-dragging');
-            if (!dragging) return;
-            dragging = false;
-            try { card.releasePointerCapture(e.pointerId); } catch (_) { }
-            const dx = e.clientX - startX;
-            const finalX = baseX + dx;
-            const shouldOpen = (baseX === 0 && dx < -60) || (baseX === -228 && finalX < -228 + 60);
-            card.style.transform = '';
-            wrapper.classList.toggle('modern-swipe-revealed', shouldOpen);
-            if (suppressClick) {
-                const eat = (ev) => {
-                    ev.stopPropagation();
-                    ev.preventDefault();
-                    card.removeEventListener('click', eat, true);
-                };
-                card.addEventListener('click', eat, true);
-            }
-        };
-
-        card.addEventListener('pointerdown', onDown);
-        card.addEventListener('pointermove', onMove);
-        card.addEventListener('pointerup', onUp);
-        card.addEventListener('pointercancel', onUp);
+        let wrap = item.closest('.nph-swipe');
+        if (!wrap) {
+            wrap = document.createElement('div');
+            wrap.className = 'nph-swipe';
+            wrap.style.setProperty('--modern-action-width', `${3 * ACTION_PX}px`);
+            const actions = document.createElement('div');
+            actions.className = 'modern-swipe-actions';
+            actions.innerHTML = `
+                <button class="modern-swipe-action dash-missing" data-dashboard-action="missing" data-id="${id}" aria-label="Payment Missing">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9v4"></path><path d="M12 17h.01"></path><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"></path></svg>
+                    Missing
+                </button>
+                <button class="modern-swipe-action dash-paid" data-dashboard-action="paid" data-id="${id}" aria-label="Already Paid">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>
+                    Paid
+                </button>
+                <button class="modern-swipe-action dash-edit" data-dashboard-action="edit" data-id="${id}" aria-label="Edit">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
+                    Edit
+                </button>
+            `;
+            item.parentNode.insertBefore(wrap, item);
+            wrap.appendChild(actions);
+            wrap.appendChild(item);
+        }
+        bindSwipe(wrap, item, {
+            fallbackWidth: 3 * ACTION_PX,
+            onOpenStart: () => { closeDashboardLike(wrap); closeAllExcept(null); }
+        });
+        wireDashboardActionClicks();
     }
 
     function wireDashboardActionClicks() {
@@ -500,7 +610,7 @@
             const id = parseInt(btn.dataset.id, 10);
             if (!id) return;
 
-            const wrapper = btn.closest('.dashboard-swipe-row');
+            const wrapper = btn.closest('.dashboard-swipe-row, .nph-swipe');
             if (wrapper) wrapper.classList.remove('modern-swipe-revealed');
 
             const t = (key, fallback) => {
@@ -554,8 +664,10 @@
     }
 
     function init() {
+        wireSwipeClickGuard();   // must register before the action handlers
         initSwipe();
         initDashboardSwipe();
+        initHeroSwipe();
         initFab();
         initFabVisibility();
         initSettingsTabs();
@@ -577,6 +689,7 @@
             }
         });
         initDashboardSwipe();
+        initHeroSwipe();
     });
     if (document.body) {
         obs.observe(document.body, { childList: true, subtree: true });

@@ -24,11 +24,33 @@
 }
 
 body { background: #0a0e1a !important; letter-spacing: 0.01em; }
-nav, body > header, .contain > .logo {
+body > header {
   background: #0a0e1a !important;
   border-bottom: 1px solid #1f2937 !important;
   box-shadow: none !important;
 }
+/* Header internals sit flush on the bar — no stacked opaque plates */
+.contain > .logo,
+.logo-image,
+body > header nav {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+/* theme.css hard-codes the logo lettering dark; recolour so it stays
+   readable on the bar without a white plate */
+.logo-image svg .text-color { fill: var(--text-color) !important; }
+.header-theme-switcher {
+  background: rgba(255,255,255,0.04) !important;
+  border: 1px solid #1f2937 !important;
+}
+.header-theme-button { color: rgba(var(--text-color-rgb), 0.65) !important; }
+.header-theme-button.selected {
+  background: var(--main-color) !important;
+  color: #fff !important;
+}
+.dropbtn { background: transparent !important; }
+header #avatar { border-radius: 50% !important; border: 1px solid #1f2937 !important; }
 .dropbtn, .dropdown-content a { color: #94a3b8 !important; font-weight: 500; }
 .dropdown-content {
   background: #111827 !important;
@@ -121,9 +143,13 @@ body.light {
   --hover-color: #0284c7;
 }
 body.light { background: #f8fafc !important; }
-body.light nav, body.light body > header, body.light .contain > .logo {
+body.light > header {
   background: #ffffff !important; border-bottom-color: #e2e8f0 !important;
 }
+body.light .header-theme-switcher {
+  background: rgba(15,23,42,0.03) !important; border-color: #e2e8f0 !important;
+}
+body.light header #avatar { border-color: #e2e8f0 !important; }
 body.light .dropbtn, body.light .dropdown-content a { color: #475569 !important; }
 body.light .dropdown-content {
   background: #ffffff !important; border-color: #e2e8f0 !important;

@@ -15,12 +15,6 @@ body.no-scroll {
   overflow-y: hidden;
 }
 
-@media (max-width: 768px) {
-  .mobile-navigation main {
-    margin-bottom: calc(70px + env(safe-area-inset-bottom, 0px));
-  }
-}
-
 input,
 button,
 select,
@@ -137,6 +131,67 @@ header .logo .logo-image {
   min-width: 0;
 }
 
+.desktop-quick-add {
+  align-items: center;
+  background: linear-gradient(135deg, var(--hover-color), var(--main-color));
+  border: 0;
+  border-radius: 999px;
+  box-shadow: 0 10px 24px -12px rgba(var(--main-color-rgb), 0.75);
+  color: #fff;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 15px;
+  font-weight: 600;
+  gap: 8px;
+  height: 42px;
+  padding: 0 16px;
+}
+
+.desktop-quick-add:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+}
+
+.quick-add-menu {
+  background-color: var(--box-background-color);
+  border: 1px solid var(--box-border-color);
+  border-radius: 12px;
+  box-shadow: var(--box-shadow);
+  display: none;
+  min-width: 220px;
+  padding: 8px;
+  position: fixed;
+  z-index: 20;
+}
+
+.quick-add-menu.is-open {
+  display: grid;
+  gap: 6px;
+}
+
+.quick-add-menu button {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  color: var(--text-color);
+  cursor: pointer;
+  display: flex;
+  font-size: 15px;
+  gap: 10px;
+  justify-content: flex-start;
+  padding: 12px;
+  text-align: left;
+  width: 100%;
+}
+
+.quick-add-menu button:hover,
+.quick-add-menu button:focus {
+  background-color: rgba(var(--main-color-rgb), 0.12);
+  color: var(--main-color);
+  outline: none;
+}
+
 .desktop-nav-link {
   display: inline-flex;
   align-items: center;
@@ -180,52 +235,6 @@ header .logo .logo-image svg {
 .dropdown {
   position: relative;
   display: inline-block;
-}
-
-.header-theme-switcher {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  padding: 3px;
-  border: 1px solid var(--box-border-color);
-  border-radius: 999px;
-  background: rgba(var(--background-color-rgb), 0.45);
-}
-
-.header-theme-button {
-  width: 32px;
-  height: 32px;
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
-  color: var(--text-color);
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0.68;
-  transition: background-color .15s, color .15s, opacity .15s, transform .15s;
-}
-
-.header-theme-button:hover {
-  background: rgba(var(--main-color-rgb), 0.12);
-  opacity: 1;
-}
-
-.header-theme-button.selected {
-  background: var(--main-color);
-  color: var(--text-color-inverted);
-  opacity: 1;
-  box-shadow: 0 4px 12px rgba(var(--main-color-rgb), 0.28);
-}
-
-.header-theme-button:active {
-  transform: scale(0.96);
-}
-
-.header-theme-button:disabled {
-  cursor: wait;
-  opacity: 0.5;
 }
 
 .dropbtn:after {
@@ -791,6 +800,17 @@ button.mobile-action-paid {
   flex-basis: auto;
 }
 
+.subscription .fuel-actions {
+  flex-basis: auto;
+  margin-left: auto;
+}
+
+.subscription .fuel-actions .button {
+  align-items: center;
+  display: inline-flex;
+  gap: 8px;
+}
+
 .subscription .actions img {
   width: 25px;
   height: 25px;
@@ -919,16 +939,22 @@ button.mobile-action-paid {
   border-radius: 16px;
 }
 
+.account-section header {
+  padding-bottom: 20px;
+}
+
 .account-section header h2 {
   margin-top: 0px;
-  margin-bottom: 34px;
+  margin-bottom: 0px;
 }
 
 .account-section header h2.second-header {
-  margin-top: 34px;
+  margin-top: 24px;
 }
 hr {
-  margin: 25px 0px !important;
+  margin: 30px 0px !important;
+  border: 0;
+  border-top: 1px solid var(--box-border-color);
 }
 .account-section+.account-section {
   margin-top: 34px;
@@ -1230,8 +1256,19 @@ header #avatar {
 }
 
 .image-button>svg {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
+  color: var(--main-color);
+  transition: color .15s, transform .15s;
+}
+
+.image-button:hover>svg {
+  color: var(--hover-color);
+  transform: scale(1.08);
+}
+
+.image-button.disabled>svg {
+  color: var(--input-disabled-border-color);
 }
 
 .image-button.disabled>img,
@@ -1425,8 +1462,29 @@ header #avatar {
 }
 
 .form-group.hide,
-.form-group-inline.hide {
+.form-group-inline.hide,
+.member-field-group.hide {
   display: none;
+}
+
+.field-label-with-help {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.field-help-icon {
+  color: var(--main-color);
+  cursor: help;
+  display: inline-flex;
+  font-size: 0.75em;
+  line-height: 1;
+}
+
+.field-help-icon:focus {
+  outline: 2px solid var(--main-color);
+  outline-offset: 3px;
+  border-radius: 50%;
 }
 
 .height50 {
@@ -1864,6 +1922,213 @@ button.dark-theme-button i {
   gap: 16px;
 }
 
+.expense-form {
+  max-width: 620px;
+}
+
+.petrol-unit-price-preview {
+  background-color: rgba(var(--main-color-rgb), 0.08);
+  border: 1px solid rgba(var(--main-color-rgb), 0.18);
+  border-radius: 8px;
+  color: var(--text-color);
+  margin-bottom: 20px;
+  padding: 12px 14px;
+}
+
+.fuel-vehicle-card {
+  cursor: pointer;
+}
+
+.fuel-vehicle .fuel-logo {
+  align-items: center;
+  aspect-ratio: 1;
+  background-color: rgba(var(--main-color-rgb), 0.12);
+  border: 1px solid rgba(var(--main-color-rgb), 0.2);
+  border-radius: 8px;
+  color: var(--main-color);
+  display: flex;
+  font-size: 22px;
+  height: 44px;
+  justify-content: center;
+  min-width: 44px;
+  overflow: hidden;
+}
+
+.fuel-vehicle .fuel-logo img {
+  height: 32px;
+  max-width: 42px;
+  object-fit: contain;
+  width: auto;
+}
+
+.fuel-vehicle .billing-cycle {
+  flex: 0 0 auto;
+}
+
+.fuel-vehicle .fuel-period-badge {
+  background-color: rgba(var(--main-color-rgb), 0.08);
+  border: 1px solid rgba(var(--main-color-rgb), 0.14);
+  border-radius: 8px;
+  color: var(--text-color);
+  font-size: 13px;
+  padding: 5px 8px;
+}
+
+.fuel-vehicle .fuel-card-detail {
+  align-items: center;
+  background-color: rgba(var(--main-color-rgb), 0.08);
+  border: 1px solid rgba(var(--main-color-rgb), 0.14);
+  border-radius: 8px;
+  display: inline-flex;
+  flex: 0 0 auto;
+  justify-content: center;
+  padding: 6px 10px;
+}
+
+.fuel-card-details {
+  display: flex;
+  flex: 1 1 420px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.fuel-vehicle .fuel-payer {
+  margin-left: 0;
+}
+
+.fuel-vehicle .fuel-nfc-action {
+  position: relative;
+}
+
+.fuel-vehicle .fuel-nfc-action::after {
+  background-color: var(--background-color);
+  border: 1px solid rgba(var(--main-color-rgb), 0.24);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  color: var(--text-color);
+  content: attr(data-nfc-url);
+  display: none;
+  font-size: 12px;
+  font-weight: 400;
+  left: 50%;
+  line-height: 1.35;
+  max-width: min(420px, 80vw);
+  overflow-wrap: anywhere;
+  padding: 8px 10px;
+  position: absolute;
+  text-align: left;
+  top: calc(100% + 8px);
+  transform: translateX(-50%);
+  width: max-content;
+  z-index: 20;
+}
+
+.fuel-vehicle .fuel-nfc-action:hover::after,
+.fuel-vehicle .fuel-nfc-action:focus::after {
+  display: block;
+}
+
+.fuel-vehicle-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-left: calc(var(--logo-flex-basis) + 12px);
+}
+
+.fuel-vehicle-meta span,
+.fuel-history-summary span,
+.fuel-history-summary strong {
+  background-color: rgba(var(--main-color-rgb), 0.08);
+  border: 1px solid rgba(var(--main-color-rgb), 0.14);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.fuel-history-modal {
+  max-width: 680px;
+}
+
+.fuel-history-nav {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin: -8px 0 10px;
+}
+
+.fuel-history-nav button {
+  align-items: center;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  display: inline-flex;
+  height: 36px;
+  justify-content: center;
+  padding: 0;
+  width: 36px;
+}
+
+.fuel-history-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.fuel-history-summary .fuel-history-period {
+  font-size: 13px;
+  padding: 6px 9px;
+}
+
+.fuel-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.fuel-history-row {
+  align-items: center;
+  background-color: var(--box-background-color);
+  border: 1px solid var(--box-border-color);
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  padding: 12px;
+}
+
+.fuel-entry-delete {
+  align-items: center;
+  background-color: transparent;
+  border: 1px solid rgba(244, 90, 64, 0.35);
+  border-radius: 8px;
+  color: #f45a40;
+  cursor: pointer;
+  display: inline-flex;
+  height: 36px;
+  justify-content: center;
+  width: 36px;
+}
+
+.fuel-logo-picker {
+  align-items: center;
+  justify-content: flex-start;
+  position: relative;
+}
+
+.vehicle-logo-preview {
+  width: 120px;
+}
+
+.fuel-history-row div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fuel-history-row span,
+.empty-history {
+  color: #888;
+  font-size: 14px;
+}
+
 @media (max-width: 768px) {
 
   .subscription-form,
@@ -1874,6 +2139,101 @@ button.dark-theme-button i {
 
   .subscription-form .buttons input {
     flex: 1;
+  }
+
+  .fuel-vehicle .billing-cycle,
+  .fuel-vehicle .payment_method,
+  .fuel-vehicle .price,
+  .fuel-vehicle .fuel-card-detail {
+    flex-basis: auto;
+  }
+
+  .fuel-vehicle .subscription-main {
+    align-items: center;
+    display: grid;
+    grid-template-columns: 50px minmax(0, 1fr) auto;
+    gap: 8px;
+  }
+
+  .fuel-vehicle .fuel-logo {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    height: 46px;
+    min-width: 46px;
+    width: 46px;
+  }
+
+  .fuel-vehicle .name {
+    align-items: center;
+    flex-basis: auto;
+    font-size: 15px;
+    font-weight: 700;
+    grid-column: 2;
+    grid-row: 1;
+    justify-content: flex-start;
+    min-width: 0;
+    overflow: hidden;
+    text-align: left;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .fuel-vehicle .price {
+    font-size: 15px;
+    font-weight: 700;
+    grid-column: 3;
+    grid-row: 1;
+    justify-content: flex-end;
+    white-space: nowrap;
+  }
+
+  .fuel-vehicle .fuel-period-badge {
+    font-size: 11px;
+    grid-column: 2 / 4;
+    grid-row: 2;
+    justify-content: center;
+    padding: 5px 8px;
+  }
+
+  .fuel-card-details {
+    display: grid;
+    gap: 7px;
+    grid-column: 1 / -1;
+    grid-row: 3;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .fuel-vehicle .fuel-card-detail {
+    font-size: 13px;
+    justify-content: center;
+    min-width: 0;
+    overflow: hidden;
+    padding: 7px 8px;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .fuel-vehicle .fuel-card-registration {
+    grid-column: span 2;
+  }
+
+  .fuel-vehicle .fuel-payer {
+    font-size: 13px;
+    grid-column: 1 / -1;
+    grid-row: 4;
+    justify-content: flex-end;
+    margin-left: 0;
+  }
+
+  .fuel-vehicle-meta {
+    display: none;
+  }
+
+  .fuel-history-row {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }
 
@@ -3548,9 +3908,14 @@ input[type="radio"]:checked+label::after {
    Reduces vertical scroll on the settings page by grouping
    related sections into tabs. Works in all design themes.
    ────────────────────────────────────────────────────────── */
+.settings-tabs-sentinel {
+    height: 1px;
+    margin: 0;
+    pointer-events: none;
+}
 .settings-tabs {
     display: flex;
-    gap: 6px;
+    justify-content: space-evenly;
     margin-bottom: 24px;
     padding: 6px;
     background: var(--box-background-color);
@@ -3560,8 +3925,17 @@ input[type="radio"]:checked+label::after {
     scrollbar-width: none;
     -ms-overflow-style: none;
     position: sticky;
-    top: 0;
-    z-index: 10;
+    top: 70px;
+    z-index: 900;
+    transition: padding .15s ease, box-shadow .15s ease;
+}
+.settings-tabs.is-stuck {
+    padding: 3px 6px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+}
+.settings-tabs.is-stuck .settings-tab {
+    padding: 6px 12px;
+    font-size: 12px;
 }
 .settings-tabs::-webkit-scrollbar { display: none; }
 
@@ -3600,9 +3974,26 @@ input[type="radio"]:checked+label::after {
 /* When tabs are active, hide non-current sections */
 .settings .account-section[data-settings-tab].is-hidden { display: none; }
 
+/* Keep spacing identical across tabs: the base `.account-section + .account-section`
+   rule fires on DOM order, so a tab whose first visible section is preceded by
+   hidden sections (e.g. Notifications, Catalog) inherits 34px of top margin and
+   sits lower than the General tab. Reset the adjacent-sibling rule for tabbed
+   sections, then re-apply margin only between visible siblings via `~`. */
+.settings .account-section[data-settings-tab] + .account-section[data-settings-tab] {
+    margin-top: 0;
+}
+.settings .account-section[data-settings-tab]:not(.is-hidden) ~ .account-section[data-settings-tab]:not(.is-hidden) {
+    margin-top: 34px;
+}
+
 @media (max-width: 768px) {
-    .settings-tabs { padding: 4px; border-radius: 12px; }
+    .settings-tabs { padding: 4px; border-radius: 12px; top: 60px; }
+    .settings-tabs.is-stuck { padding: 2px 4px; }
     .settings-tab { padding: 8px 12px; font-size: 12px; }
+    .settings-tabs.is-stuck .settings-tab { padding: 10px 10px; font-size: 11px; }
     .settings-tab .fa-solid,
     .settings-tab .fa-regular { display: none; }
+    .settings .account-section[data-settings-tab]:not(.is-hidden) ~ .account-section[data-settings-tab]:not(.is-hidden) {
+        margin-top: 4px;
+    }
 }

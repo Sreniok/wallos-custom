@@ -190,6 +190,24 @@ $hasStatsRows = isset($subscriptions) && count($subscriptions) > 0;
       <span><?= CurrencyFormatter::format($amountDueThisMonth, $code) ?></span>
       <div class="title"><?= translate('amount_due', $i18n) ?></div>
     </div>
+    <div class="statistic">
+      <span><?= CurrencyFormatter::format($fuelThisMonth, $code) ?></span>
+      <div class="title"><?= translate('petrol_this_month', $i18n) ?></div>
+    </div>
+    <div class="statistic">
+      <span><?= CurrencyFormatter::format($fuelAverageMonthly, $code) ?></span>
+      <div class="title"><?= translate('petrol_average_monthly', $i18n) ?></div>
+    </div>
+    <div class="statistic">
+      <span><?= CurrencyFormatter::format($fuelThisYear, $code) ?></span>
+      <div class="title"><?= translate('petrol_yearly_total', $i18n) ?></div>
+    </div>
+    <?php if (!empty($fuelLastFill)) { ?>
+      <div class="statistic">
+        <span><?= htmlspecialchars($fuelLastFill, ENT_QUOTES, 'UTF-8') ?></span>
+        <div class="title"><?= translate('petrol_last_fill', $i18n) ?></div>
+      </div>
+    <?php } ?>
     <?php
     if (isset($budgetUsed)) {
       ?>
@@ -278,7 +296,7 @@ $hasStatsRows = isset($subscriptions) && count($subscriptions) > 0;
   }
 
   $showPaymentMethodsGraph = count($paymentMethodDataPoints) > 1;
-  if ($showCategoryCostGraph || $showMemberCostGraph || $showPaymentMethodsGraph || $showTotalMonthlyCostGraph || $showVsBudgetGraph) {
+  if ($showCategoryCostGraph || $showMemberCostGraph || $showPaymentMethodsGraph || $showTotalMonthlyCostGraph || $showVsBudgetGraph || $showFuelCostGraph || $showFuelPriceGraph) {
     ?>
     <h2><?= translate('split_views', $i18n) ?></h2>
     <div class="graphs">
@@ -342,6 +360,28 @@ $hasStatsRows = isset($subscriptions) && count($subscriptions) > 0;
         <?php
       }
 
+      if ($showFuelCostGraph) {
+        ?>
+        <section class="graph x2">
+          <header>
+            <?= translate('petrol_cost_trend', $i18n) ?>
+          </header>
+          <canvas id="fuelCostChart" style="height: 370px; width: 100%;"></canvas>
+        </section>
+        <?php
+      }
+
+      if ($showFuelPriceGraph) {
+        ?>
+        <section class="graph x2">
+          <header>
+            <?= translate('petrol_price_trend', $i18n) ?> (<?= htmlspecialchars($fuelUnitLabel, ENT_QUOTES, 'UTF-8') ?>)
+          </header>
+          <canvas id="fuelPriceChart" style="height: 370px; width: 100%;"></canvas>
+        </section>
+        <?php
+      }
+
       ?>
     </div>
     <?php
@@ -350,7 +390,7 @@ $hasStatsRows = isset($subscriptions) && count($subscriptions) > 0;
 
 </section>
 <?php
-if ($showCategoryCostGraph || $showMemberCostGraph || $showPaymentMethodsGraph || $showTotalMonthlyCostGraph || $showVsBudgetGraph) {
+if ($showCategoryCostGraph || $showMemberCostGraph || $showPaymentMethodsGraph || $showTotalMonthlyCostGraph || $showVsBudgetGraph || $showFuelCostGraph || $showFuelPriceGraph) {
   ?>
   <script src="scripts/libs/chart.js"></script>
   <script type="text/javascript">
@@ -360,6 +400,8 @@ if ($showCategoryCostGraph || $showMemberCostGraph || $showPaymentMethodsGraph |
       loadGraph("memberSplitChart", <?php echo json_encode($memberDataPoints, JSON_NUMERIC_CHECK); ?>, "<?= $code ?>", <?= $showMemberCostGraph ?>);
       loadGraph("paymentMethidSplitChart", <?php echo json_encode($paymentMethodDataPoints, JSON_NUMERIC_CHECK); ?>, "", <?= $showPaymentMethodsGraph ?>);
       loadGraph("budgetVsCostChart", <?php echo json_encode($vsBudgetDataPoints, JSON_NUMERIC_CHECK); ?>, "<?= $code ?>", <?= $showVsBudgetGraph ?>);
+      loadLineGraph("fuelCostChart", <?php echo json_encode($fuelCostDataPoints, JSON_NUMERIC_CHECK); ?>, "<?= $code ?>", <?= $showFuelCostGraph ?>);
+      loadLineGraph("fuelPriceChart", <?php echo json_encode($fuelPriceDataPoints, JSON_NUMERIC_CHECK); ?>, "<?= $code ?>", <?= $showFuelPriceGraph ?>);
     }
   </script>
   <?php

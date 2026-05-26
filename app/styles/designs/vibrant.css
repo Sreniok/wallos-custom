@@ -31,10 +31,34 @@ body::before {
               radial-gradient(ellipse at 80% 80%, rgba(20,240,200,0.04) 0%, transparent 50%);
   pointer-events: none; z-index: 0;
 }
-nav, body > header, .contain > .logo {
+body > header {
   background: rgba(5,11,24,0.95) !important;
   border-bottom: 1px solid rgba(0,212,255,0.15) !important;
 }
+/* Header internals sit flush on the bar — no stacked opaque plates */
+.contain > .logo,
+.logo-image,
+body > header nav {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+/* theme.css hard-codes the logo lettering dark; recolour so it stays
+   readable on the bar without a white plate */
+.logo-image svg .text-color { fill: var(--text-color) !important; }
+.header-theme-switcher {
+  background: rgba(0,212,255,0.06) !important;
+  border: 1px solid rgba(0,212,255,0.25) !important;
+  box-shadow: inset 0 0 12px rgba(0,212,255,0.08) !important;
+}
+.header-theme-button { color: rgba(var(--text-color-rgb), 0.65) !important; }
+.header-theme-button.selected {
+  background: var(--main-color) !important;
+  color: #04121f !important;
+  box-shadow: 0 0 14px rgba(var(--main-color-rgb), 0.55) !important;
+}
+.dropbtn { background: transparent !important; }
+header #avatar { border-radius: 50% !important; border: 1px solid rgba(0,212,255,0.25) !important; }
 .dropbtn { color: #a0e8ff !important; }
 .dropdown-content a { color: #a0e8ff !important; }
 .dropdown-content {
@@ -149,10 +173,17 @@ body.light::before {
   background: radial-gradient(ellipse at 20% 20%, rgba(0,180,220,0.08) 0%, transparent 50%),
               radial-gradient(ellipse at 80% 80%, rgba(20,200,170,0.06) 0%, transparent 50%) !important;
 }
-body.light nav, body.light body > header, body.light .contain > .logo {
+body.light > header {
   background: rgba(240,249,255,0.97) !important;
   border-bottom-color: rgba(0,180,220,0.2) !important;
 }
+body.light .header-theme-switcher {
+  background: rgba(0,180,220,0.06) !important;
+  border-color: rgba(0,180,220,0.25) !important;
+  box-shadow: inset 0 0 12px rgba(0,180,220,0.06) !important;
+}
+body.light header #avatar { border-color: rgba(0,180,220,0.25) !important; }
+body.light .header-theme-button.selected { color: #ffffff !important; }
 body.light .dropbtn, body.light .dropdown-content a { color: #0369a1 !important; }
 body.light .dropdown-content {
   background: #ffffff !important; border-color: rgba(0,180,220,0.25) !important;

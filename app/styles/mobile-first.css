@@ -20,6 +20,7 @@
   --mf-text-muted: #B1B7C2;
   --mf-text-soft: #6B7280;
 }
+
 /* Light-mode override — much darker for contrast on white backgrounds */
 body.light {
   --mf-text-muted: #4B5563;
@@ -306,6 +307,8 @@ body.light {
   display: flex;
   z-index: 0;
   pointer-events: none;
+  border-radius: var(--mf-card-radius);
+  overflow: hidden;
 }
 .dashboard-swipe-row.modern-swipe-revealed .modern-swipe-actions { pointer-events: auto; }
 .dashboard-swipe-row > .subscription-item {
@@ -317,6 +320,44 @@ body.light {
 }
 .dashboard-swipe-row.modern-swipe-dragging > .subscription-item { transition: none !important; }
 .dashboard-swipe-row.modern-swipe-revealed > .subscription-item { transform: translateX(calc(-1 * var(--modern-action-width, 228px))); }
+
+/* Next-payment hero (single) — same swipe-to-reveal as the dashboard cards */
+.next-payment-hero.single .nph-swipe {
+  position: relative;
+  border-radius: 14px;
+  overflow: hidden;
+  width: 100%;
+}
+.next-payment-hero.single .nph-swipe .modern-swipe-actions {
+  position: absolute;
+  top: 0; bottom: 0; right: 0;
+  width: var(--modern-action-width, 276px);
+  display: flex;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: 14px;
+  overflow: hidden;
+  /* The single-hero .nph-item is transparent (logo/price sit on the
+     gradient), so it can't mask the actions the way the dashboard's
+     opaque card does. Keep them hidden until the row is being swiped
+     or is revealed, otherwise they bleed through at rest. */
+  opacity: 0;
+  transition: opacity .15s ease;
+}
+.next-payment-hero.single .nph-swipe.modern-swipe-dragging .modern-swipe-actions,
+.next-payment-hero.single .nph-swipe.modern-swipe-revealed .modern-swipe-actions { opacity: 1; }
+.next-payment-hero.single .nph-swipe.modern-swipe-revealed .modern-swipe-actions { pointer-events: auto; }
+.next-payment-hero.single .nph-swipe > .nph-item {
+  position: relative;
+  z-index: 1;
+  transition: transform .28s cubic-bezier(.2,.8,.2,1);
+  touch-action: pan-y;
+  user-select: none;
+}
+.next-payment-hero.single .nph-swipe.modern-swipe-dragging > .nph-item { transition: none !important; }
+.next-payment-hero.single .nph-swipe.modern-swipe-revealed > .nph-item {
+  transform: translateX(calc(-1 * var(--modern-action-width, 276px)));
+}
 
 /* ──────────────────────────────────────────────────────────
    FLOATING ACTION BUTTON (FAB)
@@ -795,9 +836,11 @@ body.fab-hidden .modern-fab {
     width: auto !important;
   }
 
-  /* Page padding so FAB doesn't cover bottom content */
+  /* Page padding so FAB / bottom nav don't cover bottom content.
+     mobile-navigation keeps the FAB inside the fixed bottom nav, so
+     clearance only needs nav height (~60px) + safe-area + breathing room. */
   body main { padding-bottom: 100px !important; }
-  body.mobile-navigation main { padding-bottom: 130px !important; }
+  body.mobile-navigation main { padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)) !important; }
 }
 
 /* Dashboard payment rows: use the scannable mobile row pattern on desktop too.
@@ -906,6 +949,22 @@ body.fab-hidden .modern-fab {
   color: #E08A00;
 }
 
+.upcoming-subscriptions .petrol-subscription-card {
+  border-color: rgba(var(--main-color-rgb), .28) !important;
+}
+
+.upcoming-subscriptions .petrol-subscription-card .rel-time {
+  color: var(--main-color) !important;
+}
+
+.upcoming-subscriptions .petrol-card-logo {
+  align-items: center !important;
+  color: var(--main-color);
+  display: flex !important;
+  font-size: 20px;
+  justify-content: center !important;
+}
+
 .overdue-subscriptions .subscription-item-meta .rel-time,
 .subscription-item-meta .rel-time.overdue {
   color: #E54B3B;
@@ -986,6 +1045,7 @@ body.fab-hidden .modern-fab {
 
 /* Dashboard numeric summaries: keep labels visible and lay tiles out as a grid. */
 .budget-subscriptions .dashboard-subscriptions-container,
+.petrol-dashboard-subscriptions .dashboard-subscriptions-container,
 .current-subscriptions .dashboard-subscriptions-container,
 .savings-subscriptions .dashboard-subscriptions-container {
   overflow: visible !important;
@@ -994,6 +1054,7 @@ body.fab-hidden .modern-fab {
 }
 
 .budget-subscriptions .dashboard-subscriptions-list,
+.petrol-dashboard-subscriptions .dashboard-subscriptions-list,
 .current-subscriptions .dashboard-subscriptions-list,
 .savings-subscriptions .dashboard-subscriptions-list {
   display: grid !important;
@@ -1004,6 +1065,7 @@ body.fab-hidden .modern-fab {
 }
 
 .budget-subscriptions .subscription-item.thin,
+.petrol-dashboard-subscriptions .subscription-item.thin,
 .current-subscriptions .subscription-item.thin,
 .savings-subscriptions .subscription-item.thin {
   width: auto !important;
@@ -1020,6 +1082,7 @@ body.fab-hidden .modern-fab {
 }
 
 .budget-subscriptions .subscription-item-title,
+.petrol-dashboard-subscriptions .subscription-item-title,
 .current-subscriptions .subscription-item-title,
 .savings-subscriptions .subscription-item-title {
   display: block !important;
@@ -1037,6 +1100,7 @@ body.fab-hidden .modern-fab {
 }
 
 .budget-subscriptions .subscription-item-info,
+.petrol-dashboard-subscriptions .subscription-item-info,
 .current-subscriptions .subscription-item-info,
 .savings-subscriptions .subscription-item-info {
   display: block !important;
@@ -1044,6 +1108,7 @@ body.fab-hidden .modern-fab {
 }
 
 .budget-subscriptions .subscription-item-value,
+.petrol-dashboard-subscriptions .subscription-item-value,
 .current-subscriptions .subscription-item-value,
 .savings-subscriptions .subscription-item-value {
   color: var(--text-color) !important;
@@ -1064,6 +1129,7 @@ body.fab-hidden .modern-fab {
   .overdue-subscriptions,
   .paid-this-month-subscriptions,
   .budget-subscriptions,
+  .petrol-dashboard-subscriptions,
   .current-subscriptions,
   .savings-subscriptions {
     width: 100%;
@@ -1261,9 +1327,11 @@ body.fab-hidden .modern-fab {
 
 @media (max-width: 768px) {
   body.design-modern .budget-subscriptions .dashboard-subscriptions-list,
+  body.design-modern .petrol-dashboard-subscriptions .dashboard-subscriptions-list,
   body.design-modern .current-subscriptions .dashboard-subscriptions-list,
   body.design-modern .savings-subscriptions .dashboard-subscriptions-list,
   .budget-subscriptions .dashboard-subscriptions-list,
+  .petrol-dashboard-subscriptions .dashboard-subscriptions-list,
   .current-subscriptions .dashboard-subscriptions-list,
   .savings-subscriptions .dashboard-subscriptions-list {
     display: grid !important;
@@ -1274,9 +1342,11 @@ body.fab-hidden .modern-fab {
   }
 
   body.design-modern .budget-subscriptions .subscription-item.thin,
+  body.design-modern .petrol-dashboard-subscriptions .subscription-item.thin,
   body.design-modern .current-subscriptions .subscription-item.thin,
   body.design-modern .savings-subscriptions .subscription-item.thin,
   .budget-subscriptions .subscription-item.thin,
+  .petrol-dashboard-subscriptions .subscription-item.thin,
   .current-subscriptions .subscription-item.thin,
   .savings-subscriptions .subscription-item.thin {
     flex: initial !important;
@@ -1291,9 +1361,11 @@ body.fab-hidden .modern-fab {
   }
 
   body.design-modern .budget-subscriptions .subscription-item-title,
+  body.design-modern .petrol-dashboard-subscriptions .subscription-item-title,
   body.design-modern .current-subscriptions .subscription-item-title,
   body.design-modern .savings-subscriptions .subscription-item-title,
   .budget-subscriptions .subscription-item-title,
+  .petrol-dashboard-subscriptions .subscription-item-title,
   .current-subscriptions .subscription-item-title,
   .savings-subscriptions .subscription-item-title {
     display: block !important;
@@ -1315,9 +1387,11 @@ body.fab-hidden .modern-fab {
   }
 
   body.design-modern .budget-subscriptions .subscription-item-value,
+  body.design-modern .petrol-dashboard-subscriptions .subscription-item-value,
   body.design-modern .current-subscriptions .subscription-item-value,
   body.design-modern .savings-subscriptions .subscription-item-value,
   .budget-subscriptions .subscription-item-value,
+  .petrol-dashboard-subscriptions .subscription-item-value,
   .current-subscriptions .subscription-item-value,
   .savings-subscriptions .subscription-item-value {
     font-size: 18px !important;
@@ -1328,9 +1402,11 @@ body.fab-hidden .modern-fab {
 
 @media (max-width: 380px) {
   body.design-modern .budget-subscriptions .dashboard-subscriptions-list,
+  body.design-modern .petrol-dashboard-subscriptions .dashboard-subscriptions-list,
   body.design-modern .current-subscriptions .dashboard-subscriptions-list,
   body.design-modern .savings-subscriptions .dashboard-subscriptions-list,
   .budget-subscriptions .dashboard-subscriptions-list,
+  .petrol-dashboard-subscriptions .dashboard-subscriptions-list,
   .current-subscriptions .dashboard-subscriptions-list,
   .savings-subscriptions .dashboard-subscriptions-list {
     grid-template-columns: 1fr !important;
@@ -1819,5 +1895,185 @@ body.design-modern .calendar .calendar-cell-content {
     grid-column: 4;
     min-width: 0 !important;
     padding: 0 !important;
+  }
+}
+
+/* Final fuel-card override: this sits after the generic subscription grid rules. */
+.subscription-container.fuel-vehicle-card .fuel-vehicle .subscription-main {
+  display: grid !important;
+  grid-template-columns: 56px minmax(0, 1fr) max-content;
+  grid-template-rows: auto auto auto;
+  gap: 8px 14px;
+  align-items: center;
+  min-width: 0;
+  padding: 0 !important;
+}
+
+.subscription-container.fuel-vehicle-card .fuel-logo {
+  grid-column: 1;
+  grid-row: 1 / 3;
+  width: 56px !important;
+  height: 56px !important;
+  min-width: 56px !important;
+  max-width: 56px !important;
+  margin: 0 !important;
+}
+
+.subscription-container.fuel-vehicle-card .fuel-logo img {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.subscription-container.fuel-vehicle-card .fuel-vehicle .name {
+  grid-column: 2;
+  grid-row: 1;
+  display: block !important;
+  min-width: 0;
+  overflow: hidden;
+  text-align: left !important;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.subscription-container.fuel-vehicle-card .fuel-vehicle .price {
+  grid-column: 3;
+  grid-row: 1;
+  display: flex !important;
+  justify-content: flex-end;
+  min-width: max-content;
+  text-align: right !important;
+  white-space: nowrap;
+}
+
+.subscription-container.fuel-vehicle-card .fuel-period-badge {
+  grid-column: 2 / 4;
+  grid-row: 2;
+  justify-self: start;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.subscription-container.fuel-vehicle-card.has-registration .fuel-period-badge {
+  grid-column: 2;
+  max-width: 100%;
+}
+
+.subscription-container.fuel-vehicle-card .fuel-registration-badge {
+  grid-column: 3;
+  grid-row: 2;
+  justify-self: stretch;
+  min-width: 0;
+  overflow: hidden;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.subscription-container.fuel-vehicle-card .fuel-payer {
+  grid-column: 1 / -1;
+  grid-row: 4;
+  display: inline-flex !important;
+  justify-content: flex-end;
+  min-width: 0;
+  overflow: hidden;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.subscription-container.fuel-vehicle-card .fuel-card-details {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  min-width: 0;
+  width: 100%;
+}
+
+.subscription-container.fuel-vehicle-card .fuel-card-detail {
+  min-width: 0;
+  overflow: hidden;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .subscription-container.fuel-vehicle-card .fuel-vehicle .subscription-main {
+    grid-template-columns: 48px minmax(0, 1fr) max-content !important;
+    grid-template-rows: auto auto auto auto;
+    gap: 7px 10px !important;
+  }
+
+  .subscription-container.fuel-vehicle-card .fuel-logo {
+    grid-row: 1 / 3;
+    width: 48px !important;
+    height: 48px !important;
+    min-width: 48px !important;
+    max-width: 48px !important;
+  }
+
+  .subscription-container.fuel-vehicle-card .fuel-vehicle .price {
+    grid-row: 1;
+    align-self: center !important;
+    font-size: 15px !important;
+  }
+
+  .subscription-container.fuel-vehicle-card .fuel-period-badge {
+    grid-row: 2;
+    justify-self: stretch;
+    text-align: center;
+  }
+
+  .subscription-container.fuel-vehicle-card:not(.has-registration) .fuel-period-badge {
+    grid-column: 2 / 4;
+  }
+
+  .subscription-container.fuel-vehicle-card.has-registration .fuel-period-badge {
+    grid-column: 2;
+  }
+
+  .subscription-container.fuel-vehicle-card .fuel-registration-badge {
+    grid-column: 3;
+    grid-row: 2;
+    font-size: 13px;
+    padding: 7px 8px;
+  }
+
+  .subscription-container.fuel-vehicle-card .fuel-card-details {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+  }
+
+  .subscription-container.fuel-vehicle-card .fuel-payer {
+    grid-column: 1 / -1;
+    grid-row: 4;
+    justify-self: end;
+    max-width: 100%;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 420px) {
+  .subscription-container.fuel-vehicle-card .fuel-vehicle .subscription-main {
+    grid-template-columns: 46px minmax(0, 1fr) max-content !important;
+    column-gap: 9px !important;
+  }
+
+  .subscription-container.fuel-vehicle-card .fuel-logo {
+    width: 46px !important;
+    height: 46px !important;
+    min-width: 46px !important;
+    max-width: 46px !important;
+  }
+
+  .subscription-container.fuel-vehicle-card .fuel-card-details {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

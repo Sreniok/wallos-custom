@@ -49,8 +49,17 @@ $icalEnabled = !empty($userData['ical_enabled']);
         <header>
             <h2><?= translate('monthly_budget', $i18n) ?></h2>
         </header>
+        <?php
+        $budgetCycle = $userData['budget_cycle'] ?? 'calendar_month';
+        $payrollType = $userData['payroll_schedule_type'] ?? 'monthly_weekday_rule';
+        $showPayrollFields = $budgetCycle === 'payroll';
+        $showWeekdayFields = $showPayrollFields && $payrollType === 'monthly_weekday_rule';
+        $showDayFields = $showPayrollFields && in_array($payrollType, ['monthly_fixed_day', 'semi_monthly'], true);
+        $showSecondDayField = $showPayrollFields && $payrollType === 'semi_monthly';
+        $showBiweeklyFields = $showPayrollFields && $payrollType === 'biweekly';
+        ?>
         <div class="account-budget">
-            <div class="form-group-inline">
+            <div class="form-group-inline wrap">
                 <div class="input-prefix-wrapper">
                     <span class="input-prefix"><?= $userData['currency_symbol'] ?></span>
                     <input type="number" id="budget" name="budget" autocomplete="off" value="<?= $userData['budget'] ?>"
@@ -58,10 +67,155 @@ $icalEnabled = !empty($userData['ical_enabled']);
                 </div>
                 <input type="submit" value="<?= translate('save', $i18n) ?>" id="saveBudget" data-click="saveBudget" />
             </div>
+            <div class="form-group-inline wrap">
+                <div class="member-field-group">
+                    <label for="budgetCycle" class="field-label-with-help">
+                        <?= translate('budget_cycle', $i18n) ?>
+                        <span class="field-help-icon" title="<?= translate('budget_cycle_help', $i18n) ?>"
+                            aria-label="<?= translate('budget_cycle_help', $i18n) ?>" tabindex="0">
+                            <i class="fa-solid fa-circle-question"></i>
+                        </span>
+                    </label>
+                    <select id="budgetCycle" name="budget_cycle" data-change="togglePayrollBudgetFields">
+                        <option value="calendar_month" <?= ($userData['budget_cycle'] ?? 'calendar_month') === 'calendar_month' ? 'selected' : '' ?>>
+                            <?= translate('calendar_month', $i18n) ?>
+                        </option>
+                        <option value="payroll" <?= ($userData['budget_cycle'] ?? 'calendar_month') === 'payroll' ? 'selected' : '' ?>>
+                            <?= translate('payroll_schedule', $i18n) ?>
+                        </option>
+                    </select>
+                </div>
+                <div class="member-field-group payroll-budget-field <?= !$showPayrollFields ? 'hide' : '' ?>">
+                    <label for="payrollScheduleType" class="field-label-with-help">
+                        <?= translate('payroll_schedule_type', $i18n) ?>
+                        <span class="field-help-icon" title="<?= translate('payroll_schedule_type_help', $i18n) ?>"
+                            aria-label="<?= translate('payroll_schedule_type_help', $i18n) ?>" tabindex="0">
+                            <i class="fa-solid fa-circle-question"></i>
+                        </span>
+                    </label>
+                    <select id="payrollScheduleType" name="payroll_schedule_type" data-change="togglePayrollBudgetFields">
+                        <option value="monthly_weekday_rule" <?= $payrollType === 'monthly_weekday_rule' ? 'selected' : '' ?>>
+                            <?= translate('monthly_weekday_rule', $i18n) ?>
+                        </option>
+                        <option value="monthly_fixed_day" <?= $payrollType === 'monthly_fixed_day' ? 'selected' : '' ?>>
+                            <?= translate('monthly_fixed_day', $i18n) ?>
+                        </option>
+                        <option value="biweekly" <?= $payrollType === 'biweekly' ? 'selected' : '' ?>>
+                            <?= translate('every_two_weeks', $i18n) ?>
+                        </option>
+                        <option value="semi_monthly" <?= $payrollType === 'semi_monthly' ? 'selected' : '' ?>>
+                            <?= translate('twice_a_month', $i18n) ?>
+                        </option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group-inline wrap payroll-budget-field payroll-weekday-rule-fields <?= !$showWeekdayFields ? 'hide' : '' ?>">
+                <div class="member-field-group">
+                    <label for="payrollOrdinal" class="field-label-with-help">
+                        <?= translate('payroll_position', $i18n) ?>
+                        <span class="field-help-icon" title="<?= translate('payroll_position_help', $i18n) ?>"
+                            aria-label="<?= translate('payroll_position_help', $i18n) ?>" tabindex="0">
+                            <i class="fa-solid fa-circle-question"></i>
+                        </span>
+                    </label>
+                    <select id="payrollOrdinal" name="payroll_ordinal">
+                        <?php $payrollOrdinal = $userData['payroll_ordinal'] ?? 'second_last'; ?>
+                        <?php foreach (['first', 'second', 'third', 'fourth', 'last', 'second_last'] as $ordinal): ?>
+                            <option value="<?= $ordinal ?>" <?= $payrollOrdinal === $ordinal ? 'selected' : '' ?>>
+                                <?= translate('payroll_ordinal_' . $ordinal, $i18n) ?>
+                            </option>
+                        <?php endforeach ?>
+                    </select>
+                </div>
+                <div class="member-field-group">
+                    <label for="payrollWeekday" class="field-label-with-help">
+                        <?= translate('payroll_weekday', $i18n) ?>
+                        <span class="field-help-icon" title="<?= translate('payroll_weekday_help', $i18n) ?>"
+                            aria-label="<?= translate('payroll_weekday_help', $i18n) ?>" tabindex="0">
+                            <i class="fa-solid fa-circle-question"></i>
+                        </span>
+                    </label>
+                    <select id="payrollWeekday" name="payroll_weekday">
+                        <?php
+                        $payrollWeekday = (int) ($userData['payroll_weekday'] ?? 4);
+                        $weekdayKeys = [1 => 'mon', 2 => 'tue', 3 => 'wed', 4 => 'thu', 5 => 'fri', 6 => 'sat', 7 => 'sun'];
+                        foreach ($weekdayKeys as $weekdayValue => $weekdayKey):
+                        ?>
+                            <option value="<?= $weekdayValue ?>" <?= $payrollWeekday === $weekdayValue ? 'selected' : '' ?>>
+                                <?= translate($weekdayKey, $i18n) ?>
+                            </option>
+                        <?php endforeach ?>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group-inline wrap payroll-budget-field payroll-day-fields <?= !$showDayFields ? 'hide' : '' ?>">
+                <div class="member-field-group">
+                    <label for="payrollFixedDay" class="field-label-with-help">
+                        <?= translate('payroll_day', $i18n) ?>
+                        <span class="field-help-icon" title="<?= translate('payroll_day_help', $i18n) ?>"
+                            aria-label="<?= translate('payroll_day_help', $i18n) ?>" tabindex="0">
+                            <i class="fa-solid fa-circle-question"></i>
+                        </span>
+                    </label>
+                    <input type="number" id="payrollFixedDay" name="payroll_fixed_day" min="1" max="31"
+                        value="<?= (int) ($userData['payroll_fixed_day'] ?? 1) ?>">
+                </div>
+                <div class="member-field-group payroll-semi-monthly-fields <?= !$showSecondDayField ? 'hide' : '' ?>">
+                    <label for="payrollFixedDay2" class="field-label-with-help">
+                        <?= translate('second_payroll_day', $i18n) ?>
+                        <span class="field-help-icon" title="<?= translate('second_payroll_day_help', $i18n) ?>"
+                            aria-label="<?= translate('second_payroll_day_help', $i18n) ?>" tabindex="0">
+                            <i class="fa-solid fa-circle-question"></i>
+                        </span>
+                    </label>
+                    <input type="number" id="payrollFixedDay2" name="payroll_fixed_day_2" min="1" max="31"
+                        value="<?= (int) ($userData['payroll_fixed_day_2'] ?? 15) ?>">
+                </div>
+            </div>
+            <div class="form-group-inline wrap payroll-budget-field payroll-biweekly-fields <?= !$showBiweeklyFields ? 'hide' : '' ?>">
+                <div class="member-field-group">
+                    <label for="payrollAnchorDate" class="field-label-with-help">
+                        <?= translate('payroll_anchor_date', $i18n) ?>
+                        <span class="field-help-icon" title="<?= translate('payroll_anchor_date_help', $i18n) ?>"
+                            aria-label="<?= translate('payroll_anchor_date_help', $i18n) ?>" tabindex="0">
+                            <i class="fa-solid fa-circle-question"></i>
+                        </span>
+                    </label>
+                    <input type="date" id="payrollAnchorDate" name="payroll_anchor_date"
+                        value="<?= htmlspecialchars($userData['payroll_anchor_date'] ?? date('Y-m-d'), ENT_QUOTES, 'UTF-8') ?>">
+                </div>
+            </div>
             <div class="settings-notes">
                 <p>
                     <i class="fa-solid fa-circle-info"></i> <?= translate('budget_info', $i18n) ?>
                 </p>
+            </div>
+        </div>
+    </section>
+
+    <section class="account-section" data-settings-tab="general">
+        <header>
+            <h2><?= translate('expense_settings', $i18n) ?></h2>
+        </header>
+        <div class="account-settings-list">
+            <div class="form-group-inline wrap">
+                <div class="member-field-group">
+                    <label for="fuelUnitSystem" class="field-label-with-help">
+                        <?= translate('fuel_unit_system', $i18n) ?>
+                        <span class="field-help-icon" title="<?= translate('fuel_unit_system_help', $i18n) ?>"
+                            aria-label="<?= translate('fuel_unit_system_help', $i18n) ?>" tabindex="0">
+                            <i class="fa-solid fa-circle-question"></i>
+                        </span>
+                    </label>
+                    <select id="fuelUnitSystem" name="fuel_unit_system">
+                        <?php $fuelUnitSystem = $settings['fuelUnitSystem'] ?? 'eu'; ?>
+                        <option value="eu" <?= $fuelUnitSystem === 'eu' ? 'selected' : '' ?>><?= translate('fuel_unit_eu', $i18n) ?></option>
+                        <option value="uk" <?= $fuelUnitSystem === 'uk' ? 'selected' : '' ?>><?= translate('fuel_unit_uk', $i18n) ?></option>
+                        <option value="us" <?= $fuelUnitSystem === 'us' ? 'selected' : '' ?>><?= translate('fuel_unit_us', $i18n) ?></option>
+                    </select>
+                </div>
+                <input type="button" value="<?= translate('save', $i18n) ?>" id="saveFuelUnitSystem"
+                    data-click="saveFuelUnitSystem" class="thin mobile-grow">
             </div>
         </div>
     </section>

@@ -24,6 +24,16 @@ if ($userIdToDelete == 1 || $userIdToDelete != $userId) {
     $stmt->bindValue(':id', $userIdToDelete, SQLITE3_INTEGER);
     $result = $stmt->execute();
 
+    // Delete expenses
+    $stmt = $db->prepare('DELETE FROM expenses WHERE user_id = :id');
+    $stmt->bindValue(':id', $userIdToDelete, SQLITE3_INTEGER);
+    $result = $stmt->execute();
+
+    // Delete fuel vehicles
+    $stmt = $db->prepare('DELETE FROM fuel_vehicles WHERE user_id = :id');
+    $stmt->bindValue(':id', $userIdToDelete, SQLITE3_INTEGER);
+    $result = $stmt->execute();
+
     // Delete settings
     $stmt = $db->prepare('DELETE FROM settings WHERE user_id = :id');
     $stmt->bindValue(':id', $userIdToDelete, SQLITE3_INTEGER);

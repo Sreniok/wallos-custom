@@ -38,8 +38,7 @@ function setDarkTheme(theme) {
   const themeButtons = [
     darkThemeButton,
     lightThemeButton,
-    automaticThemeButton,
-    ...document.querySelectorAll(".header-theme-button")
+    automaticThemeButton
   ].filter(Boolean);
   const darkThemeCss = document.querySelector("#dark-theme");
   const themes = { 0: 'light', 1: 'dark', 2: 'automatic' };
@@ -79,19 +78,19 @@ function setDarkTheme(theme) {
         if (theme == 0) {
           darkThemeCss.disabled = true;
           setBodyTheme('light');
-          document.querySelectorAll('#theme-light, .header-theme-button[data-theme-mode="0"]').forEach(button => button.classList.add('selected'));
+          document.querySelectorAll('#theme-light').forEach(button => button.classList.add('selected'));
         }
 
         if (theme == 1) {
           darkThemeCss.disabled = false;
           setBodyTheme('dark');
-          document.querySelectorAll('#theme-dark, .header-theme-button[data-theme-mode="1"]').forEach(button => button.classList.add('selected'));
+          document.querySelectorAll('#theme-dark').forEach(button => button.classList.add('selected'));
         }
 
         if (theme == 2) {
           darkThemeCss.disabled = !prefersDarkMode;
           setBodyTheme(prefersDarkMode ? 'dark' : 'light');
-          document.querySelectorAll('#theme-automatic, .header-theme-button[data-theme-mode="2"]').forEach(button => button.classList.add('selected'));
+          document.querySelectorAll('#theme-automatic').forEach(button => button.classList.add('selected'));
           document.cookie = `inUseTheme=${prefersDarkMode ? 'dark' : 'light'}; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=Lax`;
         }
 
