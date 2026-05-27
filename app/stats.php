@@ -189,10 +189,14 @@ $hasStatsRows = isset($subscriptions) && count($subscriptions) > 0;
     <div class="statistic">
       <span><?= CurrencyFormatter::format($amountDueThisMonth, $code) ?></span>
       <div class="title"><?= translate('amount_due', $i18n) ?></div>
+      <?php if (!empty($amountDuePeriodLabel)) { ?>
+        <div class="sub-header">(<?= htmlspecialchars($amountDuePeriodLabel) ?>)</div>
+      <?php } ?>
     </div>
     <div class="statistic">
-      <span><?= CurrencyFormatter::format($fuelThisMonth, $code) ?></span>
-      <div class="title"><?= translate('petrol_this_month', $i18n) ?></div>
+      <?php $statsUsesPayrollCycle = wallosUsesPayrollBudgetCycle($userData); ?>
+      <span><?= CurrencyFormatter::format($statsUsesPayrollCycle ? $fuelThisPeriod : $fuelThisMonth, $code) ?></span>
+      <div class="title"><?= translate($statsUsesPayrollCycle ? 'petrol_this_cycle' : 'petrol_this_month', $i18n) ?></div>
     </div>
     <div class="statistic">
       <span><?= CurrencyFormatter::format($fuelAverageMonthly, $code) ?></span>

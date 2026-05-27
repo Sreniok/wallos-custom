@@ -78,6 +78,11 @@ function toggleSecondNotification(enabled) {
     if (settings) settings.style.display = enabled ? '' : 'none';
 }
 
+function toggleDigestMode(enabled) {
+    const settings = document.getElementById('digest-mode-settings');
+    if (settings) settings.style.display = enabled ? '' : 'none';
+}
+
 function saveNotifications() {
     const button = document.getElementById("saveNotifications");
     button.disabled = true;
@@ -85,12 +90,16 @@ function saveNotifications() {
     const firstNotificationEnabled = document.getElementById("firstnotificationenabled").checked ? 1 : 0;
     const secondNotificationEnabled = document.getElementById("secondnotificationenabled").checked ? 1 : 0;
     const secondNotificationDays = document.getElementById("secondnotificationdays").value;
+    const digestModeEnabled = document.getElementById("digestmodeenabled")?.checked ? 1 : 0;
+    const digestHorizonDays = parseInt(document.getElementById("digesthorizondays")?.value || "7", 10);
 
     const data = {
         days: days,
         first_notification_enabled: firstNotificationEnabled,
         second_notification_enabled: secondNotificationEnabled,
         second_notification_days: secondNotificationDays,
+        digest_mode_enabled: digestModeEnabled,
+        digest_horizon_days: digestHorizonDays,
     };
 
     document.querySelectorAll('#first-notification-channels input[type=checkbox]').forEach(cb => {

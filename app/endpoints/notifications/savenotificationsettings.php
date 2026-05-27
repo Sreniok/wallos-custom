@@ -11,6 +11,10 @@ $allChannels = ['email', 'ntfy', 'webhook', 'discord', 'telegram', 'gotify', 'pu
 $firstNotificationEnabled = !empty($data['first_notification_enabled']) ? 1 : 0;
 $secondNotificationEnabled = !empty($data['second_notification_enabled']) ? 1 : 0;
 $secondNotificationDays = isset($data['second_notification_days']) ? $data['second_notification_days'] : 0;
+$digestModeEnabled = !empty($data['digest_mode_enabled']) ? 1 : 0;
+$digestHorizonDays = isset($data['digest_horizon_days']) ? (int) $data['digest_horizon_days'] : 7;
+if ($digestHorizonDays < 1) { $digestHorizonDays = 1; }
+if ($digestHorizonDays > 30) { $digestHorizonDays = 30; }
 
 $channelFlags = [];
 foreach ($allChannels as $ch) {
@@ -59,9 +63,11 @@ if (
         if ($count == 0) {
             $query = "INSERT INTO notification_settings (
                           days, first_notification_enabled, second_notification_enabled, second_notification_days,
+                          digest_mode_enabled, digest_horizon_days,
                           {$columnList}, user_id
                       ) VALUES (
                           :days, :firstNotificationEnabled, :secondNotificationEnabled, :secondNotificationDays,
+                          :digestModeEnabled, :digestHorizonDays,
                           {$placeholderList}, :userId
                       )";
         } else {
@@ -71,6 +77,8 @@ if (
                           first_notification_enabled = :firstNotificationEnabled,
                           second_notification_enabled = :secondNotificationEnabled,
                           second_notification_days = :secondNotificationDays,
+                          digest_mode_enabled = :digestModeEnabled,
+                          digest_horizon_days = :digestHorizonDays,
                           {$setClauses}
                       WHERE user_id = :userId";
         }
@@ -80,6 +88,8 @@ if (
         $stmt->bindValue(':firstNotificationEnabled', $firstNotificationEnabled, SQLITE3_INTEGER);
         $stmt->bindValue(':secondNotificationEnabled', $secondNotificationEnabled, SQLITE3_INTEGER);
         $stmt->bindValue(':secondNotificationDays', (int) $secondNotificationDays, SQLITE3_INTEGER);
+        $stmt->bindValue(':digestModeEnabled', $digestModeEnabled, SQLITE3_INTEGER);
+        $stmt->bindValue(':digestHorizonDays', $digestHorizonDays, SQLITE3_INTEGER);
         foreach ($channelFlags as $key => $value) {
             $stmt->bindValue(':' . $key, $value, SQLITE3_INTEGER);
         }

@@ -614,7 +614,7 @@ body.fab-hidden .modern-fab {
     display: none !important;
   }
   /* Hide the entire secondary section on mobile — its info is now consolidated
-     into the .subscription-mobile-meta line above (date · relative · auto · payment
+     into the .subscription-mobile-meta line above (relative · date · auto · payment
      method · status badges). Cleaner card, no duplicate info. */
   .subscription-secondary,
   .subscription-notes,

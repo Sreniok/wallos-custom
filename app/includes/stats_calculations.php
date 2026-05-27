@@ -57,6 +57,18 @@ $totalCostPerMonth = 0;
 $totalSavingsPerMonth = 0;
 $totalCostsInReplacementsPerMonth = 0;
 
+// Amount-due window: tomorrow through end of the active period (payroll
+// cycle when configured, otherwise calendar month). Computed once and
+// reused inside the subscription loop below.
+$amountDueRangeStart = new DateTimeImmutable('tomorrow');
+if (wallosUsesPayrollBudgetCycle($userData)) {
+    $amountDueRangeEnd = wallosGetPayrollPeriod($userData)['end'];
+    $amountDuePeriodLabel = translate('payroll_month', $i18n);
+} else {
+    $amountDueRangeEnd = new DateTimeImmutable('last day of this month');
+    $amountDuePeriodLabel = translate('calendar_month', $i18n);
+}
+
 $statsSubtitleParts = [];
 $query = "SELECT name, price, logo, frequency, cycle, currency_id, start_date, next_payment, last_payment_date, payer_user_id, category_id, payment_method_id, inactive, replacement_subscription_id, auto_renew FROM subscriptions";
 $conditions = [];
@@ -144,23 +156,15 @@ if ($result) {
                     $mostExpensiveSubscription['logo'] = $logo;
                 }
 
-                // Calculate ammount due this month
-                $tomorrow = new DateTime('tomorrow');
-                $endOfMonth = new DateTime('last day of this month');
-
-                if ($nextPaymentDate >= $tomorrow && $nextPaymentDate <= $endOfMonth) {
-                    $timesToPay = 1;
-                    $daysInMonth = $endOfMonth->diff($tomorrow)->days + 1;
-                    $daysRemaining = $endOfMonth->diff($nextPaymentDate)->days + 1;
-                    if ($cycle == 1) {
-                        $timesToPay = $daysRemaining / $frequency;
+                // Amount due in the active budget period (calendar month or
+                // payroll cycle). Counts actual billing occurrences instead
+                // of approximating daily/weekly fractions like the previous
+                // implementation did.
+                if ($amountDueRangeEnd >= $amountDueRangeStart) {
+                    $occurrences = getSubscriptionOccurrencesInRange($subscription, $amountDueRangeStart, $amountDueRangeEnd);
+                    if (!empty($occurrences)) {
+                        $amountDueThisMonth += $originalSubscriptionPrice * count($occurrences);
                     }
-                    if ($cycle == 2) {
-                        $weeksInMonth = ceil($daysInMonth / 7);
-                        $weeksRemaining = ceil($daysRemaining / 7);
-                        $timesToPay = $weeksRemaining / $frequency;
-                    }
-                    $amountDueThisMonth += $originalSubscriptionPrice * $timesToPay;
                 }
             } else {
                 $inactiveSubscriptions++;
@@ -227,6 +231,24 @@ $fuelDashboardPeriod = wallosUsesPayrollBudgetCycle($userData)
         'end' => new DateTimeImmutable('last day of this month'),
     ];
 
+// Previous period: payroll cycle prior to the current one, or the previous
+// calendar month. Used for at-a-glance "vs. last cycle" comparison.
+if (wallosUsesPayrollBudgetCycle($userData)) {
+    $fuelDashboardPreviousPeriod = wallosGetPayrollPeriod(
+        $userData,
+        $fuelDashboardPeriod['start']->modify('-1 day')
+    );
+    $fuelLastPeriodLabel = translate('last_payroll_month', $i18n);
+} else {
+    $fuelDashboardPreviousPeriod = [
+        'start' => new DateTimeImmutable('first day of previous month'),
+        'end' => new DateTimeImmutable('last day of previous month'),
+    ];
+    $fuelLastPeriodLabel = translate('last_calendar_month', $i18n);
+}
+$fuelLastPeriod = 0;
+$fuelQuantityLastPeriod = 0;
+
 $expenseStmt = $db->prepare("SELECT amount, currency_id, expense_date, quantity, unit, unit_price
     FROM expenses
     WHERE user_id = :userId AND category = 'fuel'
@@ -277,6 +299,10 @@ while ($expense = $expenseResult->fetchArray(SQLITE3_ASSOC)) {
     if ($expenseDateObject >= $fuelDashboardPeriod['start'] && $expenseDateObject <= $fuelDashboardPeriod['end']) {
         $fuelThisPeriod += $amount;
         $fuelQuantityThisPeriod += $normalizedQuantity;
+    }
+    if ($expenseDateObject >= $fuelDashboardPreviousPeriod['start'] && $expenseDateObject <= $fuelDashboardPreviousPeriod['end']) {
+        $fuelLastPeriod += $amount;
+        $fuelQuantityLastPeriod += $normalizedQuantity;
     }
 
     if ($yearKey === $currentYear) {

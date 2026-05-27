@@ -8,6 +8,7 @@ require_once __DIR__ . '/../../includes/connect_endpoint_crontabs.php';
 require_once __DIR__ . '/../../includes/ssrf_helper.php';
 require_once __DIR__ . '/../../includes/subscription_dates.php';
 require_once __DIR__ . '/../../includes/formatting_helpers.php';
+require_once __DIR__ . '/../../includes/notification_actions.php';
 require_once __DIR__ . '/email_template_helpers.php';
 
 require __DIR__ . '/../../libs/PHPMailer/PHPMailer.php';
@@ -74,6 +75,8 @@ while ($userToNotify = $usersToNotify->fetchArray(SQLITE3_ASSOC)) {
     }
 
     $days = 1;
+    $digestModeEnabled = false;
+    $digestHorizonDays = 7;
     $emailNotificationsEnabled = false;
     $gotifyNotificationsEnabled = false;
     $telegramNotificationsEnabled = false;
@@ -125,6 +128,8 @@ while ($userToNotify = $usersToNotify->fetchArray(SQLITE3_ASSOC)) {
 
     if ($row = $result->fetchArray(SQLITE3_ASSOC)) {
         $days = $row['days'];
+        $digestModeEnabled = !empty($row['digest_mode_enabled']);
+        $digestHorizonDays = isset($row['digest_horizon_days']) ? max(1, min(30, (int) $row['digest_horizon_days'])) : 7;
         $secondNotificationEnabled = !empty($row['second_notification_enabled']);
         $secondNotificationDays = isset($row['second_notification_days']) ? (int) $row['second_notification_days'] : 0;
         $firstNotificationEnabled     = !isset($row['first_notification_enabled'])     || !empty($row['first_notification_enabled']);
@@ -338,20 +343,43 @@ while ($userToNotify = $usersToNotify->fetchArray(SQLITE3_ASSOC)) {
         ];
         $i = 0;
         $currentDate = new DateTime('now');
+
+        // In digest mode, override the per-subscription day-match rules with
+        // a single "due within next N days" window and route all matches to
+        // the primary bucket. Second-notification rules are intentionally
+        // ignored — the digest replaces both.
+        if ($digestModeEnabled) {
+            $digestEndDate = (new DateTime('now'))->modify('+' . $digestHorizonDays . ' days');
+        }
+
         while ($rowSubscription = $resultSubscriptions->fetchArray(SQLITE3_ASSOC)) {
             $upcomingPayment = getUpcomingSubscriptionPaymentDate($rowSubscription, $currentDate) ?? $rowSubscription['next_payment'];
-            $notificationRules = [
-                [
-                    'key' => 'primary',
-                    'days' => ($rowSubscription['notify_days_before'] !== -1) ? (int) $rowSubscription['notify_days_before'] : (int) $days,
-                ],
-            ];
 
-            if ($secondNotificationEnabled) {
-                $notificationRules[] = [
-                    'key' => 'second',
-                    'days' => $secondNotificationDays,
+            if ($digestModeEnabled) {
+                $nextPaymentDate = new DateTime($upcomingPayment);
+                if ($nextPaymentDate < $currentDate || $nextPaymentDate > $digestEndDate) {
+                    continue;
+                }
+                $differenceForBadge = $currentDate->diff($nextPaymentDate)->days;
+                $notificationRules = [[
+                    'key' => 'primary',
+                    'days' => $differenceForBadge,
+                    'digest' => true,
+                ]];
+            } else {
+                $notificationRules = [
+                    [
+                        'key' => 'primary',
+                        'days' => ($rowSubscription['notify_days_before'] !== -1) ? (int) $rowSubscription['notify_days_before'] : (int) $days,
+                    ],
                 ];
+
+                if ($secondNotificationEnabled) {
+                    $notificationRules[] = [
+                        'key' => 'second',
+                        'days' => $secondNotificationDays,
+                    ];
+                }
             }
 
             foreach ($notificationRules as $notificationRule) {
@@ -363,7 +391,11 @@ while ($userToNotify = $usersToNotify->fetchArray(SQLITE3_ASSOC)) {
                     $difference += 1;
                 }
 
-                $shouldNotify = ($difference === $daysToCompare && $nextPaymentDate->format('Y-m-d') >= $currentDate->format('Y-m-d'));
+                // Digest entries already passed the [today, today+horizon]
+                // window filter, so they always notify; per-sub rules still
+                // require exact-day match.
+                $shouldNotify = !empty($notificationRule['digest'])
+                    || ($difference === $daysToCompare && $nextPaymentDate->format('Y-m-d') >= $currentDate->format('Y-m-d'));
                 $displayDate = $upcomingPayment;
 
                 if ($globalAdjust && !empty($rowSubscription['adjust_to_working_day'])) {
@@ -471,7 +503,19 @@ while ($userToNotify = $usersToNotify->fetchArray(SQLITE3_ASSOC)) {
                 $defaultEmail = $defaultUser['email'];
                 $defaultName = $defaultUser['username'];
 
+                $emailOwnerUserId = (int) $userToNotify['id'];
                 foreach ($emailNotify as $userId => $perUser) {
+                    // Attach a one-click "Mark as paid" link signed with the
+                    // account owner's secret (not the household payer's),
+                    // since markpaid validates by subscriptions.user_id.
+                    foreach ($perUser as $idx => $sub) {
+                        $perUser[$idx]['mark_paid_url'] = wallosBuildMarkPaidUrl(
+                            $db,
+                            $emailOwnerUserId,
+                            (int) $sub['id'],
+                            $serverUrl
+                        ) ?? '';
+                    }
                     $message = "The following subscriptions are up for renewal:";
 
                     $smtpAuth = (isset($email["smtpUsername"]) && $email["smtpUsername"] != "") || (isset($email["smtpPassword"]) && $email["smtpPassword"] != "");

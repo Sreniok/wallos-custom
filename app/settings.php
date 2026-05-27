@@ -316,6 +316,10 @@ $icalEnabled = !empty($userData['ical_enabled']);
     }
     $notifications['second_notification_enabled']    = $notifications['second_notification_enabled'] ?? 0;
     $notifications['second_notification_days']       = $notifications['second_notification_days'] ?? 0;
+    $notifications['digest_mode_enabled']            = $notifications['digest_mode_enabled'] ?? 0;
+    $notifications['digest_horizon_days']            = (int) ($notifications['digest_horizon_days'] ?? 7);
+    if ($notifications['digest_horizon_days'] < 1) { $notifications['digest_horizon_days'] = 7; }
+    if ($notifications['digest_horizon_days'] > 30) { $notifications['digest_horizon_days'] = 30; }
     $notifications['second_notification_email']      = $notifications['second_notification_email'] ?? 1;
     $notifications['second_notification_ntfy']       = $notifications['second_notification_ntfy'] ?? 1;
     $notifications['second_notification_webhook']    = $notifications['second_notification_webhook'] ?? 1;
@@ -671,6 +675,24 @@ $icalEnabled = !empty($userData['ical_enabled']);
                         <?php endforeach; ?>
                     </div>
                     <?php endif; ?>
+                </div>
+                <hr style="border:none;border-top:1px solid rgba(255,255,255,0.08);margin:0.75rem 0">
+                <div class="form-group-inline">
+                    <input type="checkbox" id="digestmodeenabled" name="digestmodeenabled"
+                        <?= $notifications['digest_mode_enabled'] ? "checked" : "" ?>
+                        onchange="toggleDigestMode(this.checked)">
+                    <label for="digestmodeenabled"><?= translate('enable_digest_mode', $i18n) ?></label>
+                </div>
+                <div id="digest-mode-settings" <?= !$notifications['digest_mode_enabled'] ? 'style="display:none"' : '' ?>>
+                    <p class="settings-hint" style="margin:0 0 8px;font-size:13px;opacity:0.75;">
+                        <?= translate('digest_mode_hint', $i18n) ?>
+                    </p>
+                    <div class="form-group-inline">
+                        <label for="digesthorizondays"><?= translate('digest_horizon_days_label', $i18n) ?></label>
+                        <input type="number" id="digesthorizondays" name="digesthorizondays"
+                            min="1" max="30" step="1" class="one-third"
+                            value="<?= (int) $notifications['digest_horizon_days'] ?>">
+                    </div>
                 </div>
                 <div class="form-group-inline">
                     <input type="submit" class="thin" value="<?= translate('save', $i18n) ?>" id="saveNotifications"

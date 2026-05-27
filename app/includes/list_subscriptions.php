@@ -209,14 +209,14 @@ function printSubscriptions($subscriptions, $sort, $categories, $members, $i18n,
                     // Mobile meta line — mockup style: "in 3 days · auto · Visa"
                     $rawDate = $subscription['raw_next_payment'] ?? $subscription['next_payment'];
                     $relLabel = wallosRelativeDayLabel($rawDate);
-                    $renewLabel = ((int) $subscription['auto_renew'] === 1) ? 'auto' : 'manual';
+                    $renewLabel = translate(((int) $subscription['auto_renew'] === 1) ? 'renew_auto_short' : 'renew_manual_short', $i18n);
                     $relIsLate = strpos($relLabel, 'late') !== false;
                     ?>
                     <span class="subscription-mobile-meta">
-                        <span class="date-label"><?= htmlspecialchars(formatDate($subscription['next_payment'], $lang)) ?></span>
                         <?php if (!empty($relLabel)): ?>
                             <span class="rel-time<?= $relIsLate ? ' overdue' : '' ?>"><?= htmlspecialchars($relLabel) ?></span>
                         <?php endif; ?>
+                        <span class="date-label"><?= htmlspecialchars(formatDate($subscription['next_payment'], $lang)) ?></span>
                         <span class="renew-label"><?= $renewLabel ?></span>
                         <?php if (!empty($subscription['payment_method_name'])): ?>
                             <span class="pm-label"><?= htmlspecialchars($subscription['payment_method_name']) ?></span>

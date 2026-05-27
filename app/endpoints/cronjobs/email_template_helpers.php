@@ -80,6 +80,10 @@ function wallosBuildPlainTextEmail($intro, array $subscriptions)
             $lines[] = 'Payer: ' . $subscription['payer'];
         }
 
+        if (!empty($subscription['mark_paid_url'])) {
+            $lines[] = 'Mark as paid: ' . $subscription['mark_paid_url'];
+        }
+
         $lines[] = '';
     }
 
@@ -116,6 +120,16 @@ function wallosBuildHtmlEmail($title, $intro, array $subscriptions, $actionUrl =
             $logo = '<img src="cid:' . wallosEmailEscape($subscription['logo_cid']) . '" alt="' . $name . ' logo" style="width:52px;height:52px;border-radius:14px;object-fit:contain;background:#f8fafc;border:1px solid #e2e8f0;padding:8px;box-sizing:border-box;" />';
         }
 
+        $markPaidButton = '';
+        if (!empty($subscription['mark_paid_url'])) {
+            $markPaidButton = ''
+                . '<div style="margin-top:14px;">'
+                . '<a href="' . wallosEmailEscape($subscription['mark_paid_url']) . '" style="display:inline-block;background:#16a34a;color:#ffffff;text-decoration:none;padding:9px 16px;border-radius:10px;font-size:13px;font-weight:700;">'
+                . '✓ Mark as paid'
+                . '</a>'
+                . '</div>';
+        }
+
         $cards .= ''
             . '<tr>'
             . '<td style="padding:0 0 14px 0;">'
@@ -132,6 +146,7 @@ function wallosBuildHtmlEmail($title, $intro, array $subscriptions, $actionUrl =
             . $date
             . $category
             . $payer
+            . $markPaidButton
             . '</td>'
             . '</tr>'
             . '</table>'

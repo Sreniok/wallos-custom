@@ -158,7 +158,11 @@ if ($sortOrder == "payment_method_id") {
   });
 }
 
-require_once 'includes/fuel_vehicles_load.php';
+require_once 'includes/fuel_vehicles.php';
+$fuelSummary = wallosLoadFuelVehicleSummary($db, (int) $userId, $userData, $i18n, $mainCurrencyId);
+$fuelVehicles = $fuelSummary['vehicles'];
+$fuelPeriod = $fuelSummary['period'];
+$fuelPeriodLabel = $fuelSummary['period_label'];
 
 $headerClass = count($subscriptions) > 0 || count($fuelVehicles) > 0 ? "main-actions" : "main-actions hidden";
 ?>
