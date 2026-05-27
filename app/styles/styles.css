@@ -1961,39 +1961,85 @@ button.dark-theme-button i {
   width: auto;
 }
 
-.fuel-vehicle .billing-cycle {
-  flex: 0 0 auto;
-}
-
-.fuel-vehicle .fuel-period-badge {
-  background-color: rgba(var(--main-color-rgb), 0.08);
-  border: 1px solid rgba(var(--main-color-rgb), 0.14);
-  border-radius: 8px;
-  color: var(--text-color);
-  font-size: 13px;
-  padding: 5px 8px;
-}
-
-.fuel-vehicle .fuel-card-detail {
+/* Top-row meta columns — mirror the standard subscription card layout
+   (Spotify-style: logo | name | cycle | next | price | icon). Each column
+   shows an icon + label in muted text so the fuel card visually matches
+   regular subscription cards. */
+.fuel-vehicle .fuel-cycle,
+.fuel-vehicle .fuel-next-fuel-type {
   align-items: center;
-  background-color: rgba(var(--main-color-rgb), 0.08);
-  border: 1px solid rgba(var(--main-color-rgb), 0.14);
-  border-radius: 8px;
+  color: var(--text-color);
   display: inline-flex;
-  flex: 0 0 auto;
-  justify-content: center;
-  padding: 6px 10px;
+  font-size: 14px;
+  gap: 6px;
+  text-transform: capitalize;
 }
 
-.fuel-card-details {
+.fuel-vehicle .fuel-cycle > i,
+.fuel-vehicle .fuel-next-fuel-type > i {
+  color: var(--main-color);
+  font-size: 13px;
+  opacity: 0.85;
+}
+
+.fuel-vehicle .fuel-payment-icon {
+  align-items: center;
   display: flex;
-  flex: 1 1 420px;
-  flex-wrap: wrap;
-  gap: 8px;
+  font-size: 18px;
+  justify-content: center;
+  color: var(--main-color);
+  width: 44px;
 }
 
-.fuel-vehicle .fuel-payer {
-  margin-left: 0;
+/* Always reveal the secondary row for fuel cards (no expand/collapse needed —
+   the petrol details are the primary info, not a hidden detail). */
+.fuel-vehicle .subscription-secondary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 8px 5px 4px;
+}
+
+.fuel-vehicle .subscription-secondary > span.fuel-secondary-item {
+  align-items: center;
+  display: inline-flex;
+  flex-basis: auto;
+  font-size: 14px;
+  gap: 8px;
+  justify-content: flex-start;
+  color: var(--text-color);
+}
+
+.fuel-vehicle .subscription-secondary > span.fuel-secondary-item > i {
+  color: var(--main-color);
+  font-size: 14px;
+  opacity: 0.85;
+}
+
+.fuel-vehicle .fuel-payer > i {
+  color: #8b5cf6;
+  opacity: 1;
+}
+
+.fuel-vehicle .fuel-yearly > i {
+  color: #10b981;
+  opacity: 1;
+}
+
+.fuel-vehicle .fuel-registration-badge {
+  background: linear-gradient(135deg, rgba(var(--main-color-rgb), 0.22), rgba(var(--main-color-rgb), 0.08));
+  border: 1px solid rgba(var(--main-color-rgb), 0.32);
+  border-radius: 8px;
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 4px 10px;
+  text-transform: uppercase;
+}
+
+.fuel-vehicle .fuel-registration-badge > i {
+  color: var(--main-color);
+  opacity: 1;
 }
 
 .fuel-vehicle .fuel-nfc-action {
@@ -2141,90 +2187,25 @@ button.dark-theme-button i {
     flex: 1;
   }
 
-  .fuel-vehicle .billing-cycle,
-  .fuel-vehicle .payment_method,
-  .fuel-vehicle .price,
-  .fuel-vehicle .fuel-card-detail {
-    flex-basis: auto;
+  /* On mobile the .subscription-main grid layout from mobile-first.css
+     already gives us logo | name+meta | price. The fuel card just needs
+     its extra meta columns (cycle, next, payment_method) to collapse so
+     the standard mobile layout applies cleanly. */
+  .fuel-vehicle .fuel-cycle,
+  .fuel-vehicle .fuel-next-fuel-type,
+  .fuel-vehicle .fuel-payment-icon {
+    display: none;
   }
 
-  .fuel-vehicle .subscription-main {
-    align-items: center;
-    display: grid;
-    grid-template-columns: 50px minmax(0, 1fr) auto;
-    gap: 8px;
-  }
-
-  .fuel-vehicle .fuel-logo {
-    grid-column: 1;
-    grid-row: 1 / span 2;
-    height: 46px;
-    min-width: 46px;
-    width: 46px;
-  }
-
-  .fuel-vehicle .name {
-    align-items: center;
-    flex-basis: auto;
-    font-size: 15px;
-    font-weight: 700;
-    grid-column: 2;
-    grid-row: 1;
-    justify-content: flex-start;
-    min-width: 0;
-    overflow: hidden;
-    text-align: left;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .fuel-vehicle .price {
-    font-size: 15px;
-    font-weight: 700;
-    grid-column: 3;
-    grid-row: 1;
-    justify-content: flex-end;
-    white-space: nowrap;
-  }
-
-  .fuel-vehicle .fuel-period-badge {
-    font-size: 11px;
-    grid-column: 2 / 4;
-    grid-row: 2;
-    justify-content: center;
-    padding: 5px 8px;
-  }
-
-  .fuel-card-details {
-    display: grid;
+  .fuel-vehicle .subscription-secondary {
+    display: flex;
+    flex-wrap: wrap;
     gap: 7px;
-    grid-column: 1 / -1;
-    grid-row: 3;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    width: 100%;
+    padding-top: 6px;
   }
 
-  .fuel-vehicle .fuel-card-detail {
+  .fuel-vehicle .subscription-secondary > span.fuel-secondary-item {
     font-size: 13px;
-    justify-content: center;
-    min-width: 0;
-    overflow: hidden;
-    padding: 7px 8px;
-    text-align: center;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .fuel-vehicle .fuel-card-registration {
-    grid-column: span 2;
-  }
-
-  .fuel-vehicle .fuel-payer {
-    font-size: 13px;
-    grid-column: 1 / -1;
-    grid-row: 4;
-    justify-content: flex-end;
-    margin-left: 0;
   }
 
   .fuel-vehicle-meta {

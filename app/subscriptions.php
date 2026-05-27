@@ -158,75 +158,7 @@ if ($sortOrder == "payment_method_id") {
   });
 }
 
-$fuelVehicles = [];
-$fuelPeriod = null;
-$fuelVehicleTableExists = $db->querySingle("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'fuel_vehicles'");
-$expensesVehicleColumnExists = false;
-$expenseColumnsResult = $db->query("PRAGMA table_info(expenses)");
-while ($expenseColumn = $expenseColumnsResult->fetchArray(SQLITE3_ASSOC)) {
-  if (($expenseColumn['name'] ?? '') === 'vehicle_id') {
-    $expensesVehicleColumnExists = true;
-    break;
-  }
-}
-
-if ($fuelVehicleTableExists && $expensesVehicleColumnExists) {
-  if (wallosUsesPayrollBudgetCycle($userData)) {
-    $fuelPeriod = wallosGetPayrollPeriod($userData);
-    $fuelPeriodLabel = translate('payroll_month', $i18n);
-  } else {
-    $fuelPeriod = [
-      'start' => new DateTimeImmutable('first day of this month'),
-      'end' => new DateTimeImmutable('last day of this month'),
-    ];
-    $fuelPeriodLabel = translate('calendar_month', $i18n);
-  }
-
-  $vehicleStmt = $db->prepare("SELECT fv.*,
-      h.name AS payer_name,
-      COUNT(e.id) AS fill_count,
-      COALESCE(SUM(e.amount), 0) AS period_total,
-      COALESCE(SUM(e.quantity), 0) AS period_quantity,
-      MAX(e.expense_date) AS last_fill_date
-    FROM fuel_vehicles fv
-    LEFT JOIN household h
-      ON h.id = fv.payer_user_id
-      AND h.user_id = fv.user_id
-    LEFT JOIN expenses e
-      ON e.vehicle_id = fv.id
-      AND e.user_id = fv.user_id
-      AND e.category = 'fuel'
-      AND e.expense_date BETWEEN :startDate AND :endDate
-    WHERE fv.user_id = :userId
-    GROUP BY fv.id
-    ORDER BY fv.name ASC");
-  $vehicleStmt->bindValue(':userId', $userId, SQLITE3_INTEGER);
-  $vehicleStmt->bindValue(':startDate', $fuelPeriod['start']->format('Y-m-d'), SQLITE3_TEXT);
-  $vehicleStmt->bindValue(':endDate', $fuelPeriod['end']->format('Y-m-d'), SQLITE3_TEXT);
-  $vehicleResult = $vehicleStmt->execute();
-  while ($vehicle = $vehicleResult->fetchArray(SQLITE3_ASSOC)) {
-    $totalStmt = $db->prepare("SELECT amount, currency_id FROM expenses
-      WHERE user_id = :userId
-        AND vehicle_id = :vehicleId
-        AND category = 'fuel'
-        AND expense_date BETWEEN :startDate AND :endDate");
-    $totalStmt->bindValue(':userId', $userId, SQLITE3_INTEGER);
-    $totalStmt->bindValue(':vehicleId', (int) $vehicle['id'], SQLITE3_INTEGER);
-    $totalStmt->bindValue(':startDate', $fuelPeriod['start']->format('Y-m-d'), SQLITE3_TEXT);
-    $totalStmt->bindValue(':endDate', $fuelPeriod['end']->format('Y-m-d'), SQLITE3_TEXT);
-    $totalResult = $totalStmt->execute();
-    $convertedTotal = 0.0;
-    while ($expense = $totalResult->fetchArray(SQLITE3_ASSOC)) {
-      $amount = (float) $expense['amount'];
-      if ((int) $expense['currency_id'] !== (int) $mainCurrencyId) {
-        $amount = getPriceConverted($amount, (int) $expense['currency_id'], $db, $userId);
-      }
-      $convertedTotal += $amount;
-    }
-    $vehicle['period_total'] = $convertedTotal;
-    $fuelVehicles[] = $vehicle;
-  }
-}
+require_once 'includes/fuel_vehicles_load.php';
 
 $headerClass = count($subscriptions) > 0 || count($fuelVehicles) > 0 ? "main-actions" : "main-actions hidden";
 ?>
@@ -366,6 +298,11 @@ nav, .logo, .dropdown, .mobile-nav, section.contain { display: none !important; 
         $fuelCurrencySymbol = $currencies[$mainCurrencyId]['symbol'] ?? $currencies[$mainCurrencyId]['code'];
         $displayName = $vehicle['name'];
         $registration = trim($vehicle['registration'] ?? '');
+        $fuelTypeLabel = translate(($vehicle['fuel_type'] ?? 'petrol') === 'diesel' ? 'diesel' : 'petrol', $i18n);
+        $quantityLabel = (rtrim(rtrim(number_format($quantity, 3, '.', ''), '0'), '.') ?: '0') . ' ' . $unitLabel;
+        $unitPriceLabel = $unitPrice > 0
+          ? $fuelCurrencySymbol . number_format($unitPrice, 3) . ' / ' . $unitLabel
+          : translate('no_fuel_entries', $i18n);
         $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
           || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
         $scheme = $isHttps ? 'https' : 'http';
@@ -377,7 +314,8 @@ nav, .logo, .dropdown, .mobile-nav, section.contain { display: none !important; 
         <div class="subscription-container fuel-vehicle-card<?= $registration !== '' ? ' has-registration' : '' ?>" tabindex="0" role="group"
           aria-label="<?= htmlspecialchars($displayName, ENT_QUOTES, 'UTF-8') ?>"
           data-fuel-vehicle="true">
-          <div class="subscription fuel-vehicle" data-id="<?= (int) $vehicle['id'] ?>">
+          <div class="subscription fuel-vehicle" data-id="<?= (int) $vehicle['id'] ?>"
+            data-name="<?= htmlspecialchars($displayName, ENT_QUOTES, 'UTF-8') ?>">
             <div class="subscription-main">
               <span class="logo fuel-logo">
                 <?php if (!empty($vehicle['logo_url'])): ?>
@@ -386,34 +324,32 @@ nav, .logo, .dropdown, .mobile-nav, section.contain { display: none !important; 
                   <?= htmlspecialchars(strtoupper(substr($vehicle['make'] ?: $displayName, 0, 1)), ENT_QUOTES, 'UTF-8') ?>
                 <?php endif ?>
               </span>
-              <span class="name"><?= htmlspecialchars($displayName, ENT_QUOTES, 'UTF-8') ?></span>
+              <span class="name">
+                <span class="name-text"><?= htmlspecialchars($displayName, ENT_QUOTES, 'UTF-8') ?></span>
+              </span>
+              <span class="cycle fuel-cycle"
+                title="<?= htmlspecialchars($fuelPeriodLabel, ENT_QUOTES, 'UTF-8') ?>">
+                <i class="fa-solid fa-calendar-days" aria-hidden="true"></i>
+                <?= htmlspecialchars($fuelPeriodLabel, ENT_QUOTES, 'UTF-8') ?>
+              </span>
+              <span class="next fuel-next-fuel-type"
+                title="<?= htmlspecialchars($fuelTypeLabel, ENT_QUOTES, 'UTF-8') ?>">
+                <i class="fa-solid fa-gas-pump" aria-hidden="true"></i>
+                <?= htmlspecialchars($fuelTypeLabel, ENT_QUOTES, 'UTF-8') ?>
+              </span>
               <span class="price">
-                <?= formatPrice($total, $currencies[$mainCurrencyId]['code'], $currencies) ?>
+                <span class="value"><?= formatPrice($total, $currencies[$mainCurrencyId]['code'], $currencies) ?></span>
+                <span class="cycle-suffix"><?= wallosCycleSuffix(3) ?></span>
               </span>
-              <span class="billing-cycle fuel-period-badge"><?= htmlspecialchars($fuelPeriodLabel, ENT_QUOTES, 'UTF-8') ?></span>
-              <?php if ($registration !== ''): ?>
-                <span class="fuel-card-detail fuel-registration-badge">
-                  <?= htmlspecialchars($registration, ENT_QUOTES, 'UTF-8') ?>
-                </span>
-              <?php endif ?>
-              <div class="fuel-card-details">
-                <span class="fuel-card-detail">
-                  <?= translate(($vehicle['fuel_type'] ?? 'petrol') === 'diesel' ? 'diesel' : 'petrol', $i18n) ?>
-                </span>
-                <span class="fuel-card-detail">
-                  <?= (int) $vehicle['fill_count'] ?> <?= translate('fills', $i18n) ?>
-                </span>
-                <span class="fuel-card-detail">
-                  <?= rtrim(rtrim(number_format($quantity, 3, '.', ''), '0'), '.') ?: '0' ?> <?= $unitLabel ?>
-                </span>
-                <span class="fuel-card-detail">
-                  <?= $unitPrice > 0 ? htmlspecialchars($fuelCurrencySymbol, ENT_QUOTES, 'UTF-8') . number_format($unitPrice, 3) . " / " . $unitLabel : translate('no_fuel_entries', $i18n) ?>
-                </span>
-              </div>
-              <span class="payment_method fuel-payer">
-                <i class="fa-solid fa-user"></i>
-                <?= htmlspecialchars($vehicle['payer_name'] ?: translate('none', $i18n), ENT_QUOTES, 'UTF-8') ?>
+              <span class="payment_method fuel-payment-icon"
+                title="<?= htmlspecialchars($fuelTypeLabel, ENT_QUOTES, 'UTF-8') ?>">
+                <i class="fa-solid fa-droplet" aria-hidden="true"></i>
               </span>
+              <button type="button" class="actions-expand"
+                aria-label="<?= translate('more_options', $i18n) ?>"
+                data-action="expand-actions" data-id="<?= (int) $vehicle['id'] ?>">
+                <i class="fas fa-ellipsis-v"></i>
+              </button>
               <ul class="actions" aria-hidden="true">
                 <li class="fuel-nfc-action" data-action="fuel-nfc" data-id="<?= (int) $vehicle['id'] ?>"
                   data-nfc-url="<?= htmlspecialchars($nfcUrl, ENT_QUOTES, 'UTF-8') ?>"
@@ -435,6 +371,41 @@ nav, .logo, .dropdown, .mobile-nav, section.contain { display: none !important; 
                   <?= translate('delete', $i18n) ?>
                 </li>
               </ul>
+            </div>
+            <div class="subscription-secondary fuel-secondary">
+              <span class="category fuel-secondary-item" title="<?= htmlspecialchars($fuelTypeLabel, ENT_QUOTES, 'UTF-8') ?>">
+                <i class="fa-solid fa-gas-pump" aria-hidden="true"></i>
+                <?= htmlspecialchars($fuelTypeLabel, ENT_QUOTES, 'UTF-8') ?>
+              </span>
+              <span class="payer_user fuel-secondary-item fuel-payer"
+                title="<?= translate('paid_by', $i18n) ?>">
+                <i class="fa-solid fa-circle-user" aria-hidden="true"></i>
+                <?= htmlspecialchars($vehicle['payer_name'] ?: translate('none', $i18n), ENT_QUOTES, 'UTF-8') ?>
+              </span>
+              <?php if ($registration !== ''): ?>
+                <span class="payment-method-name fuel-secondary-item fuel-registration-badge"
+                  title="<?= translate('vehicle_registration', $i18n) ?>">
+                  <i class="fa-solid fa-id-card-clip" aria-hidden="true"></i>
+                  <?= htmlspecialchars($registration, ENT_QUOTES, 'UTF-8') ?>
+                </span>
+              <?php endif ?>
+              <span class="fuel-secondary-item fuel-yearly"
+                title="<?= translate('petrol_yearly_total', $i18n) ?>">
+                <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
+                <?= formatPrice((float) ($vehicle['year_total'] ?? 0), $currencies[$mainCurrencyId]['code'], $currencies) ?> / <?= date('Y') ?>
+              </span>
+              <span class="fuel-secondary-item">
+                <i class="fa-solid fa-fill-drip" aria-hidden="true"></i>
+                <?= (int) $vehicle['fill_count'] ?> <?= translate('fills', $i18n) ?>
+              </span>
+              <span class="fuel-secondary-item">
+                <i class="fa-solid fa-droplet" aria-hidden="true"></i>
+                <?= htmlspecialchars($quantityLabel, ENT_QUOTES, 'UTF-8') ?>
+              </span>
+              <span class="fuel-secondary-item">
+                <i class="fa-solid fa-tag" aria-hidden="true"></i>
+                <?= htmlspecialchars($unitPriceLabel, ENT_QUOTES, 'UTF-8') ?>
+              </span>
             </div>
           </div>
         </div>
@@ -462,68 +433,6 @@ nav, .logo, .dropdown, .mobile-nav, section.contain { display: none !important; 
     }
     ?>
   </div>
-</section>
-<section class="subscription-form expense-form" id="fuelVehicleForm" role="dialog" aria-modal="true" aria-labelledby="fuelVehicleFormTitle" tabindex="-1">
-  <header>
-    <h3 id="fuelVehicleFormTitle"><?= translate('new_petrol_vehicle', $i18n) ?></h3>
-    <span class="fa-solid fa-xmark close-form" role="button" tabindex="0" aria-label="Close"
-      data-click="closeFuelVehicleForm" data-keydown="closeFuelVehicleForm" data-keys="Enter,Space" data-prevent-default="true"></span>
-  </header>
-  <form id="fuelVehicleCreateForm">
-    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(generate_csrf_token(), ENT_QUOTES, 'UTF-8') ?>">
-    <input type="hidden" id="fuelVehicleId" name="id">
-    <input type="hidden" id="fuelVehicleLogoUrl" name="logo_url">
-    <div class="form-group-inline fuel-logo-picker">
-      <div class="logo-preview vehicle-logo-preview">
-        <img src="" alt="<?= translate('logo_preview', $i18n) ?>" id="fuelVehicleLogoPreview">
-      </div>
-      <div id="fuelVehicleLogoSearchButton" class="image-button medium disabled" role="button" tabindex="0"
-        aria-label="<?= translate('search_logo', $i18n) ?>" title="<?= translate('search_logo', $i18n) ?>"
-        data-click="searchFuelVehicleLogo" data-keydown="searchFuelVehicleLogo" data-keys="Enter,Space" data-prevent-default="true">
-        <?php include "images/siteicons/svg/websearch.php"; ?>
-      </div>
-      <div id="fuelVehicleLogoSearchResults" class="logo-search">
-        <header>
-          <?= translate('web_search', $i18n) ?>
-          <span class="fa-solid fa-xmark close-logo-search" data-click="closeFuelVehicleLogoSearch"></span>
-        </header>
-        <div id="fuelVehicleLogoSearchImages"></div>
-      </div>
-    </div>
-    <div class="form-group">
-      <input type="text" id="fuelVehicleName" name="name" autocomplete="off"
-        placeholder="<?= translate('vehicle_name', $i18n) ?>" data-input="setFuelVehicleLogoSearchStatus">
-    </div>
-    <div class="form-group-inline">
-      <input type="text" id="fuelVehicleMake" name="make" autocomplete="off"
-        placeholder="<?= translate('vehicle_make', $i18n) ?>" data-input="setFuelVehicleLogoSearchStatus">
-      <input type="text" id="fuelVehicleModel" name="model" autocomplete="off"
-        placeholder="<?= translate('vehicle_model', $i18n) ?>" data-input="setFuelVehicleLogoSearchStatus">
-    </div>
-    <div class="form-group">
-      <input type="text" id="fuelVehicleRegistration" name="registration" autocomplete="off"
-        placeholder="<?= translate('vehicle_registration', $i18n) ?>">
-    </div>
-    <div class="form-group">
-      <select id="fuelVehicleFuelType" name="fuel_type">
-        <option value="petrol"><?= translate('petrol', $i18n) ?></option>
-        <option value="diesel"><?= translate('diesel', $i18n) ?></option>
-      </select>
-    </div>
-    <div class="form-group">
-      <select id="fuelVehiclePayer" name="payer_user_id">
-        <option value="0"><?= translate('paid_by', $i18n) ?></option>
-        <?php foreach ($members as $member): ?>
-          <option value="<?= (int) $member['id'] ?>"><?= htmlspecialchars($member['name'], ENT_QUOTES, 'UTF-8') ?></option>
-        <?php endforeach ?>
-      </select>
-    </div>
-    <div class="buttons">
-      <input type="button" value="<?= translate('cancel', $i18n) ?>" class="secondary-button thin"
-        data-click="closeFuelVehicleForm">
-      <input type="submit" value="<?= translate('save', $i18n) ?>" class="thin" id="saveFuelVehicle">
-    </div>
-  </form>
 </section>
 <section class="subscription-form" id="subscription-form" role="dialog" aria-modal="true" aria-labelledby="form-title" tabindex="-1">
   <header>

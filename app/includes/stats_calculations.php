@@ -209,6 +209,8 @@ $vsBudgetDataPoints = [];
 $fuelThisMonth = 0;
 $fuelThisPeriod = 0;
 $fuelThisYear = 0;
+$fuelQuantityThisPeriod = 0;
+$fuelQuantityThisYear = 0;
 $fuelAverageMonthly = 0;
 $fuelLastFill = null;
 $fuelMonthlyTotals = [];
@@ -261,13 +263,25 @@ while ($expense = $expenseResult->fetchArray(SQLITE3_ASSOC)) {
         $fuelThisMonth += $amount;
     }
 
+    $normalizedQuantity = 0.0;
+    if (!empty($expense['quantity']) && $expense['quantity'] > 0) {
+        $normalizedQuantity = (float) $expense['quantity'];
+        if ($fuelUnitSystem === 'us' && ($expense['unit'] ?? 'l') === 'l') {
+            $normalizedQuantity = $normalizedQuantity / 3.785411784;
+        } elseif ($fuelUnitSystem !== 'us' && ($expense['unit'] ?? 'l') === 'gal_us') {
+            $normalizedQuantity = $normalizedQuantity * 3.785411784;
+        }
+    }
+
     $expenseDateObject = new DateTimeImmutable($expenseDate);
     if ($expenseDateObject >= $fuelDashboardPeriod['start'] && $expenseDateObject <= $fuelDashboardPeriod['end']) {
         $fuelThisPeriod += $amount;
+        $fuelQuantityThisPeriod += $normalizedQuantity;
     }
 
     if ($yearKey === $currentYear) {
         $fuelThisYear += $amount;
+        $fuelQuantityThisYear += $normalizedQuantity;
     }
 
     $fuelLastFill = $expenseDate;

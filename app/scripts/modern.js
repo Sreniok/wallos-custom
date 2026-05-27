@@ -515,20 +515,42 @@
         const actions = document.createElement('div');
         actions.className = 'modern-swipe-actions';
         wrapper.style.setProperty('--modern-action-width', `${3 * ACTION_PX}px`);
-        actions.innerHTML = `
-            <button class="modern-swipe-action dash-missing" data-dashboard-action="missing" data-id="${id}" aria-label="Payment Missing">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9v4"></path><path d="M12 17h.01"></path><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"></path></svg>
-                Missing
-            </button>
-            <button class="modern-swipe-action dash-paid" data-dashboard-action="paid" data-id="${id}" aria-label="Already Paid">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>
-                Paid
-            </button>
-            <button class="modern-swipe-action dash-edit" data-dashboard-action="edit" data-id="${id}" aria-label="Edit">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
-                Edit
-            </button>
-        `;
+
+        // Fuel vehicle cards get their own drawer (Edit / History / Delete)
+        // wired to the global expenses.js handlers via data-action="fuel-*".
+        // id here is the vehicle id (from data-args on the .petrol-subscription-card).
+        if (card.classList.contains('petrol-subscription-card')) {
+            wrapper.classList.add('fuel-swipe-row');
+            actions.innerHTML = `
+                <button class="modern-swipe-action dash-delete" data-action="fuel-delete" data-id="${id}" aria-label="Delete vehicle">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
+                    Delete
+                </button>
+                <button class="modern-swipe-action dash-history" data-action="fuel-history" data-id="${id}" aria-label="Petrol history">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 3v6h6"></path><path d="M12 7v5l3 2"></path></svg>
+                    History
+                </button>
+                <button class="modern-swipe-action dash-edit" data-action="fuel-edit" data-id="${id}" aria-label="Edit vehicle">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
+                    Edit
+                </button>
+            `;
+        } else {
+            actions.innerHTML = `
+                <button class="modern-swipe-action dash-missing" data-dashboard-action="missing" data-id="${id}" aria-label="Payment Missing">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9v4"></path><path d="M12 17h.01"></path><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"></path></svg>
+                    Missing
+                </button>
+                <button class="modern-swipe-action dash-paid" data-dashboard-action="paid" data-id="${id}" aria-label="Already Paid">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>
+                    Paid
+                </button>
+                <button class="modern-swipe-action dash-edit" data-dashboard-action="edit" data-id="${id}" aria-label="Edit">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
+                    Edit
+                </button>
+            `;
+        }
         const parent = card.parentNode;
         parent.insertBefore(wrapper, card);
         wrapper.appendChild(actions);
@@ -555,52 +577,24 @@
         });
     }
 
-    /* Next-payment hero (single subscription) — wrap the .nph-item with the
-       same Missing / Paid / Edit panel the dashboard cards use so it gets the
-       identical swipe-to-reveal gesture. */
+    /* Next-payment hero stays purely informational — no swipe actions, no
+       Missing/Paid/Edit drawer. Those actions remain on the dashboard cards
+       below the hero (overdue / upcoming lists). */
     function initHeroSwipe() {
-        const hero = document.querySelector('.next-payment-hero.single');
-        if (!hero) return;
-        const item = hero.querySelector('.nph-list > .nph-item');
-        if (!item) return;
-        const id = extractDashboardId(item);
-        if (!id) return;
-
-        let wrap = item.closest('.nph-swipe');
-        if (!wrap) {
-            wrap = document.createElement('div');
-            wrap.className = 'nph-swipe';
-            wrap.style.setProperty('--modern-action-width', `${3 * ACTION_PX}px`);
-            const actions = document.createElement('div');
-            actions.className = 'modern-swipe-actions';
-            actions.innerHTML = `
-                <button class="modern-swipe-action dash-missing" data-dashboard-action="missing" data-id="${id}" aria-label="Payment Missing">
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9v4"></path><path d="M12 17h.01"></path><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"></path></svg>
-                    Missing
-                </button>
-                <button class="modern-swipe-action dash-paid" data-dashboard-action="paid" data-id="${id}" aria-label="Already Paid">
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>
-                    Paid
-                </button>
-                <button class="modern-swipe-action dash-edit" data-dashboard-action="edit" data-id="${id}" aria-label="Edit">
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
-                    Edit
-                </button>
-            `;
-            item.parentNode.insertBefore(wrap, item);
-            wrap.appendChild(actions);
-            wrap.appendChild(item);
-        }
-        bindSwipe(wrap, item, {
-            fallbackWidth: 3 * ACTION_PX,
-            onOpenStart: () => { closeDashboardLike(wrap); closeAllExcept(null); }
-        });
-        wireDashboardActionClicks();
+        return;
     }
 
     function wireDashboardActionClicks() {
         if (document.body.dataset.modernDashActionsBound) return;
         document.body.dataset.modernDashActionsBound = '1';
+        // Fuel action buttons handle themselves via expenses.js; just close
+        // the swipe drawer so users see immediate feedback.
+        document.addEventListener('click', (e) => {
+            const fuelBtn = e.target.closest('.dashboard-swipe-row .modern-swipe-action[data-action^="fuel-"]');
+            if (!fuelBtn) return;
+            const wrapper = fuelBtn.closest('.dashboard-swipe-row');
+            if (wrapper) wrapper.classList.remove('modern-swipe-revealed');
+        }, true);
         document.addEventListener('click', (e) => {
             const btn = e.target.closest('.modern-swipe-action[data-dashboard-action]');
             if (!btn) return;

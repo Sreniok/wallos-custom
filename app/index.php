@@ -3,6 +3,7 @@
 require_once 'includes/header.php';
 require_once 'includes/getdbkeys.php';
 require_once 'includes/subscription_dates.php';
+require_once 'includes/budget_cycles.php';
 
 // Get the first name of the user
 $stmt = $db->prepare("SELECT username, firstname FROM user WHERE id = :userId");
@@ -30,14 +31,22 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
 }
 $hasOverdueSubscriptions = !empty($overdueSubscriptions);
 
-// Fetch payments explicitly recorded this month and auto-renewed payments that already passed.
-$monthStart = new DateTimeImmutable('first day of this month');
+// Fetch payments explicitly recorded this cycle and auto-renewed payments that already passed.
 $today = new DateTimeImmutable('today');
+$usesPayrollCycle = wallosUsesPayrollBudgetCycle($userData);
+if ($usesPayrollCycle) {
+    $payrollPeriod = wallosGetPayrollPeriod($userData);
+    $periodStart = $payrollPeriod['start'];
+    $periodEnd = $payrollPeriod['end'] < $today ? $payrollPeriod['end'] : $today;
+} else {
+    $periodStart = new DateTimeImmutable('first day of this month');
+    $periodEnd = $today;
+}
 
-$stmt = $db->prepare("SELECT id, logo, name, price, currency_id, next_payment, last_payment_date, start_date, cycle, frequency, auto_renew FROM subscriptions WHERE user_id = :userId AND inactive = 0 AND (auto_renew = 1 OR last_payment_date BETWEEN :monthStart AND :today)");
+$stmt = $db->prepare("SELECT id, logo, name, price, currency_id, next_payment, last_payment_date, start_date, cycle, frequency, auto_renew FROM subscriptions WHERE user_id = :userId AND inactive = 0 AND (auto_renew = 1 OR last_payment_date BETWEEN :periodStart AND :periodEnd)");
 $stmt->bindValue(':userId', $userId, SQLITE3_INTEGER);
-$stmt->bindValue(':monthStart', $monthStart->format('Y-m-d'), SQLITE3_TEXT);
-$stmt->bindValue(':today', $today->format('Y-m-d'), SQLITE3_TEXT);
+$stmt->bindValue(':periodStart', $periodStart->format('Y-m-d'), SQLITE3_TEXT);
+$stmt->bindValue(':periodEnd', $periodEnd->format('Y-m-d'), SQLITE3_TEXT);
 $result = $stmt->execute();
 $paidThisMonthSubscriptions = [];
 $paidThisMonthKeys = [];
@@ -47,12 +56,12 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
 
     if (!empty($row['last_payment_date'])) {
         $lastPaymentDate = new DateTimeImmutable($row['last_payment_date']);
-        if ($lastPaymentDate >= $monthStart && $lastPaymentDate <= $today) {
+        if ($lastPaymentDate >= $periodStart && $lastPaymentDate <= $periodEnd) {
             $paymentDates[] = $lastPaymentDate->format('Y-m-d');
         }
     }
 
-    $paymentDates = array_merge($paymentDates, getPassedAutoRenewalOccurrencesInRange($row, $monthStart, $today));
+    $paymentDates = array_merge($paymentDates, getPassedAutoRenewalOccurrencesInRange($row, $periodStart, $periodEnd));
 
     foreach (array_unique($paymentDates) as $paymentDate) {
         $paymentKey = $row['id'] . ':' . $paymentDate;
@@ -158,11 +167,11 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
                             ?>
                             <p class="subscription-item-name"><?= $subscriptionName ?></p>
                             <p class="subscription-item-meta">
-                                <span class="rel-time overdue"><?= htmlspecialchars(wallosRelativeDayLabel($subscriptionNextPayment)) ?></span>
-                                <span class="meta-sep">&middot;</span>
                                 <span class="rel-date"><?= htmlspecialchars(formatDate($subscriptionDisplayNextPayment, $lang)) ?></span>
                                 <span class="meta-sep">&middot;</span>
-                                <span class="renew-label"><?= ((int) $subscription['auto_renew'] === 1) ? 'auto-renew' : 'manual' ?></span>
+                                <span class="rel-time overdue"><?= htmlspecialchars(wallosRelativeDayLabel($subscriptionNextPayment)) ?></span>
+                                <span class="meta-sep">&middot;</span>
+                                <span class="renew-label"><?= ((int) $subscription['auto_renew'] === 1) ? 'auto' : 'manual' ?></span>
                             </p>
                             <div class="subscription-item-info">
                                 <p class="subscription-item-date"> <?= formatDate($subscriptionDisplayNextPayment, $lang) ?>
@@ -216,11 +225,11 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
                             ?>
                             <p class="subscription-item-name"><?= $subscriptionName ?></p>
                             <p class="subscription-item-meta">
-                                <span class="rel-time"><?= htmlspecialchars(wallosRelativeDayLabel($subscriptionNextPayment)) ?></span>
-                                <span class="meta-sep">&middot;</span>
                                 <span class="rel-date"><?= htmlspecialchars(formatDate($subscriptionDisplayNextPayment, $lang)) ?></span>
                                 <span class="meta-sep">&middot;</span>
-                                <span class="renew-label"><?= ((int) $subscription['auto_renew'] === 1) ? 'auto-renew' : 'manual' ?></span>
+                                <span class="rel-time"><?= htmlspecialchars(wallosRelativeDayLabel($subscriptionNextPayment)) ?></span>
+                                <span class="meta-sep">&middot;</span>
+                                <span class="renew-label"><?= ((int) $subscription['auto_renew'] === 1) ? 'auto' : 'manual' ?></span>
                             </p>
                             <div class="subscription-item-info">
                                 <p class="subscription-item-date"> <?= formatDate($subscriptionDisplayNextPayment, $lang) ?></p>
@@ -234,39 +243,75 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
             </div>
         </div>
 
-        <?php if (isset($fuelThisPeriod) && ($fuelThisPeriod > 0 || $fuelThisYear > 0)) { ?>
+        <?php
+        require_once 'includes/fuel_vehicles_load.php';
+        if (!empty($fuelVehicles)):
+            $mainCurrencyId = (int) ($userData['main_currency'] ?? 0);
+            ?>
             <div class="petrol-upcoming-card">
                 <h2><?= translate('petrol', $i18n) ?></h2>
                 <div class="dashboard-subscriptions-container">
                     <div class="dashboard-subscriptions-list">
-                        <div class="subscription-item subscription-item-clickable petrol-subscription-card" role="button" tabindex="0" data-click="openPetrolExpenseModal" data-keydown="openPetrolExpenseModal" data-keys="Enter,Space" data-prevent-default="true">
-                            <span class="subscription-item-logo petrol-card-logo" aria-hidden="true">
-                                <i class="fa-solid fa-gas-pump"></i>
-                            </span>
-                            <p class="subscription-item-name"><?= translate('petrol', $i18n) ?></p>
-                            <p class="subscription-item-meta">
-                                <span class="rel-time"><?= htmlspecialchars($fuelPeriodLabel) ?></span>
-                                <span class="meta-sep">&middot;</span>
-                                <span class="renew-label"><?= translate('petrol_yearly_cost', $i18n) ?> <?= formatPrice($fuelThisYear, $currencies[$userData['main_currency']]['code'], $currencies) ?></span>
-                            </p>
-                            <div class="subscription-item-info">
-                                <p class="subscription-item-date"><?= htmlspecialchars($fuelPeriodLabel) ?></p>
-                                <p class="subscription-item-price"><span class="price-amount"><?= formatPrice($fuelThisPeriod, $currencies[$userData['main_currency']]['code'], $currencies) ?></span><span class="price-cycle">/<?= htmlspecialchars(strtolower($fuelPeriodLabel)) ?></span></p>
+                        <?php
+                        $fuelUnitLabel = (($settings['fuelUnitSystem'] ?? 'eu') === 'us') ? 'gal' : 'L';
+                        foreach ($fuelVehicles as $vehicle):
+                            $total = (float) ($vehicle['period_total'] ?? 0);
+                            $quantity = (float) ($vehicle['period_quantity'] ?? 0);
+                            $displayName = htmlspecialchars($vehicle['name'], ENT_QUOTES, 'UTF-8');
+                            $registration = trim($vehicle['registration'] ?? '');
+                            $fuelTypeLabel = translate(($vehicle['fuel_type'] ?? 'petrol') === 'diesel' ? 'diesel' : 'petrol', $i18n);
+                            $fillCount = (int) ($vehicle['fill_count'] ?? 0);
+                            $vehicleLogo = !empty($vehicle['logo_url']) ? htmlspecialchars($vehicle['logo_url'], ENT_QUOTES, 'UTF-8') : '';
+                            $totalLabel = formatPrice($total, $currencies[$mainCurrencyId]['code'], $currencies);
+                            $fillSuffix = '/' . $fillCount . ' ' . translate($fillCount === 1 ? 'fill' : 'fills', $i18n);
+                            $quantityLabel = (rtrim(rtrim(number_format($quantity, 2, '.', ''), '0'), '.') ?: '0') . ' ' . $fuelUnitLabel;
+                            ?>
+                            <div class="subscription-item subscription-item-clickable petrol-subscription-card" role="button" tabindex="0"
+                                data-click="openPetrolExpenseModal" data-keydown="openPetrolExpenseModal" data-keys="Enter,Space"
+                                data-prevent-default="true" data-args='[<?= (int) $vehicle['id'] ?>]'
+                                aria-label="<?= $displayName ?>">
+                                <?php if ($vehicleLogo !== ''): ?>
+                                    <img src="<?= $vehicleLogo ?>" alt="<?= $displayName ?> logo"
+                                        class="subscription-item-logo" title="<?= $displayName ?>">
+                                <?php else: ?>
+                                    <span class="subscription-item-logo petrol-card-logo" aria-hidden="true">
+                                        <i class="fa-solid fa-gas-pump"></i>
+                                    </span>
+                                <?php endif ?>
+                                <p class="subscription-item-name"><?= $displayName ?></p>
+                                <p class="subscription-item-meta" title="<?= htmlspecialchars($fuelTypeLabel) ?>">
+                                    <?php if ($registration !== ''): ?>
+                                        <span class="vehicle-plates-inline">
+                                            <span class="fuel-registration-badge" title="<?= translate('vehicle_registration', $i18n) ?>">
+                                                <i class="fa-solid fa-id-card-clip" aria-hidden="true"></i>
+                                                <?= htmlspecialchars($registration, ENT_QUOTES, 'UTF-8') ?>
+                                            </span>
+                                        </span>
+                                        <span class="meta-sep">&middot;</span>
+                                    <?php endif ?>
+                                    <span class="renew-label fuel-quantity-label"><?= htmlspecialchars($quantityLabel) ?></span>
+                                </p>
+                                <div class="subscription-item-info">
+                                    <p class="subscription-item-date"><?= htmlspecialchars($fuelPeriodLabel) ?></p>
+                                    <p class="subscription-item-price">
+                                        <span class="price-amount"><?= $totalLabel ?></span><span class="price-cycle"><?= htmlspecialchars($fillSuffix) ?></span>
+                                    </p>
+                                </div>
                             </div>
-                        </div>
+                        <?php endforeach ?>
                     </div>
                 </div>
             </div>
-        <?php } ?>
+        <?php endif ?>
 
         <div class="paid-this-month-subscriptions">
-            <h2><?= translate('paid_this_month', $i18n) ?></h2>
+            <h2><?= translate($usesPayrollCycle ? 'paid_this_cycle' : 'paid_this_month', $i18n) ?></h2>
             <div class="dashboard-subscriptions-container">
                 <div class="dashboard-subscriptions-list">
                     <?php
                     if (empty($paidThisMonthSubscriptions)) {
                         ?>
-                        <p><?= translate('no_paid_this_month', $i18n) ?></p>
+                        <p><?= translate($usesPayrollCycle ? 'no_paid_this_cycle' : 'no_paid_this_month', $i18n) ?></p>
                         <?php
                     } else {
                         foreach ($paidThisMonthSubscriptions as $subscription) {
@@ -406,16 +451,27 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
         <?php } ?>
     </div>
 
-    <?php if (isset($fuelThisPeriod) && ($fuelThisPeriod > 0 || $fuelThisYear > 0)) { ?>
+    <?php if (isset($fuelThisPeriod) && ($fuelThisPeriod > 0 || $fuelThisYear > 0)) {
+        $fuelUnitLabelLocal = (($settings['fuelUnitSystem'] ?? 'eu') === 'us') ? 'gal' : 'L';
+        $fmtQty = static function (float $q) {
+            return (rtrim(rtrim(number_format($q, 2, '.', ''), '0'), '.') ?: '0');
+        };
+        $periodQtyLabel = ($fuelQuantityThisPeriod ?? 0) > 0
+            ? ' / ' . $fmtQty((float) $fuelQuantityThisPeriod) . ' ' . $fuelUnitLabelLocal
+            : '';
+        $yearQtyLabel = ($fuelQuantityThisYear ?? 0) > 0
+            ? ' / ' . $fmtQty((float) $fuelQuantityThisYear) . ' ' . $fuelUnitLabelLocal
+            : '';
+        ?>
         <div class="petrol-dashboard-subscriptions">
             <h2><?= translate('petrol', $i18n) ?></h2>
             <div class="dashboard-subscriptions-container">
                 <div class="dashboard-subscriptions-list">
                     <div class="subscription-item thin">
-                        <p class="subscription-item-title"><?= translate('petrol_cost_this_period', $i18n) ?></p>
+                        <p class="subscription-item-title"><?= translate($usesPayrollCycle ? 'petrol_this_cycle' : 'petrol_this_month', $i18n) ?></p>
                         <div class="subscription-item-info">
                             <p class="subscription-item-value">
-                                <?= formatPrice($fuelThisPeriod, $currencies[$userData['main_currency']]['code'], $currencies) ?>
+                                <?= formatPrice($fuelThisPeriod, $currencies[$userData['main_currency']]['code'], $currencies) ?><span class="fuel-quantity-suffix"><?= htmlspecialchars($periodQtyLabel) ?></span>
                             </p>
                         </div>
                         <p class="subscription-item-date"><?= htmlspecialchars($fuelPeriodLabel) ?></p>
@@ -425,7 +481,7 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
                         <p class="subscription-item-title"><?= translate('petrol_yearly_cost', $i18n) ?></p>
                         <div class="subscription-item-info">
                             <p class="subscription-item-value">
-                                <?= formatPrice($fuelThisYear, $currencies[$userData['main_currency']]['code'], $currencies) ?>
+                                <?= formatPrice($fuelThisYear, $currencies[$userData['main_currency']]['code'], $currencies) ?><span class="fuel-quantity-suffix"><?= htmlspecialchars($yearQtyLabel) ?></span>
                             </p>
                         </div>
                         <p class="subscription-item-date"><?= date('Y') ?></p>

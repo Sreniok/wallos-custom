@@ -282,6 +282,8 @@ body.light {
 .modern-swipe-action.dash-missing { background: #F45A40; color: #ffffff; }
 .modern-swipe-action.dash-paid    { background: #1AA053; color: #ffffff; }
 .modern-swipe-action.dash-edit    { background: #5BC0EB; color: #043247; }
+.modern-swipe-action.dash-history { background: #8B5CF6; color: #ffffff; }
+.modern-swipe-action.dash-delete  { background: #F45A40; color: #ffffff; }
 
 .subscription-container .subscription {
   position: relative;
@@ -732,6 +734,7 @@ body.fab-hidden .modern-fab {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    min-width: 0;
   }
   .upcoming-subscriptions .subscription-item-meta .rel-time {
     color: #E08A00;
@@ -749,12 +752,20 @@ body.fab-hidden .modern-fab {
     color: var(--mf-text-muted);
     font-weight: 500;
     flex-shrink: 0;
+    white-space: nowrap;
   }
   .subscription-item-meta .renew-label {
     color: var(--mf-text-muted);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+  /* Short auto/manual label on subscription rows — never shrink so the
+     longer rel-time ("in N days") absorbs any overflow instead. */
+  .upcoming-subscriptions .subscription-item-meta .renew-label,
+  .overdue-subscriptions .subscription-item-meta .renew-label,
+  .paid-this-month-subscriptions .subscription-item-meta .renew-label {
+    flex-shrink: 0;
   }
   .subscription-item-meta .paid-badge {
     display: inline-flex;
@@ -949,20 +960,47 @@ body.fab-hidden .modern-fab {
   color: #E08A00;
 }
 
-.upcoming-subscriptions .petrol-subscription-card {
-  border-color: rgba(var(--main-color-rgb), .28) !important;
-}
-
-.upcoming-subscriptions .petrol-subscription-card .rel-time {
-  color: var(--main-color) !important;
-}
-
+/* Petrol dashboard logo uses the same flat tinted square as the fuel
+   vehicle logo on the subscriptions page (.fuel-vehicle .fuel-logo) so
+   both pages render the gas pump identically. */
 .upcoming-subscriptions .petrol-card-logo {
   align-items: center !important;
+  background-color: rgba(var(--main-color-rgb), 0.12) !important;
+  border: 1px solid rgba(var(--main-color-rgb), 0.2);
   color: var(--main-color);
   display: flex !important;
   font-size: 20px;
   justify-content: center !important;
+}
+
+/* Plates render as chip-style badges identical to the registration badge
+   on the subscriptions page (.fuel-vehicle .fuel-registration-badge). */
+.subscription-item-meta .vehicle-plates-inline {
+  align-items: center;
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.subscription-item-meta .vehicle-plates-inline .fuel-registration-badge {
+  align-items: center;
+  background: linear-gradient(135deg, rgba(var(--main-color-rgb), 0.22), rgba(var(--main-color-rgb), 0.08));
+  border: 1px solid rgba(var(--main-color-rgb), 0.32);
+  border-radius: 8px;
+  color: var(--text-color);
+  display: inline-flex;
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: 700;
+  gap: 6px;
+  letter-spacing: 0.08em;
+  padding: 2px 8px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.subscription-item-meta .vehicle-plates-inline .fuel-registration-badge > i {
+  color: var(--main-color);
+  font-size: 11px;
 }
 
 .overdue-subscriptions .subscription-item-meta .rel-time,
@@ -1117,6 +1155,13 @@ body.fab-hidden .modern-fab {
   line-height: 1.15 !important;
   margin: 0 !important;
   overflow-wrap: anywhere;
+}
+
+.petrol-dashboard-subscriptions .fuel-quantity-suffix {
+  color: var(--mf-text-muted);
+  font-size: 14px;
+  font-weight: 600;
+  margin-left: 2px;
 }
 
 @media (min-width: 769px) {
@@ -1898,182 +1943,36 @@ body.design-modern .calendar .calendar-cell-content {
   }
 }
 
-/* Final fuel-card override: this sits after the generic subscription grid rules. */
-.subscription-container.fuel-vehicle-card .fuel-vehicle .subscription-main {
-  display: grid !important;
-  grid-template-columns: 56px minmax(0, 1fr) max-content;
-  grid-template-rows: auto auto auto;
-  gap: 8px 14px;
-  align-items: center;
-  min-width: 0;
-  padding: 0 !important;
-}
-
-.subscription-container.fuel-vehicle-card .fuel-logo {
-  grid-column: 1;
-  grid-row: 1 / 3;
-  width: 56px !important;
-  height: 56px !important;
-  min-width: 56px !important;
-  max-width: 56px !important;
-  margin: 0 !important;
-}
-
-.subscription-container.fuel-vehicle-card .fuel-logo img {
-  max-width: 100%;
-  max-height: 100%;
-}
-
-.subscription-container.fuel-vehicle-card .fuel-vehicle .name {
-  grid-column: 2;
-  grid-row: 1;
-  display: block !important;
-  min-width: 0;
-  overflow: hidden;
-  text-align: left !important;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.subscription-container.fuel-vehicle-card .fuel-vehicle .price {
-  grid-column: 3;
-  grid-row: 1;
-  display: flex !important;
-  justify-content: flex-end;
-  min-width: max-content;
-  text-align: right !important;
-  white-space: nowrap;
-}
-
-.subscription-container.fuel-vehicle-card .fuel-period-badge {
-  grid-column: 2 / 4;
-  grid-row: 2;
-  justify-self: start;
-  min-width: 0;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.subscription-container.fuel-vehicle-card.has-registration .fuel-period-badge {
-  grid-column: 2;
-  max-width: 100%;
-}
-
-.subscription-container.fuel-vehicle-card .fuel-registration-badge {
-  grid-column: 3;
-  grid-row: 2;
-  justify-self: stretch;
-  min-width: 0;
-  overflow: hidden;
-  text-align: center;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.subscription-container.fuel-vehicle-card .fuel-payer {
-  grid-column: 1 / -1;
-  grid-row: 4;
-  display: inline-flex !important;
-  justify-content: flex-end;
-  min-width: 0;
-  overflow: hidden;
-  text-align: right;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.subscription-container.fuel-vehicle-card .fuel-card-details {
-  grid-column: 1 / -1;
-  grid-row: 3;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
-  min-width: 0;
-  width: 100%;
-}
-
-.subscription-container.fuel-vehicle-card .fuel-card-detail {
-  min-width: 0;
-  overflow: hidden;
-  text-align: center;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
+/* Fuel-card mobile overrides — the fuel card now mirrors the standard
+   subscription card layout (logo | name | cycle | next | price | icon),
+   so it picks up the same generic mobile grid. We just need to keep the
+   secondary row visible (it holds the primary fuel info, not a hidden
+   detail) and right-size the logo. */
 @media (max-width: 768px) {
-  .subscription-container.fuel-vehicle-card .fuel-vehicle .subscription-main {
-    grid-template-columns: 48px minmax(0, 1fr) max-content !important;
-    grid-template-rows: auto auto auto auto;
-    gap: 7px 10px !important;
-  }
-
   .subscription-container.fuel-vehicle-card .fuel-logo {
-    grid-row: 1 / 3;
     width: 48px !important;
     height: 48px !important;
     min-width: 48px !important;
     max-width: 48px !important;
   }
 
-  .subscription-container.fuel-vehicle-card .fuel-vehicle .price {
-    grid-row: 1;
-    align-self: center !important;
-    font-size: 15px !important;
-  }
-
-  .subscription-container.fuel-vehicle-card .fuel-period-badge {
-    grid-row: 2;
-    justify-self: stretch;
-    text-align: center;
-  }
-
-  .subscription-container.fuel-vehicle-card:not(.has-registration) .fuel-period-badge {
-    grid-column: 2 / 4;
-  }
-
-  .subscription-container.fuel-vehicle-card.has-registration .fuel-period-badge {
-    grid-column: 2;
-  }
-
-  .subscription-container.fuel-vehicle-card .fuel-registration-badge {
-    grid-column: 3;
-    grid-row: 2;
-    font-size: 13px;
-    padding: 7px 8px;
-  }
-
-  .subscription-container.fuel-vehicle-card .fuel-card-details {
-    grid-column: 1 / -1;
-    grid-row: 3;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 7px;
-  }
-
-  .subscription-container.fuel-vehicle-card .fuel-payer {
-    grid-column: 1 / -1;
-    grid-row: 4;
-    justify-self: end;
+  .subscription-container.fuel-vehicle-card .fuel-logo img {
     max-width: 100%;
+    max-height: 100%;
+  }
+
+  /* Override the generic .subscription-secondary { display: none } on mobile
+     for fuel cards only — the fuel meta row IS the card's primary info. */
+  .subscription-container.fuel-vehicle-card .fuel-vehicle .subscription-secondary {
+    display: flex !important;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    padding: 8px 2px 2px;
+  }
+
+  .subscription-container.fuel-vehicle-card .fuel-vehicle .subscription-secondary > span.fuel-secondary-item {
+    flex: 0 0 auto;
     font-size: 13px;
-  }
-}
-
-@media (max-width: 420px) {
-  .subscription-container.fuel-vehicle-card .fuel-vehicle .subscription-main {
-    grid-template-columns: 46px minmax(0, 1fr) max-content !important;
-    column-gap: 9px !important;
-  }
-
-  .subscription-container.fuel-vehicle-card .fuel-logo {
-    width: 46px !important;
-    height: 46px !important;
-    min-width: 46px !important;
-    max-width: 46px !important;
-  }
-
-  .subscription-container.fuel-vehicle-card .fuel-card-details {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    color: var(--mf-text-muted, var(--text-color));
   }
 }

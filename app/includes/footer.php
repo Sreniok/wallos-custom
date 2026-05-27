@@ -98,6 +98,69 @@ $fuelUnit = $fuelUnitSystem === 'us' ? 'gal_us' : 'l';
   </form>
 </section>
 
+<section class="subscription-form expense-form" id="fuelVehicleForm" role="dialog" aria-modal="true" aria-labelledby="fuelVehicleFormTitle" tabindex="-1">
+  <header>
+    <h3 id="fuelVehicleFormTitle"><?= translate('new_petrol_vehicle', $i18n) ?></h3>
+    <span class="fa-solid fa-xmark close-form" role="button" tabindex="0" aria-label="Close"
+      data-click="closeFuelVehicleForm" data-keydown="closeFuelVehicleForm" data-keys="Enter,Space" data-prevent-default="true"></span>
+  </header>
+  <form id="fuelVehicleCreateForm">
+    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(generate_csrf_token(), ENT_QUOTES, 'UTF-8') ?>">
+    <input type="hidden" id="fuelVehicleId" name="id">
+    <input type="hidden" id="fuelVehicleLogoUrl" name="logo_url">
+    <div class="form-group-inline fuel-logo-picker">
+      <div class="logo-preview vehicle-logo-preview">
+        <img src="" alt="<?= translate('logo_preview', $i18n) ?>" id="fuelVehicleLogoPreview">
+      </div>
+      <div id="fuelVehicleLogoSearchButton" class="image-button medium disabled" role="button" tabindex="0"
+        aria-label="<?= translate('search_logo', $i18n) ?>" title="<?= translate('search_logo', $i18n) ?>"
+        data-click="searchFuelVehicleLogo" data-keydown="searchFuelVehicleLogo" data-keys="Enter,Space" data-prevent-default="true">
+        <?php include "images/siteicons/svg/websearch.php"; ?>
+      </div>
+      <div id="fuelVehicleLogoSearchResults" class="logo-search">
+        <header>
+          <?= translate('web_search', $i18n) ?>
+          <span class="fa-solid fa-xmark close-logo-search" data-click="closeFuelVehicleLogoSearch"></span>
+        </header>
+        <div id="fuelVehicleLogoSearchImages"></div>
+      </div>
+    </div>
+    <div class="form-group">
+      <input type="text" id="fuelVehicleName" name="name" autocomplete="off"
+        placeholder="<?= translate('vehicle_name', $i18n) ?>" data-input="setFuelVehicleLogoSearchStatus">
+    </div>
+    <div class="form-group-inline">
+      <input type="text" id="fuelVehicleMake" name="make" autocomplete="off"
+        placeholder="<?= translate('vehicle_make', $i18n) ?>" data-input="setFuelVehicleLogoSearchStatus">
+      <input type="text" id="fuelVehicleModel" name="model" autocomplete="off"
+        placeholder="<?= translate('vehicle_model', $i18n) ?>" data-input="setFuelVehicleLogoSearchStatus">
+    </div>
+    <div class="form-group">
+      <input type="text" id="fuelVehicleRegistration" name="registration" autocomplete="off"
+        placeholder="<?= translate('vehicle_registration', $i18n) ?>">
+    </div>
+    <div class="form-group">
+      <select id="fuelVehicleFuelType" name="fuel_type">
+        <option value="petrol"><?= translate('petrol', $i18n) ?></option>
+        <option value="diesel"><?= translate('diesel', $i18n) ?></option>
+      </select>
+    </div>
+    <div class="form-group">
+      <select id="fuelVehiclePayer" name="payer_user_id">
+        <option value="0"><?= translate('paid_by', $i18n) ?></option>
+        <?php if (!empty($members)): foreach ($members as $member): ?>
+          <option value="<?= (int) $member['id'] ?>"><?= htmlspecialchars($member['name'], ENT_QUOTES, 'UTF-8') ?></option>
+        <?php endforeach; endif ?>
+      </select>
+    </div>
+    <div class="buttons">
+      <input type="button" value="<?= translate('cancel', $i18n) ?>" class="secondary-button thin"
+        data-click="closeFuelVehicleForm">
+      <input type="submit" value="<?= translate('save', $i18n) ?>" class="thin" id="saveFuelVehicle">
+    </div>
+  </form>
+</section>
+
 <section class="subscription-modal fuel-history-modal" id="fuelVehicleHistoryModal" role="dialog" aria-modal="true" aria-labelledby="fuelVehicleHistoryTitle" tabindex="-1">
   <header>
     <h3 id="fuelVehicleHistoryTitle"><?= translate('petrol_history', $i18n) ?></h3>
