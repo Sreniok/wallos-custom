@@ -745,6 +745,15 @@ button.mobile-action-paid {
   font-weight: 600;
 }
 
+.name-stars {
+  display: inline-block;
+  margin-left: 6px;
+  color: #f5a623;
+  font-size: 0.9em;
+  letter-spacing: 1px;
+  vertical-align: middle;
+}
+
 .subscription .cycle {
   flex-basis: 16%;
   flex-grow: 1;
@@ -825,8 +834,30 @@ button.mobile-action-paid {
 
 .subscription-secondary>span {
   justify-content: flex-start;
-  flex-basis: 33%;
-  gap: 10px;
+  flex-basis: auto;
+  gap: 6px;
+  font-size: 12px;
+  color: #6b7280;
+  background: rgba(107, 114, 128, 0.10);
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+
+.subscription-secondary>span svg {
+  width: 14px;
+  height: 14px;
+  opacity: 0.7;
+}
+
+.subscription-secondary>.category {
+  color: var(--main-color);
+  background: rgba(var(--main-color-rgb, 79, 110, 247), 0.12);
+  font-weight: 600;
+}
+
+.subscription-secondary>.url {
+  background: transparent;
+  padding: 0;
 }
 
 .subscription-secondary>.notification-rule {
@@ -937,6 +968,22 @@ button.mobile-action-paid {
   padding: 20px;
   box-shadow: var(--box-shadow);
   border-radius: 16px;
+}
+
+@media (min-width: 1100px) {
+  .contain.profile-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+    gap: 20px;
+    align-items: start;
+  }
+  .contain.profile-grid > .account-section:first-of-type {
+    grid-row: 1 / span 4;
+    grid-column: 1;
+  }
+  .contain.profile-grid > .account-section:not(:first-of-type) {
+    grid-column: 2;
+  }
 }
 
 .account-section header {
@@ -2523,6 +2570,26 @@ button.dark-theme-button i {
   justify-content: flex-start;
 }
 
+.stats-group-title {
+  margin: 28px 0 12px;
+  font-size: 16px;
+  font-weight: 600;
+  opacity: 0.75;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.stats-group-title:first-of-type {
+  margin-top: 16px;
+}
+
+.statistic .subtitle .most-expensive-name {
+  display: block;
+  margin-top: 6px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
 .statistic {
   background-color: var(--box-background-color);
   border: 1px solid var(--box-border-color);
@@ -3460,7 +3527,9 @@ input[type="radio"]:checked+label::after {
 }
 
 .dashboard h1 {
-  margin: 0px;
+  margin: 0 0 12px;
+  font-size: 24px;
+  text-align: left;
 }
 
 
@@ -3973,7 +4042,7 @@ input[type="radio"]:checked+label::after {
     .settings-tab { padding: 8px 12px; font-size: 12px; }
     .settings-tabs.is-stuck .settings-tab { padding: 10px 10px; font-size: 11px; }
     .settings-tab .fa-solid,
-    .settings-tab .fa-regular { display: none; }
+    .settings-tab .fa-regular { display: inline-block; margin-right: 4px; font-size: 13px; }
     .settings .account-section[data-settings-tab]:not(.is-hidden) ~ .account-section[data-settings-tab]:not(.is-hidden) {
         margin-top: 4px;
     }

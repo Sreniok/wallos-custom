@@ -20,7 +20,7 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
         content: '<?= translate('upload_logo', $i18n) ?>';
     }
 </style>
-<section class="contain settings">
+<section class="contain settings profile-grid">
     <section class="account-section">
         <header>
             <h2><?= translate('user_details', $i18n) ?></h2>
@@ -267,9 +267,21 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
         <header>
             <h2><?= translate('api_key', $i18n) ?></h2>
         </header>
+        <?php
+        $hasApiKey = !empty($userData['api_key']);
+        $apiKeyMasked = $hasApiKey ? str_repeat('•', 8) . substr($userData['api_key'], -4) : '';
+        ?>
         <div class="account-api-key">
             <div class="form-group-inline">
-                <input type="text" id="apikey" name="apikey" value="<?= $userData['api_key'] ?>" placeholder="API Key" readonly>
+                <input type="text" id="apikey" name="apikey"
+                    value="<?= htmlspecialchars($apiKeyMasked, ENT_QUOTES, 'UTF-8') ?>"
+                    data-full-key="<?= htmlspecialchars($userData['api_key'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
+                    placeholder="<?= $hasApiKey ? '' : translate('no_api_key', $i18n) ?>" readonly>
+                <?php if ($hasApiKey): ?>
+                    <button type="button" class="button secondary-button" data-click="copyApiKey" title="<?= translate('copy_to_clipboard', $i18n) ?>">
+                        <i class="fa-solid fa-copy"></i>
+                    </button>
+                <?php endif; ?>
                 <input type="submit" value="<?= translate('regenerate', $i18n) ?>" id="regenerateApiKey" data-click="regenerateApiKey" />
             </div>
             <div class="settings-notes">

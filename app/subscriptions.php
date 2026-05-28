@@ -179,7 +179,6 @@ nav, .logo, .dropdown, .mobile-nav, section.contain { display: none !important; 
 <?php endif; ?>
 
 <section class="contain">
-  <?php require 'includes/next_payment_hero.php'; ?>
   <header class="<?= $headerClass ?>" id="main-actions">
     <button class="button" data-click="addSubscription">
       <i class="fa-solid fa-circle-plus"></i>

@@ -17,20 +17,8 @@ $currentYear = date('Y');
 $sameAsCurrent = false;
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['month']) && isset($_GET['year'])) {
-  // Don't allow viewing past months
-  $selectedMonth = str_pad($_GET['month'], 2, '0', STR_PAD_LEFT);
-  $selectedYear = $_GET['year'];
-
-  $selectedTimestamp = strtotime($selectedYear . '-' . $selectedMonth . '-01');
-  $currentTimestamp = strtotime($currentYear . '-' . $currentMonth . '-01');
-
-  if ($selectedTimestamp < $currentTimestamp) {
-    $calendarMonth = $currentMonth;
-    $calendarYear = $currentYear;
-  } else {
-    $calendarMonth = $selectedMonth;
-    $calendarYear = $selectedYear;
-  }
+  $calendarMonth = str_pad($_GET['month'], 2, '0', STR_PAD_LEFT);
+  $calendarYear = $_GET['year'];
 
   if ($calendarMonth == $currentMonth && $calendarYear == $currentYear) {
     $sameAsCurrent = true;
@@ -82,6 +70,39 @@ $row = $result->fetchArray(SQLITE3_ASSOC);
 $code = $row['code'];
 
 $yearsToLoad = $calendarYear - $currentYear + 1;
+
+$todayParts = explode('-', date('Y-m-d'));
+$todayYear = $todayParts[0];
+$todayMonth = $todayParts[1];
+$todayDay = $todayParts[2];
+$today = strtotime($todayYear . '-' . $todayMonth . '-' . $todayDay);
+
+// Precompute payments grouped by day-of-month for the calendar month being viewed.
+$paymentsByDay = [];
+$startOfMonth = new DateTimeImmutable($calendarYear . '-' . str_pad($calendarMonth, 2, '0', STR_PAD_LEFT) . '-01');
+$endOfMonth = $startOfMonth->modify('last day of this month');
+
+foreach ($subscriptions as $subscription) {
+  $occurrences = getSubscriptionOccurrencesInRange($subscription, $startOfMonth, $endOfMonth);
+  if (empty($occurrences)) {
+    continue;
+  }
+  $convertedPrice = getPriceConverted($subscription['price'], $subscription['currency_id'], $db, $userId);
+  foreach ($occurrences as $occ) {
+    $dayNum = (int) substr($occ, 8, 2);
+    $paymentsByDay[$dayNum][] = [
+      'id'    => $subscription['id'],
+      'name'  => $subscription['name'],
+      'price' => $convertedPrice,
+      'date'  => $occ,
+    ];
+    $totalCostThisMonth += $convertedPrice;
+    $numberOfSubscriptionsToPayThisMonth++;
+    if (strtotime($occ) > $today) {
+      $amountDueThisMonth += $convertedPrice;
+    }
+  }
+}
 ?>
 
 <section class="contain">
@@ -106,11 +127,11 @@ $yearsToLoad = $calendarYear - $currentYear + 1;
         ?>
         <button class="button secondary-button tiny" data-click="currentMoth" aria-label="<?= translate('reset', $i18n) ?>" title="<?= translate('reset', $i18n) ?>"><i
             class="fa-solid fa-calendar-day"></i></button>
-        <button class="button tiny" id="prev" aria-label="<?= translate('previous_month', $i18n) ?>" data-click="prevMonth" data-args='[<?= $calendarMonth ?>, <?= $calendarYear ?>]'><i
-            class="fa-solid fa-chevron-left"></i></button>
         <?php
       }
       ?>
+      <button class="button tiny" id="prev" aria-label="<?= translate('previous_month', $i18n) ?>" data-click="prevMonth" data-args='[<?= $calendarMonth ?>, <?= $calendarYear ?>]'><i
+          class="fa-solid fa-chevron-left"></i></button>
       <span id="month" class="month"><?= translate('month-' . $calendarMonth, $i18n) ?> <?= $calendarYear ?></span>
       <button class="button tiny" id="next" aria-label="<?= translate('next_month', $i18n) ?>" data-click="nextMonth" data-args='[<?= $calendarMonth ?>, <?= $calendarYear ?>]'><i
           class="fa-solid fa-chevron-right"></i></button>
@@ -123,15 +144,51 @@ $yearsToLoad = $calendarYear - $currentYear + 1;
     $firstDayOfWeek = date('N', $firstDay) - 1; // Adjusted to make Monday (1) the first day
     $dayOfWeek = 0;
     $day = 1;
-    $days = 1;
-    $week = 1;
-    $today = date('Y-m-d');
-    $today = explode('-', $today);
-    $todayYear = $today[0];
-    $todayMonth = $today[1];
-    $todayDay = $today[2];
-    $today = $todayYear . '-' . $todayMonth . '-' . $todayDay;
-    $today = strtotime($today);
+
+    $renderDayCell = function ($day) use ($paymentsByDay, $calendarYear, $calendarMonth, $todayYear, $todayMonth, $todayDay, $today, $code, $i18n, $lang) {
+      $isToday = ($day == (int)$todayDay && $calendarMonth == $todayMonth && $calendarYear == $todayYear);
+      $cellDate = $calendarYear . '-' . str_pad($calendarMonth, 2, '0', STR_PAD_LEFT) . '-' . str_pad($day, 2, '0', STR_PAD_LEFT);
+      $cellDateTs = strtotime($cellDate);
+      $isPast = $cellDateTs < $today;
+      $payments = $paymentsByDay[$day] ?? [];
+      $hasPayments = !empty($payments);
+      $classes = [];
+      if ($isToday) $classes[] = 'today';
+      if ($isPast && !$isToday) $classes[] = 'past';
+      if ($hasPayments) $classes[] = 'has-payments';
+      $cls = implode(' ', $classes);
+      $dayTotal = 0;
+      foreach ($payments as $p) $dayTotal += $p['price'];
+      $dayLabel = formatDate($cellDate, $lang);
+      $dayLabelAttr = htmlspecialchars($dayLabel, ENT_QUOTES, 'UTF-8');
+      $cellAttrs = $hasPayments
+        ? ' data-click="openDayModal" data-args=\'["' . $dayLabelAttr . '"]\''
+        : '';
+      ?>
+      <div class="calendar-cell <?= $cls ?>" tabindex="0"<?= $cellAttrs ?>>
+        <div class="calendar-cell-header">
+          <span class="day"><?= $day ?></span>
+          <?php if ($hasPayments && count($payments) > 1): ?>
+            <span class="day-count" aria-hidden="true"><?= count($payments) ?></span>
+          <?php endif; ?>
+        </div>
+        <div class="calendar-cell-content">
+          <?php foreach ($payments as $p): ?>
+            <button type="button" class="calendar-subscription-title" data-click="openSubscriptionModal" data-args='[<?= $p['id'] ?>]' aria-label="<?= translate('open_subscription', $i18n) ?>: <?= htmlspecialchars($p['name'], ENT_QUOTES, 'UTF-8') ?>">
+              <span class="sub-name"><?= htmlspecialchars($p['name']) ?></span>
+              <span class="sub-price"><?= CurrencyFormatter::format($p['price'], $code) ?></span>
+            </button>
+          <?php endforeach; ?>
+          <?php if (count($payments) > 3): ?>
+            <button type="button" class="calendar-more" data-click="openDayModal" data-args='["<?= $dayLabelAttr ?>"]'>+<?= count($payments) - 3 ?> <?= translate('more', $i18n) ?></button>
+          <?php endif; ?>
+        </div>
+        <?php if ($hasPayments): ?>
+          <div class="calendar-cell-total" aria-label="<?= translate('total_cost', $i18n) ?>"><?= CurrencyFormatter::format($dayTotal, $code) ?></div>
+        <?php endif; ?>
+      </div>
+      <?php
+    };
     ?>
 
     <div class="calendar">
@@ -159,37 +216,7 @@ $yearsToLoad = $calendarYear - $currentYear + 1;
           }
           for ($i = $firstDayOfWeek; $i < 7; $i++) {
             if ($day <= $daysInMonth) {
-              $dayClass = ($day == $todayDay && $calendarMonth == $todayMonth && $calendarYear == $todayYear) ? "today" : "";
-              ?>
-              <div class="calendar-cell <?= $dayClass ?>" tabindex="0">
-                <div class="calendar-cell-header">
-                  <span class="day"><?= $day ?></span>
-                </div>
-                <div class="calendar-cell-content">
-                  <?php
-                  foreach ($subscriptions as $subscription) {
-                    $startOfMonth = new DateTimeImmutable($calendarYear . '-' . str_pad($calendarMonth, 2, '0', STR_PAD_LEFT) . '-01');
-                    $endOfMonth = $startOfMonth->modify('last day of this month');
-                    $occurrences = getSubscriptionOccurrencesInRange($subscription, $startOfMonth, $endOfMonth);
-                    $targetDate = $calendarYear . '-' . str_pad($calendarMonth, 2, '0', STR_PAD_LEFT) . '-' . str_pad($day, 2, '0', STR_PAD_LEFT);
-
-                    if (in_array($targetDate, $occurrences, true)) {
-                      $totalCostThisMonth += getPriceConverted($subscription['price'], $subscription['currency_id'], $db, $userId);
-                      $numberOfSubscriptionsToPayThisMonth++;
-                      if (strtotime($targetDate) > $today) {
-                        $amountDueThisMonth += getPriceConverted($subscription['price'], $subscription['currency_id'], $db, $userId);
-                      }
-                      ?>
-                      <button type="button" class="calendar-subscription-title" data-click="openSubscriptionModal" data-args='[<?= $subscription['id'] ?>]' aria-label="<?= translate('open_subscription', $i18n) ?>: <?= htmlspecialchars($subscription['name'], ENT_QUOTES, 'UTF-8') ?>">
-                        <?= htmlspecialchars($subscription['name']) ?>
-                      </button>
-                      <?php
-                    }
-                  }
-                  ?>
-                </div>
-              </div>
-              <?php
+              $renderDayCell($day);
               $day++;
             }
           }
@@ -200,37 +227,7 @@ $yearsToLoad = $calendarYear - $currentYear + 1;
             <div class="week calendar-row">
               <?php
             }
-            $dayClass = ($day == $todayDay && $calendarMonth == $todayMonth && $calendarYear == $todayYear) ? "today" : "";
-            ?>
-            <div class="calendar-cell <?= $dayClass ?>" tabindex="0">
-              <div class="calendar-cell-header">
-                <span class="day"><?= $day ?></span>
-              </div>
-              <div class="calendar-cell-content">
-                <?php
-                foreach ($subscriptions as $subscription) {
-                  $startOfMonth = new DateTimeImmutable($calendarYear . '-' . str_pad($calendarMonth, 2, '0', STR_PAD_LEFT) . '-01');
-                  $endOfMonth = $startOfMonth->modify('last day of this month');
-                  $occurrences = getSubscriptionOccurrencesInRange($subscription, $startOfMonth, $endOfMonth);
-                  $targetDate = $calendarYear . '-' . str_pad($calendarMonth, 2, '0', STR_PAD_LEFT) . '-' . str_pad($day, 2, '0', STR_PAD_LEFT);
-
-                  if (in_array($targetDate, $occurrences, true)) {
-                    $totalCostThisMonth += getPriceConverted($subscription['price'], $subscription['currency_id'], $db, $userId);
-                    $numberOfSubscriptionsToPayThisMonth++;
-                    if (strtotime($targetDate) > $today) {
-                      $amountDueThisMonth += getPriceConverted($subscription['price'], $subscription['currency_id'], $db, $userId);
-                    }
-                    ?>
-                    <button type="button" class="calendar-subscription-title" data-click="openSubscriptionModal" data-args='[<?= $subscription['id'] ?>]' aria-label="<?= translate('open_subscription', $i18n) ?>: <?= htmlspecialchars($subscription['name'], ENT_QUOTES, 'UTF-8') ?>">
-                      <?= htmlspecialchars($subscription['name']) ?>
-                    </button>
-                    <?php
-                  }
-                }
-                ?>
-              </div>
-            </div>
-            <?php
+            $renderDayCell($day);
             $day++;
             $dayOfWeek++;
           }

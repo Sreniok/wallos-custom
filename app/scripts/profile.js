@@ -273,6 +273,17 @@ function submitDisableTotp() {
         });
 }
 
+function copyApiKey() {
+  const input = document.getElementById("apikey");
+  const full = input?.dataset?.fullKey || "";
+  if (!full) return;
+  navigator.clipboard.writeText(full).then(() => {
+    showSuccessMessage(translate("copied_to_clipboard") || "Copied");
+  }).catch(() => {
+    showErrorMessage(translate("unknown_error"));
+  });
+}
+
 function regenerateApiKey() {
   const regenerateButton = document.getElementById("regenerateApiKey");
   regenerateButton.disabled = true;
@@ -288,7 +299,9 @@ function regenerateApiKey() {
       regenerateButton.disabled = false;
       if (data.success) {
         const newApiKey = data.apiKey;
-        document.getElementById("apikey").value = newApiKey;
+        const input = document.getElementById("apikey");
+        input.dataset.fullKey = newApiKey;
+        input.value = newApiKey ? "••••••••" + newApiKey.slice(-4) : "";
         showSuccessMessage(data.message);
       } else {
         showErrorMessage(data.message || translate("failed_regenerate_api_key"));

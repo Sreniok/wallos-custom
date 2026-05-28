@@ -64,6 +64,64 @@ function calendarDataArgs(args) {
         .replace(/</g, '&lt;');
 }
 
+function calendarEscapeHtml(value) {
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function openDayModal(dayLabel) {
+    const cell = this && this.closest ? this.closest('.calendar-cell') : null;
+    if (!cell) {
+        return;
+    }
+    const pills = Array.from(cell.querySelectorAll('.calendar-subscription-title'));
+    if (pills.length === 0) {
+        return;
+    }
+    if (pills.length === 1) {
+        const args = parseDeclarativeArgs(pills[0]);
+        if (args.length) {
+            openSubscriptionModal(args[0]);
+            return;
+        }
+    }
+
+    const modal = document.getElementById('subscriptionModal');
+    const modalContent = document.getElementById('subscriptionModalContent');
+
+    const items = pills.map(pill => {
+        const name = pill.querySelector('.sub-name')?.textContent?.trim() || pill.textContent.trim();
+        const price = pill.querySelector('.sub-price')?.textContent?.trim() || '';
+        const args = pill.getAttribute('data-args') || '[]';
+        return `
+            <button type="button" class="calendar-day-item" data-click="openSubscriptionModal" data-args='${calendarEscapeHtml(args)}'>
+                <span class="name">${calendarEscapeHtml(name)}</span>
+                <span class="price">${calendarEscapeHtml(price)}</span>
+            </button>`;
+    }).join('');
+
+    const totalText = cell.querySelector('.calendar-cell-total')?.textContent?.trim() || '';
+    const totalLabel = translateWithFallback('total_cost', 'Total');
+    const totalRow = totalText
+        ? `<div class="calendar-day-total"><span>${calendarEscapeHtml(totalLabel)}</span><span>${calendarEscapeHtml(totalText)}</span></div>`
+        : '';
+
+    modalContent.innerHTML = `
+        <div class="modal-header">
+            <h3>${calendarEscapeHtml(dayLabel || '')}</h3>
+            <span class="fa-solid fa-xmark close-modal" data-click="closeSubscriptionModal"></span>
+        </div>
+        <div class="modal-body calendar-day-list">
+            <div class="calendar-day-items">${items}</div>
+            ${totalRow}
+        </div>`;
+    modal.classList.add('is-open');
+}
+
 function openSubscriptionModal(subscriptionId) {
     const modal = document.getElementById('subscriptionModal');
     const modalContent = document.getElementById('subscriptionModalContent');

@@ -315,7 +315,10 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
                     <?php
                     if (empty($paidThisMonthSubscriptions)) {
                         ?>
-                        <p><?= translate($usesPayrollCycle ? 'no_paid_this_cycle' : 'no_paid_this_month', $i18n) ?></p>
+                        <div class="mf-empty-state paid-this-month-empty">
+                            <i class="fa-solid fa-circle-check"></i>
+                            <p><?= translate($usesPayrollCycle ? 'no_paid_this_cycle' : 'no_paid_this_month', $i18n) ?></p>
+                        </div>
                         <?php
                     } else {
                         foreach ($paidThisMonthSubscriptions as $subscription) {
@@ -463,12 +466,8 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
         $fmtQty = static function (float $q) {
             return (rtrim(rtrim(number_format($q, 2, '.', ''), '0'), '.') ?: '0');
         };
-        $lastPeriodQtyLabel = ($fuelQuantityLastPeriod ?? 0) > 0
-            ? ' / ' . $fmtQty((float) $fuelQuantityLastPeriod) . ' ' . $fuelUnitLabelLocal
-            : '';
-        $yearQtyLabel = ($fuelQuantityThisYear ?? 0) > 0
-            ? ' / ' . $fmtQty((float) $fuelQuantityThisYear) . ' ' . $fuelUnitLabelLocal
-            : '';
+        $lastPeriodQtyLabel = ' / ' . $fmtQty((float) ($fuelQuantityLastPeriod ?? 0)) . ' ' . $fuelUnitLabelLocal;
+        $yearQtyLabel = ' / ' . $fmtQty((float) ($fuelQuantityThisYear ?? 0)) . ' ' . $fuelUnitLabelLocal;
         $lastPeriodRangeLabel = isset($fuelDashboardPreviousPeriod['start'], $fuelDashboardPreviousPeriod['end'])
             ? formatDate($fuelDashboardPreviousPeriod['start']->format('M j'), $lang) . ' – ' . formatDate($fuelDashboardPreviousPeriod['end']->format('M j'), $lang)
             : ($fuelLastPeriodLabel ?? '');

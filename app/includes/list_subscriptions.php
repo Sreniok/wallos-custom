@@ -177,8 +177,15 @@ function printSubscriptions($subscriptions, $sort, $categories, $members, $i18n,
                         || !empty($subscription['adjust_to_working_day'])
                         || !empty($subscription['inactive']);
                     ?>
+                    <?php
+                    $renderedName = preg_replace(
+                        '/[\x{2605}\x{2606}]+/u',
+                        '<span class="name-stars">$0</span>',
+                        $subscription['name']
+                    );
+                    ?>
                     <span class="name <?= $hasLogo ? 'hideOnMobile' : '' ?>">
-                        <span class="name-text"><?= $subscription['name'] ?></span>
+                        <span class="name-text"><?= $renderedName ?></span>
                         <?php if ($hasNameBadge): ?>
                             <span class="name-badges">
                                 <?php if (!empty($subscription['notify'])): ?>

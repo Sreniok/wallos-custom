@@ -70,10 +70,14 @@ body > header {
 body.design-modern .desktop-nav-link {
   border-radius: 999px;
 }
-body.design-modern .desktop-nav-link:hover,
+body.design-modern .desktop-nav-link:hover {
+  background: rgba(var(--main-color-rgb), .08);
+}
 body.design-modern .desktop-nav-link.active {
   background: rgba(var(--main-color-rgb), .12);
-  box-shadow: inset 0 0 0 1px rgba(var(--main-color-rgb), .14);
+  color: var(--main-color);
+  font-weight: 700;
+  box-shadow: none;
 }
 
 /* Boxes / cards / sections */
@@ -386,7 +390,7 @@ body.design-modern .calendar .calendar-header .calendar-cell {
   min-height: 0;
 }
 
-/* Square body cells with absolute-positioned dot row at bottom */
+/* Mobile body cells — square with dot row */
 body.design-modern .calendar .calendar-body .calendar-cell {
   aspect-ratio: 1;
   min-height: 0;
@@ -405,7 +409,7 @@ body.design-modern .calendar .calendar-body .calendar-cell {
   position: relative;
   overflow: visible;
   cursor: pointer;
-  transition: background .15s, transform .15s;
+  transition: background .15s, transform .15s, border-color .15s;
 }
 body.design-modern .calendar .calendar-body .calendar-cell:hover { background: rgba(124,146,255,.08); transform: scale(1.02); }
 body.light.design-modern .calendar .calendar-body .calendar-cell:hover { background: rgba(79,110,247,.06); }
@@ -416,30 +420,52 @@ body.design-modern .calendar .calendar-body .calendar-cell.empty {
 }
 body.design-modern .calendar .calendar-body .calendar-cell.empty .day { opacity: 0.3; }
 
-/* Cell header transparent — just shows the day number */
+/* Past days — dimmed so upcoming dates stand out */
+body.design-modern .calendar .calendar-body .calendar-cell.past { opacity: 0.55; }
+body.design-modern .calendar .calendar-body .calendar-cell.past:hover { opacity: 1; }
+
+/* Cells with payments — subtle background tint to scan at a glance */
+body.design-modern .calendar .calendar-body .calendar-cell.has-payments {
+  background: rgba(124,146,255,.05);
+  border-color: rgba(124,146,255,.35);
+}
+body.light.design-modern .calendar .calendar-body .calendar-cell.has-payments {
+  background: rgba(79,110,247,.04);
+  border-color: rgba(79,110,247,.28);
+}
+
+/* Cell header — day number, with optional count badge for multi-payment days */
 body.design-modern .calendar-cell-header {
   background: transparent;
   padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
 body.design-modern .calendar .day {
   font-size: 13px;
   font-weight: 600;
   color: var(--text-color);
 }
-
-/* Today cell — solid filled square (mockup style) */
-body.design-modern .calendar .calendar-body .calendar-cell.today {
-  background: var(--text-color);
-  border-color: var(--text-color);
-  color: var(--text-color-inverted);
+body.design-modern .calendar .day-count {
+  display: none;
 }
-body.design-modern .calendar .today .day {
-  color: var(--text-color-inverted);
+
+/* Today cell — solid filled square in brand blue */
+body.design-modern .calendar .calendar-body .calendar-cell.today {
+  background: var(--main-color);
+  border-color: var(--main-color);
+  color: #fff;
+  opacity: 1;
+}
+body.design-modern .calendar .today .day,
+body.design-modern .calendar .today .day-count {
+  color: #fff;
   font-weight: 700;
 }
 
-/* Cell content: dot row absolute-positioned at bottom of cell.
-   Works in both light and dark mode regardless of cell content. */
+/* Mobile: payment markers are dots at the bottom */
 body.design-modern .calendar .calendar-cell-content {
   position: absolute;
   left: 0;
@@ -454,9 +480,7 @@ body.design-modern .calendar .calendar-cell-content {
   min-height: 8px;
   z-index: 1;
 }
-
-/* Subscription markers: dots on mobile (absolute bottom), pills on desktop */
-body.design-modern .calendar-subscription-title {
+body.design-modern .calendar .calendar-subscription-title {
   width: 7px;
   height: 7px;
   min-width: 7px;
@@ -474,49 +498,264 @@ body.design-modern .calendar-subscription-title {
   display: inline-block;
   box-shadow: 0 0 0 1px rgba(255,255,255,.1);
   cursor: pointer;
+  pointer-events: none; /* taps fall through to the day cell, which opens the day list */
   transition: transform .15s, background .15s;
 }
-/* Light mode: stronger contrast for the dot */
-body.light.design-modern .calendar-subscription-title {
+body.light.design-modern .calendar .calendar-subscription-title {
   background: var(--main-color);
   box-shadow: 0 1px 2px rgba(15,23,42,.15);
 }
-body.design-modern .calendar-subscription-title:hover {
-  transform: scale(1.6);
-  background: var(--accent-color);
+body.design-modern .calendar .calendar-body .calendar-cell.has-payments:active {
+  transform: scale(0.97);
 }
-body.design-modern .today .calendar-subscription-title {
+body.design-modern .calendar .today .calendar-subscription-title {
   background: rgba(255,255,255,.9);
 }
-body.light.design-modern .today .calendar-subscription-title {
+body.light.design-modern .calendar .today .calendar-subscription-title {
   background: rgba(255,255,255,.95);
 }
+body.design-modern .calendar .calendar-subscription-title .sub-name,
+body.design-modern .calendar .calendar-subscription-title .sub-price {
+  display: none;
+}
+body.design-modern .calendar-cell-total { display: none; }
+/* "+N more" indicator is desktop-only; mobile shows all dots */
+body.design-modern .calendar .calendar-more { display: none; }
 
-/* Desktop: bigger square cells, readable pill labels */
+/* Desktop: roomy cells with readable pill labels showing name + price */
 @media (min-width: 769px) {
   body.design-modern .calendar .calendar-body .calendar-cell {
     aspect-ratio: auto;
-    min-height: 92px;
+    min-height: 110px;
     align-items: stretch;
     justify-content: flex-start;
-    padding: 6px;
+    padding: 8px 8px 6px;
+    text-align: left;
   }
-  body.design-modern .calendar-subscription-title {
-    width: auto;
+  body.design-modern .calendar-cell-header {
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 4px;
+  }
+  body.design-modern .calendar .day-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 9px;
+    background: rgba(124,146,255,.25);
+    color: var(--text-color);
+    font-size: 10px;
+    font-weight: 700;
+  }
+  body.light.design-modern .calendar .day-count {
+    background: rgba(79,110,247,.18);
+  }
+  body.design-modern .today .day-count {
+    background: rgba(255,255,255,.25);
+    color: #fff;
+  }
+  body.design-modern .calendar .calendar-cell-content {
+    position: static;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 3px;
+    padding: 0;
+    min-height: 0;
+    align-content: stretch;
+    justify-content: flex-start;
+    flex: 1 1 auto;
+    overflow: hidden;
+  }
+  body.design-modern .calendar .calendar-subscription-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
     height: auto;
-    border-radius: 8px;
-    background: rgba(124,146,255,.10);
-    border: 1px solid rgba(124,146,255,.25);
+    min-width: 0;
+    min-height: 0;
+    flex: 0 0 auto;
+    border-radius: 6px;
+    border-left: 3px solid var(--main-color);
+    border-top: 0;
+    border-right: 0;
+    border-bottom: 0;
+    background: rgba(124,146,255,.16);
     color: var(--text-color);
     font-size: 11px;
-    padding: 3px 6px;
     font-weight: 500;
-    margin: 1px;
+    padding: 3px 6px;
+    margin: 0;
+    text-align: left;
+    line-height: 1.25;
+    box-shadow: none;
+    overflow: hidden;
+    gap: 6px;
+    cursor: pointer;
+    pointer-events: auto; /* desktop pills are directly clickable */
   }
-  body.light.design-modern .calendar-subscription-title {
-    background: rgba(79,110,247,.08);
-    border-color: rgba(79,110,247,.25);
+  body.light.design-modern .calendar .calendar-subscription-title {
+    background: rgba(79,110,247,.10);
+    box-shadow: none;
   }
+  body.design-modern .calendar .calendar-subscription-title:hover {
+    transform: none;
+    background: rgba(124,146,255,.28);
+  }
+  body.light.design-modern .calendar .calendar-subscription-title:hover {
+    background: rgba(79,110,247,.18);
+  }
+  body.design-modern .calendar .calendar-subscription-title .sub-name {
+    display: block;
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 600;
+    color: var(--text-color);
+  }
+  body.design-modern .calendar .calendar-subscription-title .sub-price {
+    display: block;
+    flex: 0 0 auto;
+    font-variant-numeric: tabular-nums;
+    font-weight: 500;
+    color: var(--modern-text-muted);
+    font-size: 10px;
+  }
+  body.design-modern .calendar .today .calendar-subscription-title {
+    background: rgba(255,255,255,.18);
+    border-left-color: rgba(255,255,255,.85);
+  }
+  body.design-modern .calendar .today .calendar-subscription-title:hover {
+    background: rgba(255,255,255,.28);
+  }
+  body.design-modern .calendar .today .calendar-subscription-title .sub-name,
+  body.design-modern .calendar .today .calendar-subscription-title .sub-price {
+    color: #fff;
+  }
+
+  /* Cap visible pills at 3; surplus is summarised by the "+N more" row */
+  body.design-modern .calendar .calendar-cell-content .calendar-subscription-title:nth-child(n+4) {
+    display: none;
+  }
+  body.design-modern .calendar .calendar-more {
+    display: block;
+    width: auto;
+    margin-top: 1px;
+    padding: 2px 6px;
+    border: 0;
+    background: transparent;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--modern-text-muted);
+    text-align: left;
+    cursor: pointer;
+    border-radius: 6px;
+  }
+  body.design-modern .calendar .calendar-more:hover,
+  body.design-modern .calendar .calendar-more:focus-visible {
+    color: var(--text-color);
+    background: rgba(124,146,255,.16);
+    outline: none;
+  }
+  body.design-modern .calendar .today .calendar-more:hover,
+  body.design-modern .calendar .today .calendar-more:focus-visible {
+    background: rgba(255,255,255,.18);
+  }
+  body.design-modern .calendar .today .calendar-more {
+    color: rgba(255,255,255,.9);
+  }
+
+  /* Per-day total pinned to the bottom of each cell */
+  body.design-modern .calendar-cell-total {
+    display: block;
+    margin-top: 6px;
+    padding-top: 4px;
+    border-top: 1px solid rgba(124,146,255,.18);
+    font-size: 10px;
+    font-weight: 700;
+    text-align: right;
+    color: var(--modern-text-muted);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+  }
+  body.light.design-modern .calendar-cell-total {
+    border-top-color: rgba(79,110,247,.18);
+  }
+  body.design-modern .today .calendar-cell-total {
+    border-top-color: rgba(255,255,255,.35);
+    color: rgba(255,255,255,.92);
+  }
+}
+
+/* Day-detail modal: list of subscriptions due on a tapped day */
+body.design-modern .calendar-day-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+/* Keep long lists scrollable while the total row stays pinned below */
+body.design-modern .calendar-day-list .calendar-day-items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: min(50vh, 360px);
+  overflow-y: auto;
+  margin: -4px -4px 0;
+  padding: 4px;
+}
+body.design-modern .calendar-day-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--box-border-color);
+  border-left: 3px solid var(--main-color);
+  border-radius: 10px;
+  background: rgba(124,146,255,.08);
+  color: var(--text-color);
+  font-size: 15px;
+  text-align: left;
+  cursor: pointer;
+  transition: background .15s, transform .15s;
+}
+body.light.design-modern .calendar-day-item {
+  background: rgba(79,110,247,.06);
+}
+body.design-modern .calendar-day-item:hover,
+body.design-modern .calendar-day-item:focus-visible {
+  background: rgba(124,146,255,.18);
+  transform: translateY(-1px);
+  outline: none;
+}
+body.design-modern .calendar-day-item .name {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+body.design-modern .calendar-day-item .price {
+  flex: 0 0 auto;
+  font-variant-numeric: tabular-nums;
+  color: var(--modern-text-muted);
+  font-weight: 600;
+}
+body.design-modern .calendar-day-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+  padding: 12px 14px 4px;
+  border-top: 1px solid var(--box-border-color);
+  font-weight: 700;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
 }
 
 /* Calendar nav: rounded chip-style buttons */

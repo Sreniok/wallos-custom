@@ -144,6 +144,7 @@ $i18n = [
     "clear_filters" => "Clear Filters",
     "no_matching_subscriptions" => "No matching subscriptions",
     "more_options" => "More options",
+    "more" => "more",
     "relative_today" => "today",
     "relative_tomorrow" => "tomorrow",
     "relative_in_n_days" => "in %d days",
@@ -238,6 +239,7 @@ $i18n = [
     "api_key" => "API Key",
     "regenerate" => "Regenerate",
     "api_key_info" => "The API key is used to access the API. Keep it secret.",
+    "no_api_key" => "No key generated yet",
     // Settings page
     "monthly_budget" => "Monthly Budget",
     "budget_info" => "Monthly budget is used to calculate statistics",

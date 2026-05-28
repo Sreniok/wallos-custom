@@ -1,4 +1,0 @@
-1. Unify the dashboard cards (highest visible impact, ~30 min) - DONE
-2. Fix the meta-line order + auto-renew translation (5 min, removes obvious drift) - DONE
-3. Refactor fuel_vehicles_load.php into a helper and fix the N+1 (~45 min, hidden but matters as you scale household members)
-4. Payroll-cycle terminology audit across pages (~1h, but it's a UX correctness issue)

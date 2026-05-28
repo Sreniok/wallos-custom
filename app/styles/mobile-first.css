@@ -851,7 +851,7 @@ body.fab-hidden .modern-fab {
      mobile-navigation keeps the FAB inside the fixed bottom nav, so
      clearance only needs nav height (~60px) + safe-area + breathing room. */
   body main { padding-bottom: 100px !important; }
-  body.mobile-navigation main { padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)) !important; }
+  body.mobile-navigation main { padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px)) !important; }
 }
 
 /* Dashboard payment rows: use the scannable mobile row pattern on desktop too.

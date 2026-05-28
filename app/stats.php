@@ -147,6 +147,7 @@ $hasStatsRows = isset($subscriptions) && count($subscriptions) > 0;
       <p><?= translate('no_stats_for_filters', $i18n) ?></p>
     </div>
   <?php } ?>
+  <h3 class="stats-group-title"><?= translate('subscriptions', $i18n) ?></h3>
   <div class="statistics">
     <div class="statistic">
       <span><?= $activeSubscriptions ?></span>
@@ -177,6 +178,9 @@ $hasStatsRows = isset($subscriptions) && count($subscriptions) > 0;
         <div class="subtitle">
           <img src="images/uploads/logos/<?= $mostExpensiveSubscription['logo'] ?>"
             alt="<?= $mostExpensiveSubscription['name'] ?>" title="<?= $mostExpensiveSubscription['name'] ?>" />
+          <?php if (isset($mostExpensiveSubscription['name']) && $mostExpensiveSubscription['name'] != '') { ?>
+            <span class="most-expensive-name"><?= htmlspecialchars($mostExpensiveSubscription['name']) ?></span>
+          <?php } ?>
         </div>
         <?php
       } else if (isset($mostExpensiveSubscription['name']) && $mostExpensiveSubscription['name'] != '') {
@@ -193,50 +197,7 @@ $hasStatsRows = isset($subscriptions) && count($subscriptions) > 0;
         <div class="sub-header">(<?= htmlspecialchars($amountDuePeriodLabel) ?>)</div>
       <?php } ?>
     </div>
-    <div class="statistic">
-      <?php $statsUsesPayrollCycle = wallosUsesPayrollBudgetCycle($userData); ?>
-      <span><?= CurrencyFormatter::format($statsUsesPayrollCycle ? $fuelThisPeriod : $fuelThisMonth, $code) ?></span>
-      <div class="title"><?= translate($statsUsesPayrollCycle ? 'petrol_this_cycle' : 'petrol_this_month', $i18n) ?></div>
-    </div>
-    <div class="statistic">
-      <span><?= CurrencyFormatter::format($fuelAverageMonthly, $code) ?></span>
-      <div class="title"><?= translate('petrol_average_monthly', $i18n) ?></div>
-    </div>
-    <div class="statistic">
-      <span><?= CurrencyFormatter::format($fuelThisYear, $code) ?></span>
-      <div class="title"><?= translate('petrol_yearly_total', $i18n) ?></div>
-    </div>
-    <?php if (!empty($fuelLastFill)) { ?>
-      <div class="statistic">
-        <span><?= htmlspecialchars($fuelLastFill, ENT_QUOTES, 'UTF-8') ?></span>
-        <div class="title"><?= translate('petrol_last_fill', $i18n) ?></div>
-      </div>
-    <?php } ?>
     <?php
-    if (isset($budgetUsed)) {
-      ?>
-      <div class="statistic">
-        <span><?= number_format($budgetUsed, 2) ?>%</span>
-        <div class="title"><?= translate('percentage_budget_used', $i18n) ?></div>
-      </div>
-      <?php
-    }
-    if (isset($budgetLeft)) {
-      ?>
-      <div class="statistic">
-        <span><?= CurrencyFormatter::format($budgetLeft, $code) ?></span>
-        <div class="title"><?= translate('budget_remaining', $i18n) ?></div>
-      </div>
-      <?php
-    }
-    if (isset($overBudgetAmount)) {
-      ?>
-      <div class="statistic">
-        <span><?= CurrencyFormatter::format($overBudgetAmount, $code) ?></span>
-        <div class="title"><?= translate('amount_over_budget', $i18n) ?></div>
-      </div>
-      <?php
-    }
     if ($inactiveSubscriptions > 0) {
       ?>
       <div class="statistic">
@@ -258,6 +219,53 @@ $hasStatsRows = isset($subscriptions) && count($subscriptions) > 0;
       }
     }
     ?>
+  </div>
+
+  <?php if (isset($budgetUsed) || isset($budgetLeft) || isset($overBudgetAmount)) { ?>
+    <h3 class="stats-group-title"><?= translate('budget', $i18n) ?></h3>
+    <div class="statistics">
+      <?php if (isset($budgetUsed)) { ?>
+        <div class="statistic">
+          <span><?= number_format($budgetUsed, 2) ?>%</span>
+          <div class="title"><?= translate('percentage_budget_used', $i18n) ?></div>
+        </div>
+      <?php } ?>
+      <?php if (isset($budgetLeft)) { ?>
+        <div class="statistic">
+          <span><?= CurrencyFormatter::format($budgetLeft, $code) ?></span>
+          <div class="title"><?= translate('budget_remaining', $i18n) ?></div>
+        </div>
+      <?php } ?>
+      <?php if (isset($overBudgetAmount)) { ?>
+        <div class="statistic">
+          <span><?= CurrencyFormatter::format($overBudgetAmount, $code) ?></span>
+          <div class="title"><?= translate('amount_over_budget', $i18n) ?></div>
+        </div>
+      <?php } ?>
+    </div>
+  <?php } ?>
+
+  <h3 class="stats-group-title"><?= translate('petrol', $i18n) ?></h3>
+  <div class="statistics">
+    <div class="statistic">
+      <?php $statsUsesPayrollCycle = wallosUsesPayrollBudgetCycle($userData); ?>
+      <span><?= CurrencyFormatter::format($statsUsesPayrollCycle ? $fuelThisPeriod : $fuelThisMonth, $code) ?></span>
+      <div class="title"><?= translate($statsUsesPayrollCycle ? 'petrol_this_cycle' : 'petrol_this_month', $i18n) ?></div>
+    </div>
+    <div class="statistic">
+      <span><?= CurrencyFormatter::format($fuelAverageMonthly, $code) ?></span>
+      <div class="title"><?= translate('petrol_average_monthly', $i18n) ?></div>
+    </div>
+    <div class="statistic">
+      <span><?= CurrencyFormatter::format($fuelThisYear, $code) ?></span>
+      <div class="title"><?= translate('petrol_yearly_total', $i18n) ?></div>
+    </div>
+    <?php if (!empty($fuelLastFill)) { ?>
+      <div class="statistic">
+        <span><?= htmlspecialchars(formatDate($fuelLastFill, $lang), ENT_QUOTES, 'UTF-8') ?></span>
+        <div class="title"><?= translate('petrol_last_fill', $i18n) ?></div>
+      </div>
+    <?php } ?>
   </div>
   <?php
   $categoryDataPoints = [];
